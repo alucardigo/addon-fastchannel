@@ -1,0 +1,14 @@
+<extension>
+  <id>addon-fastchannel</id>
+  <display-name>Fastchannel Integration</display-name>
+  <description>Integração Fastchannel Data Lake - Monitoramento e Ingestão de Dados</description>
+  <version>1.0.1</version>
+  <platform-min-version>4.28</platform-min-version>
+  <build-timestamp>23/01/2026 10:58:29</build-timestamp>
+  <vendor>
+    <name>BEL DISTRIBUIDOR DE LUBRIFICANTES LTDA</name>
+  </vendor>
+  <license-by-resource/>
+  <appkey>b262dd0f-3ca5-4219-8053-7a492f792590</appkey>
+  <buildApp>SankhyaStudio-2.0.0</buildApp>
+</extension>

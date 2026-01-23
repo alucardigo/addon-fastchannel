@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - Logs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --panel: #16213e;
+            --border: #0f3460;
+            --text: #eaeaea;
+            --muted: #94a3b8;
+            --accent: #00d9ff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo { width: 48px; height: 48px; border-radius: 8px; }
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .header h1 span { color: var(--accent); }
+
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+
+        .nav-tab {
+            padding: 10px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover { border-color: var(--accent); color: var(--text); }
+        .nav-tab.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .card-title { font-size: 18px; font-weight: 600; }
+
+        .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+
+        .filter-group { display: flex; flex-direction: column; gap: 4px; }
+        .filter-label { font-size: 12px; color: var(--muted); text-transform: uppercase; }
+
+        .form-input {
+            padding: 10px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .form-input:focus { outline: none; border-color: var(--accent); }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--accent); color: var(--bg); }
+        .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: var(--bg);
+        }
+
+        td { font-size: 14px; }
+        tr:hover { background: rgba(0, 217, 255, 0.05); }
+
+        .pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .pill.success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .pill.warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .pill.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .pill.info { background: rgba(0, 217, 255, 0.2); color: var(--accent); }
+        .pill.debug { background: rgba(148, 163, 184, 0.2); color: var(--muted); }
+
+        .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .pagination-info { font-size: 14px; color: var(--muted); }
+        .pagination-buttons { display: flex; gap: 8px; }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .log-message {
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .log-message.expanded {
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .log-detail {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-label { color: var(--muted); }
+        .detail-value { font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="logo">
+            <h1>Fast<span>channel</span> - Logs de Integracao</h1>
+        </header>
+
+        <nav class="nav-tabs">
+            <a class="nav-tab" href="dashboard.html">Dashboard</a>
+            <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab" href="fila.html">Fila de Sincronizacao</a>
+            <a class="nav-tab active" href="logs.html">Logs</a>
+        </nav>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Logs de Integracao</span>
+                <button class="btn btn-danger" onclick="limparLogs()">
+                    Limpar Logs Antigos
+                </button>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <span class="filter-label">Nivel</span>
+                    <select id="filterNivel" class="form-input" onchange="loadLogs()">
+                        <option value="">Todos</option>
+                        <option value="ERROR">Error</option>
+                        <option value="WARNING">Warning</option>
+                        <option value="INFO">Info</option>
+                        <option value="DEBUG">Debug</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Operacao</span>
+                    <select id="filterOperacao" class="form-input" onchange="loadLogs()">
+                        <option value="">Todas</option>
+                        <option value="ORDER_IMPORT">Importacao Pedidos</option>
+                        <option value="STOCK_SYNC">Sinc. Estoque</option>
+                        <option value="PRICE_SYNC">Sinc. Precos</option>
+                        <option value="PRODUCT_SYNC">Sinc. Produtos</option>
+                        <option value="AUTH">Autenticacao</option>
+                        <option value="QUEUE_PROCESS">Processamento Fila</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Data Inicio</span>
+                    <input type="date" id="filterDataInicio" class="form-input" onchange="loadLogs()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Data Fim</span>
+                    <input type="date" id="filterDataFim" class="form-input" onchange="loadLogs()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Buscar</span>
+                    <input type="text" id="filterBusca" class="form-input" placeholder="Mensagem...">
+                </div>
+                <div class="filter-group" style="justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="loadLogs()">Filtrar</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Nivel</th>
+                            <th>Operacao</th>
+                            <th>Referencia</th>
+                            <th>Mensagem</th>
+                            <th>Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTable">
+                        <tr><td colspan="6" class="empty-state">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <span class="pagination-info" id="paginationInfo">Mostrando 0 de 0</span>
+                <div class="pagination-buttons">
+                    <button class="btn btn-secondary btn-sm" id="btnPrev" onclick="prevPage()" disabled>Anterior</button>
+                    <button class="btn btn-secondary btn-sm" id="btnNext" onclick="nextPage()" disabled>Proximo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes -->
+    <div id="modalDetails" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="card-title">Detalhes do Log</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+            <div style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function addIfAddon(ctx) {
+                if (!ctx) return;
+                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
+                    ctx = ctx.replace(/^\/mge/, '');
+                }
+                if (ctx.indexOf('/addon-fastchannel') === -1) return;
+                add(ctx);
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+
+            const addonIdx = path.indexOf('/addon-fastchannel');
+            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        console.log('[Fastchannel] contexts', addonContexts);
+        let currentPage = 1;
+        let totalPages = 1;
+        let pageSize = 50;
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+                    if (resp.ok) return await resp.json();
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    lastErr = errMsg;
+                } catch (e) { lastErr = e.message; }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '--';
+            return new Date(dateStr).toLocaleString('pt-BR');
+        }
+
+        function getNivelPill(nivel) {
+            const map = {
+                'ERROR': 'danger',
+                'WARNING': 'warning',
+                'INFO': 'info',
+                'DEBUG': 'debug'
+            };
+            return `<span class="pill ${map[nivel] || 'info'}">${nivel || '--'}</span>`;
+        }
+
+        function getOperacaoPill(op) {
+            const labels = {
+                'ORDER_IMPORT': 'Import Pedidos',
+                'STOCK_SYNC': 'Sinc Estoque',
+                'PRICE_SYNC': 'Sinc Precos',
+                'PRODUCT_SYNC': 'Sinc Produtos',
+                'AUTH': 'Autenticacao',
+                'QUEUE_PROCESS': 'Fila'
+            };
+            return `<span class="pill info">${labels[op] || op || '--'}</span>`;
+        }
+
+        async function loadLogs() {
+            const tbody = document.getElementById('logsTable');
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+
+            try {
+                const filters = {
+                    nivel: document.getElementById('filterNivel').value,
+                    operacao: document.getElementById('filterOperacao').value,
+                    dataInicio: document.getElementById('filterDataInicio').value,
+                    dataFim: document.getElementById('filterDataFim').value,
+                    busca: document.getElementById('filterBusca').value,
+                    page: currentPage,
+                    pageSize: pageSize
+                };
+
+                const data = await callService('FCLogsSP.list', filters);
+
+                if (data.items && data.items.length > 0) {
+                    tbody.innerHTML = data.items.map(log => `
+                        <tr>
+                            <td>${formatDate(log.dhLog)}</td>
+                            <td>${getNivelPill(log.nivel)}</td>
+                            <td>${getOperacaoPill(log.operacao)}</td>
+                            <td>${log.referencia || '--'}</td>
+                            <td class="log-message" title="${(log.mensagem || '').replace(/"/g, '&quot;')}">${log.mensagem || '--'}</td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick='showDetails(${JSON.stringify(log)})'>
+                                    Ver
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    totalPages = Math.ceil((data.total || 0) / pageSize);
+                    updatePagination(data.total || 0);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhum log encontrado</td></tr>';
+                    updatePagination(0);
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Erro: ${e.message}</td></tr>`;
+            }
+        }
+
+        function updatePagination(total) {
+            document.getElementById('paginationInfo').textContent = `Mostrando ${Math.min(pageSize, total)} de ${total}`;
+            document.getElementById('btnPrev').disabled = currentPage <= 1;
+            document.getElementById('btnNext').disabled = currentPage >= totalPages;
+        }
+
+        function prevPage() { if (currentPage > 1) { currentPage--; loadLogs(); } }
+        function nextPage() { if (currentPage < totalPages) { currentPage++; loadLogs(); } }
+
+        function showDetails(log) {
+            const modal = document.getElementById('modalDetails');
+            const body = document.getElementById('modalBody');
+
+            body.innerHTML = `
+                <div class="detail-row"><span class="detail-label">Data/Hora</span><span class="detail-value">${formatDate(log.dhLog)}</span></div>
+                <div class="detail-row"><span class="detail-label">Nivel</span><span class="detail-value">${getNivelPill(log.nivel)}</span></div>
+                <div class="detail-row"><span class="detail-label">Operacao</span><span class="detail-value">${getOperacaoPill(log.operacao)}</span></div>
+                <div class="detail-row"><span class="detail-label">Referencia</span><span class="detail-value">${log.referencia || '--'}</span></div>
+                <h4 style="margin: 16px 0 8px; color: var(--muted);">Mensagem</h4>
+                <div class="log-detail">${log.mensagem || '--'}</div>
+                ${log.stacktrace ? `
+                    <h4 style="margin: 16px 0 8px; color: var(--muted);">Stack Trace</h4>
+                    <div class="log-detail">${log.stacktrace}</div>
+                ` : ''}
+            `;
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modalDetails').classList.remove('show');
+        }
+
+        async function limparLogs() {
+            if (!confirm('Limpar logs com mais de 30 dias?')) return;
+            try {
+                const result = await callService('FCLogsSP.limpar', { dias: 30 });
+                alert(result.message || 'Logs limpos');
+                loadLogs();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadLogs);
+    </script>
+</body>
+</html>
+

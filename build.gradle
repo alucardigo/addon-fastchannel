@@ -1,0 +1,418 @@
+
+/*
+    Para mais informações de como efetuar a correta configuração desse arquivo,
+    consulte a documentação oficial da Sankkhya no link abaixo:
+    <a href="https://developer.sankhya.com.br/docs/03_conf_addonstudio"/>
+ */
+
+buildscript {
+
+    repositories{
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url = uri("https://artifacts-partners.sankhya.com.br/repository/maven-releases")
+        }
+    }
+
+    dependencies {
+        classpath "br.com.sankhya.studio:gradle-plugin:2.0.0"
+        classpath "com.google.devtools.ksp:symbol-processing-gradle-plugin:2.0.0-1.0.24"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0"
+    }
+}
+
+//Substitua o valor inserido em 'group' por seu domínio, por exemplo: 'br.com.suaempresa'.
+group = 'br.com.bellube.fastchannel'
+//Especifica a versão do addon. É útil para controle de versões, deploys e compatibilidade com o sistema.
+version="1.0.1"
+//Define uma breve descrição do addon, explicando sua funcionalidade ou objetivo principal.
+description = "Integração Fastchannel Data Lake - Monitoramento e Ingestão de Dados"
+
+apply(plugin: "br.com.sankhya.addonstudio")
+
+// Load local.properties for machine-specific configuration
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localProps.load(localPropsFile.newDataInputStream())
+}
+
+snkmodule {
+    // Server folder from local.properties or environment variable SNK_SERVER_FOLDER
+    def server = localProps.getProperty('snk.serverFolder') ?: System.getenv('SNK_SERVER_FOLDER') ?: ''
+    if (server.isEmpty()) {
+        logger.warn("WARNING: snk.serverFolder not configured. Create local.properties with snk.serverFolder=<path>")
+    }
+    serverFolder = server
+    plataformaMinima = "4.28"
+}
+
+addon {
+    /*
+        Ao habilitar o autoDDL, os scripts de criação de tabelas em dbscripts são ignorados,
+        e as tabelas são geradas automaticamente com base nas entidades definidas em datadictionary*.
+        Para usar scripts manuais, defina autoDDL=true. Para mais informações, consulte:
+        <a href="https://developer.sankhya.com.br/docs/02_autoddl">
+    */
+    autoDDL=false
+    //Informe aqui a sua APPKEY. Lembre-se de criar previamente sua solução e componente no Portal do Desenvolvedor.
+    appKey="b262dd0f-3ca5-4219-8053-7a492f792590"
+    //Informe aqui o nome da sua empresa
+    parceiroNome = "BEL DISTRIBUIDOR DE LUBRIFICANTES LTDA"
+}
+
+// Garante display-name no extension.xml gerado
+tasks.register('patchExtension') {
+    dependsOn 'createExtensionFile'
+    doLast {
+        def f = file("build/dist/extension.xml")
+        if (!f.exists()) return
+        def parser = new XmlParser(false, false)
+        def xml = parser.parse(f)
+        def displayNameNode = xml.'display-name'
+        if (!displayNameNode || !displayNameNode.text()) {
+            // insere logo após o id
+            def children = xml.children()
+            def insertIdx = children.findIndexOf { it instanceof Node && it.name() == 'id' } + 1
+            children.add(insertIdx, new Node(null, 'display-name', 'Fastchannel Integration'))
+        }
+        def vendorNode = (xml.'vendor' && xml.'vendor'.size() > 0) ? xml.'vendor'[0] : null
+        if (!vendorNode) {
+            vendorNode = new Node(xml, 'vendor')
+            new Node(vendorNode, 'name', 'BEL DISTRIBUIDOR DE LUBRIFICANTES LTDA')
+        }
+
+        def licenseId = System.getenv('ADDON_LICENSE_ID') ?: (project.hasProperty('ADDON_LICENSE_ID') ? project.getProperty('ADDON_LICENSE_ID') : null)
+        def normalizedLicenseId = licenseId?.trim()
+        if (normalizedLicenseId) {
+            def vendorId = (vendorNode.'id' && vendorNode.'id'.size() > 0) ? vendorNode.'id'[0] : null
+            if (vendorId) {
+                vendorId.value = [normalizedLicenseId]
+            } else {
+                new Node(vendorNode, 'id', normalizedLicenseId)
+            }
+
+            def licenseNode = (xml.'license-by-resource' && xml.'license-by-resource'.size() > 0) ? xml.'license-by-resource'[0] : null
+            if (!licenseNode) {
+                licenseNode = new Node(xml, 'license-by-resource')
+            }
+            def defaultMod = (licenseNode.'default-module' && licenseNode.'default-module'.size() > 0) ? licenseNode.'default-module'[0] : null
+            if (defaultMod) {
+                defaultMod.value = [normalizedLicenseId]
+            } else {
+                new Node(licenseNode, 'default-module', normalizedLicenseId)
+            }
+        } else {
+            // In dev mode, avoid license enforcement when SAS is offline.
+            if (vendorNode.'id') {
+                vendorNode.'id'.each { vendorNode.remove(it) }
+            }
+            def licenseNode = (xml.'license-by-resource' && xml.'license-by-resource'.size() > 0) ? xml.'license-by-resource'[0] : null
+            if (licenseNode && licenseNode.'default-module') {
+                licenseNode.'default-module'.each { licenseNode.remove(it) }
+            }
+        }
+        def writer = new StringWriter()
+        def printer = new XmlNodePrinter(new PrintWriter(writer))
+        printer.preserveWhitespace = true
+        printer.print(xml)
+        f.setText(writer.toString(), 'UTF-8')
+    }
+}
+
+// Mantém o extension.xml dentro dos recursos do WAR antes do empacotamento
+tasks.register('syncExtensionResources') {
+    dependsOn 'patchExtension'
+    doLast {
+        def extFile = file("build/dist/extension.xml")
+        if (!extFile.exists()) return
+        def targets = [
+            "vc/buildGradle/resources/main/WEB-INF/extension.xml",
+            "vc/buildGradle/resources/main/extension.xml"
+        ]
+        targets.each { t ->
+            def dest = file(t)
+            dest.parentFile.mkdirs()
+            project.copy {
+                from(extFile)
+                into(dest.parentFile)
+                rename { dest.name }
+            }
+        }
+    }
+}
+
+// Ensure dbscripts XML are available for ddmigration
+tasks.register('syncDbScripts') {
+    doLast {
+        def srcDir = file("dbscripts")
+        if (!srcDir.exists()) return
+        def destDir = file("build/dist/dbscripts")
+        destDir.mkdirs()
+        project.copy {
+            from(srcDir)
+            into(destDir)
+            include "V*.xml"
+        }
+    }
+}
+
+afterEvaluate {
+    tasks.register('prepareDeployDir') {
+        doLast {
+            def serverPath = project.extensions.getByName("snkmodule").serverFolder.get()
+            if (!serverPath) {
+                throw new GradleException("snk.serverFolder not configured. Create local.properties with snk.serverFolder=<path>")
+            }
+            serverPath = serverPath.replace('\\', '/')
+            def deployDir = file("${serverPath}/standalone/deployments")
+            def earName = "${rootProject.name}.ear"
+            def targetPath = new File(deployDir, earName)
+            if (targetPath.exists()) {
+                if (targetPath.isDirectory()) {
+                    targetPath.deleteDir()
+                } else {
+                    targetPath.delete()
+                }
+            }
+            def markers = [
+                new File(deployDir, "${earName}.deployed"),
+                new File(deployDir, "${earName}.failed"),
+                new File(deployDir, "${earName}.dodeploy"),
+                new File(deployDir, "${earName}.isdeploying")
+            ]
+            markers.each { f -> if (f.exists()) f.delete() }
+        }
+    }
+    tasks.named('configureAddon') {
+        dependsOn project(':vc').tasks.named('war')
+    }
+
+    project(':vc').tasks.named('war') {
+        dependsOn rootProject.tasks.named('patchExtension')
+        dependsOn rootProject.tasks.named('syncExtensionResources')
+        dependsOn rootProject.tasks.named('processDashboards')
+        from("${rootProject.buildDir}/dist/extension.xml") {
+            into 'WEB-INF'
+            rename { 'extension.xml' }
+        }
+        from("${rootProject.buildDir}/dist/extension.xml") {
+            into 'WEB-INF/classes'
+            rename { 'extension.xml' }
+        }
+        def dbScriptsDir = rootProject.file("dbscripts")
+        if (dbScriptsDir.exists()) {
+            from(dbScriptsDir) {
+                into 'dbscripts'
+                include "V*.xml"
+            }
+            from(dbScriptsDir) {
+                into 'WEB-INF/classes/dbscripts'
+                include "V*.xml"
+            }
+        }
+    }
+
+    project(':vc').tasks.named('processResources') {
+        dependsOn rootProject.tasks.named('syncExtensionResources')
+    }
+
+    tasks.register('injectExtensionIntoWar') {
+        dependsOn project(':vc').tasks.named('buildWar')
+        dependsOn rootProject.tasks.named('patchExtension')
+        doLast {
+            def warFile = file("${buildDir}/dist/web/addon-fastchannel-web.war")
+            if (!warFile.exists()) {
+                throw new GradleException("WAR not found at ${warFile}")
+            }
+            def extFile = file("${buildDir}/dist/extension.xml")
+            def tempDir = file("${buildDir}/tmp/warWithExtension")
+            if (tempDir.exists()) {
+                tempDir.deleteDir()
+            }
+            project.copy {
+                from zipTree(warFile)
+                into tempDir
+            }
+            if (extFile.exists()) {
+                project.copy {
+                    from(extFile)
+                    into(tempDir)
+                    rename { "extension.xml" }
+                }
+                project.copy {
+                    from(extFile)
+                    into(new File(tempDir, "WEB-INF"))
+                    rename { "extension.xml" }
+                }
+                project.copy {
+                    from(extFile)
+                    into(new File(tempDir, "WEB-INF/classes"))
+                    rename { "extension.xml" }
+                }
+                project.copy {
+                    from(extFile)
+                    into(new File(tempDir, "WEB-INF/classes/datadictionary"))
+                    rename { "extension.xml" }
+                }
+                // Copy metadata.xml to WAR for bootloader (multiple locations)
+                def metadataFile = file("${buildDir}/dist/datadictionary/metadata.xml")
+                def datadictDir = file("${buildDir}/dist/datadictionary")
+                if (metadataFile.exists()) {
+                    // WEB-INF/classes/datadictionary
+                    project.copy {
+                        from(metadataFile)
+                        into(new File(tempDir, "WEB-INF/classes/datadictionary"))
+                    }
+                    // WEB-INF/datadictionary
+                    project.copy {
+                        from(metadataFile)
+                        into(new File(tempDir, "WEB-INF/datadictionary"))
+                    }
+                    // WEB-INF/dictionary (expected by ddmigration)
+                    project.copy {
+                        from(metadataFile)
+                        into(new File(tempDir, "WEB-INF/dictionary"))
+                    }
+                    // datadictionary (root)
+                    project.copy {
+                        from(metadataFile)
+                        into(new File(tempDir, "datadictionary"))
+                    }
+                    // WEB-INF/dd (alternative path)
+                    project.copy {
+                        from(datadictDir)
+                        into(new File(tempDir, "WEB-INF/dd"))
+                    }
+                    // WEB-INF/resources/datadictionary
+                    project.copy {
+                        from(metadataFile)
+                        into(new File(tempDir, "WEB-INF/resources/datadictionary"))
+                    }
+                }
+                // ensure META-INF/<display>-extension.xml matches ctxFilter used by bootloader
+                def displayName = "Addon-FastChannel"
+                def extensionId = "addon-fastchannel"
+                try {
+                    def parser = new XmlParser(false, false)
+                    def xml = parser.parse(extFile)
+                    def dn = xml.'display-name'?.text()
+                    if (dn) {
+                        displayName = dn
+                    }
+                    def idVal = xml.'id'?.text()
+                    if (idVal) {
+                        extensionId = idVal
+                    }
+                } catch(Exception ignored) {}
+                project.copy {
+                    from(extFile)
+                    into(new File(tempDir, "META-INF"))
+                    rename { "${displayName}-extension.xml" }
+                }
+                project.copy {
+                    from(extFile)
+                    into(new File(tempDir, "META-INF"))
+                    rename { "${extensionId}-extension.xml" }
+                }
+                project.copy {
+                    from(extFile)
+                    into(new File(tempDir, "META-INF"))
+                    rename { "Fastchannel Integration-extension.xml" }
+                }
+            }
+            def dbScriptDistDir = file("${buildDir}/dist/dbscripts")
+            def oracleSql = new File(dbScriptDistDir, "oracle.sql")
+            def mssqlSql = new File(dbScriptDistDir, "mssqlserver.sql")
+            if (oracleSql.exists() || mssqlSql.exists()) {
+                def scriptDir = new File(tempDir, "WEB-INF/script")
+                scriptDir.mkdirs()
+                if (oracleSql.exists()) {
+                    project.copy {
+                        from(oracleSql)
+                        into(scriptDir)
+                    }
+                }
+                if (mssqlSql.exists()) {
+                    project.copy {
+                        from(mssqlSql)
+                        into(scriptDir)
+                    }
+                }
+            }
+            // web.xml já configurado corretamente para addons - não é necessário modificar
+            // Create jboss-web.xml to force context-root
+            def jbossWebXml = new File(tempDir, "WEB-INF/jboss-web.xml")
+            jbossWebXml.text = '''<?xml version="1.0" encoding="UTF-8"?>
+<jboss-web>
+    <context-root>/addon-fastchannel</context-root>
+</jboss-web>
+'''
+            ant.zip(destfile: warFile, baseDir: tempDir)
+        }
+    }
+
+    tasks.named('deployAddon') {
+        dependsOn 'patchExtension'
+        dependsOn 'syncExtensionResources'
+        dependsOn 'syncDbScripts'
+        dependsOn 'injectExtensionIntoWar'
+        dependsOn 'prepareDeployDir'
+        actions.clear()
+        doLast {
+            def serverPath = project.extensions.getByName("snkmodule").serverFolder.get()
+            if (!serverPath) {
+                throw new GradleException("snk.serverFolder not configured. Create local.properties with snk.serverFolder=<path>")
+            }
+            serverPath = serverPath.replace('\\', '/')
+            def deployDir = file("${serverPath}/standalone/deployments")
+            def earName = "${rootProject.name}.ear"
+            def sourceDir = file("${buildDir}/dist")
+            if (!sourceDir.exists()) {
+                throw new GradleException("build/dist not found at ${sourceDir}")
+            }
+            def targetPath = new File(deployDir, earName)
+            if (targetPath.exists()) {
+                if (targetPath.isDirectory()) {
+                    targetPath.deleteDir()
+                } else {
+                    targetPath.delete()
+                }
+            }
+            def markers = [
+                new File(deployDir, "${earName}.deployed"),
+                new File(deployDir, "${earName}.failed"),
+                new File(deployDir, "${earName}.dodeploy"),
+                new File(deployDir, "${earName}.isdeploying")
+            ]
+            markers.each { f -> if (f.exists()) f.delete() }
+            project.copy {
+                from(sourceDir)
+                into(targetPath)
+            }
+            new File(deployDir, "${earName}.dodeploy").text = ""
+            println "Package copiado para ${deployDir}"
+            def deployed = new File(deployDir, "${earName}.deployed")
+            def failed = new File(deployDir, "${earName}.failed")
+            def start = System.currentTimeMillis()
+            def timeoutMs = 5 * 60 * 1000
+            while (!deployed.exists() && !failed.exists()) {
+                if (System.currentTimeMillis() - start > timeoutMs) {
+                    throw new GradleException("Deploy timeout waiting for ${earName}.deployed")
+                }
+                sleep(2000)
+            }
+            if (failed.exists()) {
+                throw new GradleException("Deploy failed. See server.log for details.")
+            }
+        }
+    }
+
+    tasks.named('publishAddon') {
+        dependsOn 'patchExtension'
+        dependsOn 'syncDbScripts'
+        dependsOn 'injectExtensionIntoWar'
+    }
+
+}

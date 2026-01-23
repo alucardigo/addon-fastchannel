@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE metadata-provider >
+<metadata-provider name="Addon-FastChannel-dwf" parent="mge-core" data-source="java:/MGEDS" batch-fetch-size="200" verbose="false" use-ejb="false">
+    <container-config entity-cache-max-idle="1800" entity-cache-max-size="5000" instance-cache-max-size="2000" commit-type-d-refresh-rate="120"/>
+    <descriptor name="FC_Configuracao" location="br/com/bellube/fastchannel/dwf/FC_Configuracao.xml"/><descriptor name="FC_FilaSincronizacao" location="br/com/bellube/fastchannel/dwf/FC_FilaSincronizacao.xml"/><descriptor name="FC_Pedidos" location="br/com/bellube/fastchannel/dwf/FC_Pedidos.xml"/><descriptor name="FC_Logs" location="br/com/bellube/fastchannel/dwf/FC_Logs.xml"/><descriptor name="FC_DePara" location="br/com/bellube/fastchannel/dwf/FC_DePara.xml"/>
+</metadata-provider>  
+
+
+
+
+
+
+
+
+

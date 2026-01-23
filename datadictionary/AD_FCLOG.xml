@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadados xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../.gradle/metadados.xsd">
+    <table name="AD_FCLOG" sequenceType="A" sequenceField="IDLOG">
+        <description>Log de Operacoes Fastchannel</description>
+        <primaryKey>
+            <field name="IDLOG"/>
+        </primaryKey>
+        <instances>
+            <instance name="FC_Logs">
+                <description>Logs da Integracao Fastchannel</description>
+                <toolbar>
+                    <action name="limparLogs" description="Limpar Logs Antigos"
+                            icon="fa-eraser" type="JAVA"
+                            classname="br.com.bellube.fastchannel.action.LimparLogsAction">
+                    </action>
+                </toolbar>
+            </instance>
+        </instances>
+        <fields>
+            <field name="IDLOG" dataType="INTEIRO" size="10" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>ID do log</description>
+            </field>
+            <field name="NIVEL" dataType="TEXTO" size="20" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Nivel</description>
+                <options>
+                    <option value="INFO" description="Informacao"/>
+                    <option value="WARNING" description="Aviso"/>
+                    <option value="ERROR" description="Erro"/>
+                    <option value="DEBUG" description="Debug"/>
+                </options>
+            </field>
+            <field name="OPERACAO" dataType="TEXTO" size="50" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Tipo de Operacao</description>
+                <options>
+                    <option value="ORDER_IMPORT" description="Importacao de Pedidos"/>
+                    <option value="STOCK_SYNC" description="Sincronizacao de Estoque"/>
+                    <option value="PRICE_SYNC" description="Sincronizacao de Precos"/>
+                    <option value="QUEUE_PROCESS" description="Processamento de Fila"/>
+                    <option value="AUTH" description="Autenticacao"/>
+                    <option value="GENERAL" description="Geral"/>
+                </options>
+            </field>
+            <field name="MENSAGEM" dataType="TEXTO" size="500" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Mensagem do log</description>
+            </field>
+            <field name="REFERENCIA" dataType="TEXTO" size="100" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Referencia (OrderId, SKU, etc)</description>
+            </field>
+            <field name="DETALHES" dataType="TEXTO" size="4000" mandatory="N" allowSearch="N">
+                <description>Detalhes adicionais ou stack trace</description>
+            </field>
+            <field name="DH_REGISTRO" dataType="DATA_HORA" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Data/hora do registro</description>
+            </field>
+        </fields>
+    </table>
+</metadados>

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Monitor de Integracao Fastchannel</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            margin: 0;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+        }
+
+        .cards-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .status-card {
+            flex: 1;
+            min-width: 180px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-card.online {
+            border-left: 4px solid #28a745;
+        }
+
+        .status-card.offline {
+            border-left: 4px solid #dc3545;
+        }
+
+        .status-card.info {
+            border-left: 4px solid #17a2b8;
+        }
+
+        .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .value.text-success {
+            color: #28a745;
+        }
+
+        .value.text-danger {
+            color: #dc3545;
+        }
+
+        .action-bar {
+            margin-bottom: 20px;
+        }
+
+        .action-bar button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd6;
+        }
+
+        .btn-primary:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .logs-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .logs-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .logs-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .logs-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .logs-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .info-bar {
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 1000;
+            display: none;
+        }
+
+        .toast.success {
+            background: #28a745;
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        .toast.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <h2>Monitor de Integracao Fastchannel</h2>
+        <p>Status em tempo real da integracao com o Data Lake</p>
+    </div>
+
+    <!-- Status Cards -->
+    <div class="cards-row">
+        <div class="status-card offline" id="card-api-status">
+            <div class="label">Status da API</div>
+            <div class="value text-danger" id="api-status">Verificando...</div>
+        </div>
+
+        <div class="status-card info">
+            <div class="label">Sucesso (24h)</div>
+            <div class="value" id="stat-success">0</div>
+        </div>
+
+        <div class="status-card info">
+            <div class="label">Erros (24h)</div>
+            <div class="value" id="stat-errors">0</div>
+        </div>
+
+        <div class="status-card info">
+            <div class="label">Taxa de Sucesso</div>
+            <div class="value" id="stat-rate">100%</div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-bar">
+        <button class="btn-primary" id="btn-sync" onclick="forceSync()">
+            Forcar Sincronizacao
+        </button>
+        <button class="btn-secondary" onclick="checkHealth()">Verificar API</button>
+        <button class="btn-secondary" onclick="loadLogs()">Atualizar Logs</button>
+    </div>
+
+    <!-- Info Bar -->
+    <div class="info-bar" id="info-bar">
+        <strong>Ultima Sincronizacao:</strong> <span id="last-sync-time">-</span> |
+        <strong>Status:</strong> <span id="last-sync-status">-</span> |
+        <strong>API URL:</strong> <span id="api-url">-</span>
+    </div>
+
+    <!-- Logs Grid -->
+    <div class="logs-section">
+        <h3>Historico de Integracoes</h3>
+
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Data/Hora</th>
+                    <th>Status</th>
+                    <th>Endpoint</th>
+                    <th>Mensagem</th>
+                </tr>
+            </thead>
+            <tbody id="logs-tbody">
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #999; padding: 30px;">Carregando...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast success" id="toast"></div>
+
+    <script>
+        // ===== State =====
+        var syncing = false;
+
+        // ===== Init =====
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Dashboard initialized');
+            checkHealth();
+            loadStats();
+            loadLogs();
+        });
+
+        // ===== API Health Check =====
+        function checkHealth() {
+            console.log('Checking API health...');
+            callService('FastchannelMonitorSP', 'getApiHealth', {}, function (data) {
+                var card = document.getElementById('card-api-status');
+                var status = document.getElementById('api-status');
+
+                if (data.online) {
+                    card.className = 'status-card online';
+                    status.className = 'value text-success';
+                    status.textContent = 'ONLINE';
+                } else {
+                    card.className = 'status-card offline';
+                    status.className = 'value text-danger';
+                    status.textContent = 'OFFLINE';
+                }
+            }, function (err) {
+                console.error('Health check failed:', err);
+                document.getElementById('api-status').textContent = 'ERRO';
+            });
+        }
+
+        // ===== Load Statistics =====
+        function loadStats() {
+            callService('FastchannelMonitorSP', 'getStatistics', {}, function (data) {
+                document.getElementById('stat-success').textContent = data.success24h || 0;
+                document.getElementById('stat-errors').textContent = data.error24h || 0;
+                document.getElementById('stat-rate').textContent = (data.successRate || 100) + '%';
+
+                if (data.lastSyncTime) {
+                    document.getElementById('info-bar').style.display = 'block';
+                    document.getElementById('last-sync-time').textContent = data.lastSyncTime;
+                    document.getElementById('last-sync-status').textContent = data.lastSyncStatus || '-';
+                    document.getElementById('api-url').textContent = data.apiUrl || '-';
+                }
+            }, function (err) {
+                console.error('Failed to load stats:', err);
+            });
+        }
+
+        // ===== Load Logs =====
+        function loadLogs() {
+            callService('FastchannelMonitorSP', 'getIntegrationLogs', { limit: 50 }, function (data) {
+                var tbody = document.getElementById('logs-tbody');
+
+                if (!data.logs || data.logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999; padding: 30px;">Nenhum registro encontrado</td></tr>';
+                    return;
+                }
+
+                var html = '';
+                data.logs.forEach(function (log) {
+                    var badgeClass = log.status === 'SUCCESS' ? 'badge-success' : (log.status === 'ERROR' ? 'badge-error' : 'badge-warning');
+                    html += '<tr>' +
+                        '<td>' + (log.nuseq || '-') + '</td>' +
+                        '<td>' + (log.dataHora || '-') + '</td>' +
+                        '<td><span class="badge ' + badgeClass + '">' + log.status + '</span></td>' +
+                        '<td>' + (log.endpoint || '-') + '</td>' +
+                        '<td>' + (log.message || '-').substring(0, 100) + '</td>' +
+                        '</tr>';
+                });
+                tbody.innerHTML = html;
+            }, function (err) {
+                console.error('Failed to load logs:', err);
+                document.getElementById('logs-tbody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545; padding: 30px;">Erro ao carregar logs</td></tr>';
+            });
+        }
+
+        // ===== Force Sync =====
+        function forceSync() {
+            if (syncing) return;
+
+            syncing = true;
+            var btn = document.getElementById('btn-sync');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Sincronizando...';
+
+            showToast('Iniciando sincronizacao...', 'success');
+
+            callService('FastchannelIntegrationSP', 'syncAll', {}, function (data) {
+                syncing = false;
+                btn.disabled = false;
+                btn.textContent = 'Forcar Sincronizacao';
+
+                if (data.success) {
+                    showToast(data.message || 'Sincronizacao concluida!', 'success');
+                } else {
+                    showToast(data.message || 'Erro na sincronizacao', 'error');
+                }
+
+                loadStats();
+                loadLogs();
+            }, function (err) {
+                syncing = false;
+                btn.disabled = false;
+                btn.textContent = 'Forcar Sincronizacao';
+                showToast('Erro: ' + (err.message || 'Falha na sincronizacao'), 'error');
+            });
+        }
+
+        // ===== Toast =====
+        function showToast(msg, type) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast ' + type + ' show';
+
+            setTimeout(function () {
+                toast.className = 'toast ' + type;
+            }, 4000);
+        }
+
+        // ===== Service Caller =====
+        function callService(serviceName, methodName, params, onSuccess, onError) {
+            var fullService = serviceName + '.' + methodName;
+
+            // Try ServiceProxy from parent (Sankhya context)
+            if (window.parent && window.parent.ServiceProxy) {
+                try {
+                    var call = window.parent.ServiceProxy.createCall(fullService, params);
+                    call.execute(function (response) {
+                        if (response && response.responseBody) {
+                            onSuccess(response.responseBody);
+                        } else if (response) {
+                            onSuccess(response);
+                        }
+                    }, function (error) {
+                        if (onError) onError(error);
+                    });
+                    return;
+                } catch (e) {
+                    console.warn('ServiceProxy failed, using AJAX fallback', e);
+                }
+            }
+
+            // AJAX Fallback
+            var xhr = new XMLHttpRequest();
+            var url = '/mge/service.sbr?serviceName=' + fullService + '&outputType=json';
+
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        var data = response.responseBody || response;
+                        onSuccess(data);
+                    } catch (e) {
+                        if (onError) onError({ message: 'Parse error' });
+                    }
+                } else {
+                    if (onError) onError({ message: 'HTTP ' + xhr.status });
+                }
+            };
+
+            xhr.onerror = function () {
+                if (onError) onError({ message: 'Network error' });
+            };
+
+            xhr.send(JSON.stringify({ requestBody: params }));
+        }
+    </script>
+
+</body>
+
+</html>

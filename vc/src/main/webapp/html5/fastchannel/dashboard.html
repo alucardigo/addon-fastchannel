@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --panel: #16213e;
+            --border: #0f3460;
+            --text: #eaeaea;
+            --muted: #94a3b8;
+            --accent: #00d9ff;
+            --accent-secondary: #e94560;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .header h1 span {
+            color: var(--accent);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge.online {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .status-badge.offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .status-badge.loading {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .pulse {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .pulse.green { background: var(--success); }
+        .pulse.red { background: var(--danger); }
+        .pulse.yellow { background: var(--warning); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 10px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-tab:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .nav-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .card-icon.blue { background: rgba(0, 217, 255, 0.2); }
+        .card-icon.green { background: rgba(16, 185, 129, 0.2); }
+        .card-icon.red { background: rgba(239, 68, 68, 0.2); }
+        .card-icon.yellow { background: rgba(245, 158, 11, 0.2); }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-row-label {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .stat-row-value {
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .progress-fill.success { background: var(--success); }
+        .progress-fill.warning { background: var(--warning); }
+        .progress-fill.danger { background: var(--danger); }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        .btn-primary:hover {
+            background: #00b8d9;
+        }
+
+        .btn-secondary {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .pill.success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .pill.warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .pill.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .pill.info { background: rgba(0, 217, 255, 0.2); color: var(--accent); }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--muted);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .error-banner {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 16px;
+            color: var(--danger);
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .refresh-info {
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-left">
+                <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="logo">
+                <h1>Fast<span>channel</span> Integration</h1>
+            </div>
+            <div id="statusBadge" class="status-badge loading">
+                <div class="pulse yellow"></div>
+                <span>Carregando...</span>
+            </div>
+        </header>
+
+        <nav class="nav-tabs">
+            <a class="nav-tab active" href="dashboard.html">Dashboard</a>
+            <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab" href="fila.html">Fila de Sincronizacao</a>
+            <a class="nav-tab" href="logs.html">Logs</a>
+        </nav>
+
+        <div id="errorBanner" class="error-banner"></div>
+
+        <div class="actions-row">
+            <button id="btnTestarConexao" class="btn btn-primary" onclick="testarConexao()">
+                Testar Conexao
+            </button>
+            <button id="btnImportarPedidos" class="btn btn-secondary" onclick="importarPedidos()">
+                Importar Pedidos
+            </button>
+            <button id="btnProcessarFila" class="btn btn-secondary" onclick="processarFila()">
+                Processar Fila
+            </button>
+            <button id="btnRefresh" class="btn btn-secondary" onclick="loadDashboard()">
+                Atualizar
+            </button>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Status da Conexao</span>
+                    <div class="card-icon blue">&#x2B50;</div>
+                </div>
+                <div id="connectionStatus">
+                    <div class="stat-row">
+                        <span class="stat-row-label">API Fastchannel</span>
+                        <span id="apiStatus" class="stat-row-value">--</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Token OAuth2</span>
+                        <span id="tokenStatus" class="stat-row-value">--</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Ultima Verificacao</span>
+                        <span id="lastCheck" class="stat-row-value">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Fila de Sincronizacao</span>
+                    <div class="card-icon yellow">&#x1F4E4;</div>
+                </div>
+                <div id="queueStats">
+                    <div class="stat-value" id="queuePending">0</div>
+                    <div class="stat-label">Itens Pendentes</div>
+                    <div class="progress-bar">
+                        <div id="queueProgress" class="progress-fill success" style="width: 0%"></div>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Processando</span>
+                        <span id="queueProcessing" class="stat-row-value">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Com Erro</span>
+                        <span id="queueErrors" class="stat-row-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Pedidos Hoje</span>
+                    <div class="card-icon green">&#x1F4E6;</div>
+                </div>
+                <div id="ordersStats">
+                    <div class="stat-value" id="ordersToday">0</div>
+                    <div class="stat-label">Pedidos Importados</div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Pendentes</span>
+                        <span id="ordersPending" class="stat-row-value">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Com Erro</span>
+                        <span id="ordersError" class="stat-row-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Sincronizacoes</span>
+                    <div class="card-icon blue">&#x1F504;</div>
+                </div>
+                <div id="syncStats">
+                    <div class="stat-row">
+                        <span class="stat-row-label">Estoque (24h)</span>
+                        <span id="syncStock" class="stat-row-value">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Precos (24h)</span>
+                        <span id="syncPrice" class="stat-row-value">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Produtos (24h)</span>
+                        <span id="syncProduct" class="stat-row-value">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Ultimos Logs</span>
+                <div class="refresh-info">
+                    <span>Atualiza automaticamente a cada 30s</span>
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Operacao</th>
+                            <th>Nivel</th>
+                            <th>Mensagem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTable">
+                        <tr>
+                            <td colspan="4" class="empty-state">Carregando logs...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Resolve addon context paths
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function addIfAddon(ctx) {
+                if (!ctx) return;
+                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
+                    ctx = ctx.replace(/^\/mge/, '');
+                }
+                if (ctx.indexOf('/addon-fastchannel') === -1) return;
+                add(ctx);
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+
+            const addonIdx = path.indexOf('/addon-fastchannel');
+            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        console.log('[Fastchannel] contexts', addonContexts);
+        let autoRefreshInterval = null;
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        // Call backend service
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+
+                    if (resp.ok) {
+                        return await resp.json();
+                    }
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    lastErr = errMsg;
+                } catch (e) {
+                    lastErr = e.message;
+                }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        // Update status badge
+        function updateStatus(isOnline, message) {
+            const badge = document.getElementById('statusBadge');
+            const pulse = badge.querySelector('.pulse');
+            const span = badge.querySelector('span');
+
+            badge.className = `status-badge ${isOnline ? 'online' : 'offline'}`;
+            pulse.className = `pulse ${isOnline ? 'green' : 'red'}`;
+            span.textContent = message;
+        }
+
+        // Show error
+        function showError(message) {
+            const banner = document.getElementById('errorBanner');
+            banner.textContent = message;
+            banner.style.display = 'block';
+        }
+
+        // Hide error
+        function hideError() {
+            document.getElementById('errorBanner').style.display = 'none';
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            if (!dateStr) return '--';
+            const d = new Date(dateStr);
+            return d.toLocaleString('pt-BR');
+        }
+
+        // Get pill class for log level
+        function getPillClass(level) {
+            switch (level) {
+                case 'ERROR': return 'danger';
+                case 'WARNING': return 'warning';
+                case 'INFO': return 'info';
+                default: return 'success';
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                hideError();
+                const data = await callService('FCDashboardSP.snapshot', {});
+
+                // Update connection status
+                if (data.connection) {
+                    document.getElementById('apiStatus').innerHTML =
+                        data.connection.apiOnline
+                            ? '<span class="pill success">Online</span>'
+                            : '<span class="pill danger">Offline</span>';
+                    document.getElementById('tokenStatus').innerHTML =
+                        data.connection.tokenValid
+                            ? '<span class="pill success">Valido</span>'
+                            : '<span class="pill danger">Expirado</span>';
+                    document.getElementById('lastCheck').textContent = formatDate(data.connection.lastCheck);
+
+                    updateStatus(data.connection.apiOnline && data.connection.tokenValid,
+                        data.connection.apiOnline ? 'Conectado' : 'Desconectado');
+                }
+
+                // Update queue stats
+                if (data.queue) {
+                    document.getElementById('queuePending').textContent = data.queue.pending || 0;
+                    document.getElementById('queueProcessing').textContent = data.queue.processing || 0;
+                    document.getElementById('queueErrors').textContent = data.queue.errors || 0;
+
+                    const total = (data.queue.pending || 0) + (data.queue.processing || 0) + (data.queue.completed || 0);
+                    const completed = data.queue.completed || 0;
+                    const progress = total > 0 ? Math.round((completed / total) * 100) : 100;
+                    document.getElementById('queueProgress').style.width = progress + '%';
+                }
+
+                // Update orders stats
+                if (data.orders) {
+                    document.getElementById('ordersToday').textContent = data.orders.today || 0;
+                    document.getElementById('ordersPending').textContent = data.orders.pending || 0;
+                    document.getElementById('ordersError').textContent = data.orders.error || 0;
+                }
+
+                // Update sync stats
+                if (data.sync) {
+                    document.getElementById('syncStock').textContent = data.sync.stock || 0;
+                    document.getElementById('syncPrice').textContent = data.sync.price || 0;
+                    document.getElementById('syncProduct').textContent = data.sync.product || 0;
+                }
+
+                // Update logs table
+                if (data.logs && data.logs.length > 0) {
+                    document.getElementById('logsTable').innerHTML = data.logs.map(log => `
+                        <tr>
+                            <td>${formatDate(log.timestamp)}</td>
+                            <td>${log.operation || '--'}</td>
+                            <td><span class="pill ${getPillClass(log.level)}">${log.level}</span></td>
+                            <td>${log.message || '--'}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    document.getElementById('logsTable').innerHTML =
+                        '<tr><td colspan="4" class="empty-state">Nenhum log encontrado</td></tr>';
+                }
+
+            } catch (e) {
+                console.error('Error loading dashboard:', e);
+                updateStatus(false, 'Erro');
+                showError('Erro ao carregar dashboard: ' + e.message);
+            }
+        }
+
+        // Test connection
+        async function testarConexao() {
+            const btn = document.getElementById('btnTestarConexao');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Testando...';
+
+            try {
+                const result = await callService('FCAdminSP.testarConexao', {});
+                alert(result.message || 'Teste concluido');
+                loadDashboard();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Testar Conexao';
+            }
+        }
+
+        // Import orders
+        async function importarPedidos() {
+            const btn = document.getElementById('btnImportarPedidos');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Importando...';
+
+            try {
+                const result = await callService('FCAdminSP.importarPedidos', {});
+                alert(result.message || 'Importacao concluida');
+                loadDashboard();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Importar Pedidos';
+            }
+        }
+
+        // Process queue
+        async function processarFila() {
+            const btn = document.getElementById('btnProcessarFila');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Processando...';
+
+            try {
+                const result = await callService('FCAdminSP.processarFila', {});
+                alert(result.message || 'Processamento concluido');
+                loadDashboard();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Processar Fila';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            // Auto-refresh every 30 seconds
+            autoRefreshInterval = setInterval(loadDashboard, 30000);
+        });
+    </script>
+</body>
+</html>
+

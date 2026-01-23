@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadados xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../.gradle/metadados.xsd">
+    <table name="AD_FCCONFIG" sequenceType="A" sequenceField="CODCONFIG">
+        <description>Configuracao da Integracao Fastchannel Commerce</description>
+        <primaryKey>
+            <field name="CODCONFIG"/>
+        </primaryKey>
+        <instances>
+            <instance name="FC_Configuracao">
+                <description>Configuracao Fastchannel</description>
+                <toolbar>
+                    <action name="testarConexao" description="Testar Conexao API"
+                            icon="fa-plug" type="JAVA"
+                            classname="br.com.bellube.fastchannel.action.TestarConexaoAction">
+                    </action>
+                    <action name="forcarImportacao" description="Importar Pedidos Agora"
+                            icon="fa-download" type="JAVA"
+                            classname="br.com.bellube.fastchannel.action.ImportarPedidosAction">
+                    </action>
+                    <action name="processarFila" description="Processar Fila Agora"
+                            icon="fa-play" type="JAVA"
+                            classname="br.com.bellube.fastchannel.action.ProcessarFilaAction">
+                    </action>
+                </toolbar>
+            </instance>
+        </instances>
+        <fields>
+            <field name="CODCONFIG" dataType="INTEIRO" size="10" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>Codigo</description>
+            </field>
+            <field name="ATIVO" dataType="TEXTO" size="1" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Ativo</description>
+                <options>
+                    <option value="S" description="Sim"/>
+                    <option value="N" description="Nao"/>
+                </options>
+            </field>
+            <field name="CLIENT_ID" dataType="TEXTO" size="200" mandatory="N" allowSearch="N">
+                <description>Client ID OAuth2</description>
+            </field>
+            <field name="CLIENT_SECRET" dataType="TEXTO" size="500" mandatory="N" allowSearch="N" inputType="PASSWORD">
+                <description>Client Secret OAuth2</description>
+            </field>
+            <field name="SCOPE" dataType="TEXTO" size="200" mandatory="N" allowSearch="N">
+                <description>Scope OAuth2</description>
+            </field>
+            <field name="SUBSCRIPTION_KEY" dataType="TEXTO" size="100" mandatory="N" allowSearch="N">
+                <description>Subscription Key Azure APIM</description>
+            </field>
+            <field name="SUBSCRIPTION_KEY_DISTRIBUTION" dataType="TEXTO" size="100" mandatory="N" allowSearch="N">
+                <description>Subscription Key Distribuicao</description>
+            </field>
+            <field name="SUBSCRIPTION_KEY_CONSUMPTION" dataType="TEXTO" size="100" mandatory="N" allowSearch="N">
+                <description>Subscription Key Consumo</description>
+            </field>
+            <field name="BASE_URL" dataType="TEXTO" size="300" mandatory="N" allowSearch="N">
+                <description>URL Base da API</description>
+            </field>
+            <field name="AUTH_URL" dataType="TEXTO" size="300" mandatory="N" allowSearch="N">
+                <description>URL de Autenticacao</description>
+            </field>
+            <field name="RESELLER_ID" dataType="TEXTO" size="100" mandatory="N" allowSearch="S">
+                <description>ID do Revendedor Fastchannel</description>
+            </field>
+            <field name="STORAGE_ID" dataType="TEXTO" size="100" mandatory="N" allowSearch="S">
+                <description>ID do Deposito Fastchannel</description>
+            </field>
+            <field name="CODTIPOPER" dataType="PESQUISA" targetInstance="TipoOperacao" targetField="CODTIPOPER" targetType="INTEIRO" allowSearch="S" visibleOnSearch="S">
+                <description>Tipo de Operacao Pedidos</description>
+            </field>
+            <field name="CODLOCAL" dataType="PESQUISA" targetInstance="LocalFinanceiro" targetField="CODLOCAL" targetType="INTEIRO" allowSearch="S" visibleOnSearch="S">
+                <description>Local de Estoque</description>
+            </field>
+            <field name="NUTAB" dataType="PESQUISA" targetInstance="TabelaPreco" targetField="NUTAB" targetType="INTEIRO" allowSearch="S" visibleOnSearch="S">
+                <description>Tabela de Precos</description>
+            </field>
+            <field name="CODEMP" dataType="PESQUISA" targetInstance="Empresa" targetField="CODEMP" targetType="INTEIRO" allowSearch="S" visibleOnSearch="S">
+                <description>Empresa Padrao</description>
+            </field>
+            <field name="TIPNEG" dataType="INTEIRO" size="10" mandatory="N" allowSearch="N">
+                <description>Tipo de Negociacao</description>
+            </field>
+            <field name="TOP_PEDIDO" dataType="INTEIRO" size="10" mandatory="N" allowSearch="N">
+                <description>TOP Pedido</description>
+            </field>
+            <field name="CODPARC_PADRAO" dataType="INTEIRO" size="10" mandatory="N" allowSearch="N">
+                <description>Parceiro Padrao</description>
+            </field>
+            <field name="BATCH_SIZE" dataType="INTEIRO" size="5" mandatory="N" allowSearch="N">
+                <description>Tamanho do Lote</description>
+            </field>
+            <field name="MAX_REQUESTS_MIN" dataType="INTEIRO" size="5" mandatory="N" allowSearch="N">
+                <description>Max Requisicoes/Minuto</description>
+            </field>
+            <field name="TIMEOUT_MS" dataType="INTEIRO" size="10" mandatory="N" allowSearch="N">
+                <description>Timeout Requisicoes (ms)</description>
+            </field>
+            <field name="INTERVAL_ORDERS" dataType="INTEIRO" size="5" mandatory="N" allowSearch="N">
+                <description>Intervalo Importacao Pedidos (min)</description>
+            </field>
+            <field name="INTERVAL_QUEUE" dataType="INTEIRO" size="5" mandatory="N" allowSearch="N">
+                <description>Intervalo Processamento Fila (min)</description>
+            </field>
+            <field name="LOG_RETENTION_DAYS" dataType="INTEIRO" size="5" mandatory="N" allowSearch="N">
+                <description>Dias para Limpar Logs</description>
+            </field>
+            <field name="MAX_RETRIES" dataType="INTEIRO" size="5" mandatory="N" allowSearch="N">
+                <description>Max Retries</description>
+            </field>
+            <field name="LAST_ORDER_SYNC" dataType="DATA_HORA" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Ultima Sync Pedidos</description>
+            </field>
+            <field name="LAST_PRODUCT_SYNC" dataType="DATA_HORA" mandatory="N" allowSearch="N">
+                <description>Ultima Sync Produtos</description>
+            </field>
+            <field name="LAST_STOCK_SYNC" dataType="DATA_HORA" mandatory="N" allowSearch="N">
+                <description>Ultima Sync Estoque</description>
+            </field>
+            <field name="LAST_PRICE_SYNC" dataType="DATA_HORA" mandatory="N" allowSearch="N">
+                <description>Ultima Sync Precos</description>
+            </field>
+            <field name="DH_CRIACAO" dataType="DATA_HORA" mandatory="N" allowSearch="N">
+                <description>Data Criacao</description>
+                <expression><![CDATA[return $ctx_dh_atual;]]></expression>
+            </field>
+            <field name="DH_ALTERACAO" dataType="DATA_HORA" mandatory="N" allowSearch="N">
+                <description>Data Alteracao</description>
+            </field>
+        </fields>
+    </table>
+</metadados>

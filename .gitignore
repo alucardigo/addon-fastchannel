@@ -1,0 +1,49 @@
+# Gradle
+.gradle/
+build/
+buildGradle/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Java
+*.class
+*.log
+*.ctxt
+
+# Package Files (keep source EAR structure)
+*.jar
+*.war
+Addon-FastChannel.ear.deployed
+Addon-FastChannel.ear.dodeploy
+Addon-FastChannel.ear.failed
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Other
+gbi-app-integrador-main/
+WEB-INF/
+
+# Node
+node_modules/
+nul

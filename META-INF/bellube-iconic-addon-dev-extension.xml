@@ -1,0 +1,16 @@
+
+<extension install-datetime="20/01/2026 12:09:00" nuPac="-1">
+    <id>bellube-iconic-addon-dev</id>
+    <description>Integracao_Iconic</description>
+    <version>1.2.1</version>
+    <platform-min-version>4.28</platform-min-version>
+    <build-timestamp>20/01/2026 12:08:56</build-timestamp>
+    <vendor>
+        <name>Bellube</name>
+    </vendor>
+    <license-by-resource>
+        <default-module/>
+    </license-by-resource>
+    <appkey>8b553ef3-1a6f-4291-aeff-1b485d1f5904</appkey>
+        <buildApp>SankhyaStudio-2.0.0</buildApp>
+</extension>

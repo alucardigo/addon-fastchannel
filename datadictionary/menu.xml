@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<metadados xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../.gradle/metadados.xsd">
+
+    <menu id="addon_fastchannel" description="Addon-FastChannel" icon="fa-cloud">
+        <folder id="fc_operacoes" description="Operacoes">
+            <ui id="FC_Dashboard" url="/$ctx/html5/fastchannel/dashboard.html" description="Dashboard"/>
+            <ui id="FC_Pedidos" url="/$ctx/html5/fastchannel/pedidos.html" description="Pedidos"/>
+            <ui id="FC_Fila" url="/$ctx/html5/fastchannel/fila.html" description="Fila de Sincronizacao"/>
+        </folder>
+        <folder id="FC_CONFIG_MENU" description="Configuracao">
+            <ui id="FC_Config" url="/$ctx/html5/fastchannel/config.html" description="Configuracoes"/>
+            <ui id="FC_Logs" url="/$ctx/html5/fastchannel/logs.html" description="Logs"/>
+        </folder>
+    </menu>
+
+</metadados>

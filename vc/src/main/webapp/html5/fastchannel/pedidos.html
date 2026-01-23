@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - Pedidos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --panel: #16213e;
+            --border: #0f3460;
+            --text: #eaeaea;
+            --muted: #94a3b8;
+            --accent: #00d9ff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo { width: 48px; height: 48px; border-radius: 8px; }
+
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .header h1 span { color: var(--accent); }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 10px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover { border-color: var(--accent); color: var(--text); }
+        .nav-tab.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title { font-size: 18px; font-weight: 600; }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .form-input {
+            padding: 10px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .form-input:focus { outline: none; border-color: var(--accent); }
+
+        select.form-input { cursor: pointer; }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--accent); color: var(--bg); }
+        .btn-primary:hover { background: #00b8d9; }
+        .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { border-color: var(--accent); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .table-container { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg);
+        }
+
+        td { font-size: 14px; }
+
+        tr:hover { background: rgba(0, 217, 255, 0.05); }
+
+        .pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .pill.success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .pill.warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .pill.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .pill.info { background: rgba(0, 217, 255, 0.2); color: var(--accent); }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--muted);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .pagination-info { font-size: 14px; color: var(--muted); }
+
+        .pagination-buttons { display: flex; gap: 8px; }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover { color: var(--text); }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-label { color: var(--muted); }
+        .detail-value { font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="logo">
+            <h1>Fast<span>channel</span> - Pedidos</h1>
+        </header>
+
+        <nav class="nav-tabs">
+            <a class="nav-tab" href="dashboard.html">Dashboard</a>
+            <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab active" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab" href="fila.html">Fila de Sincronizacao</a>
+            <a class="nav-tab" href="logs.html">Logs</a>
+        </nav>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Pedidos Importados</span>
+                <button class="btn btn-primary" onclick="importarPedidos()">
+                    Importar Novos Pedidos
+                </button>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <span class="filter-label">Status</span>
+                    <select id="filterStatus" class="form-input" onchange="loadPedidos()">
+                        <option value="">Todos</option>
+                        <option value="PENDENTE">Pendente</option>
+                        <option value="IMPORTADO">Importado</option>
+                        <option value="ERRO">Com Erro</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Data Inicio</span>
+                    <input type="date" id="filterDataInicio" class="form-input" onchange="loadPedidos()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Data Fim</span>
+                    <input type="date" id="filterDataFim" class="form-input" onchange="loadPedidos()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Order ID</span>
+                    <input type="text" id="filterOrderId" class="form-input" placeholder="Buscar..."
+                           onkeyup="debounceSearch()">
+                </div>
+                <div class="filter-group" style="justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="loadPedidos()">
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Data Pedido</th>
+                            <th>Cliente</th>
+                            <th>Valor Total</th>
+                            <th>Status FC</th>
+                            <th>Status Import</th>
+                            <th>NUNOTA</th>
+                            <th>Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosTable">
+                        <tr>
+                            <td colspan="8" class="empty-state">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <span class="pagination-info" id="paginationInfo">Mostrando 0 de 0</span>
+                <div class="pagination-buttons">
+                    <button class="btn btn-secondary btn-sm" id="btnPrev" onclick="prevPage()" disabled>
+                        Anterior
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="btnNext" onclick="nextPage()" disabled>
+                        Proximo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes -->
+    <div id="modalDetails" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="card-title">Detalhes do Pedido</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+            <div style="margin-top: 20px; display: flex; gap: 12px;">
+                <button class="btn btn-primary" onclick="reprocessarPedido()">Reprocessar</button>
+                <button class="btn btn-secondary" onclick="consultarFC()">Consultar no FC</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function addIfAddon(ctx) {
+                if (!ctx) return;
+                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
+                    ctx = ctx.replace(/^\/mge/, '');
+                }
+                if (ctx.indexOf('/addon-fastchannel') === -1) return;
+                add(ctx);
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+
+            const addonIdx = path.indexOf('/addon-fastchannel');
+            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        console.log('[Fastchannel] contexts', addonContexts);
+        let currentPage = 1;
+        let totalPages = 1;
+        let pageSize = 20;
+        let searchTimeout = null;
+        let selectedOrderId = null;
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+                    if (resp.ok) return await resp.json();
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    lastErr = errMsg;
+                } catch (e) { lastErr = e.message; }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '--';
+            return new Date(dateStr).toLocaleString('pt-BR');
+        }
+
+        function formatMoney(value) {
+            if (value == null) return 'R$ 0,00';
+            return 'R$ ' + parseFloat(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        }
+
+        function getStatusPill(status) {
+            const map = {
+                'PENDENTE': 'warning',
+                'IMPORTADO': 'success',
+                'ERRO': 'danger',
+                'PROCESSANDO': 'info'
+            };
+            return `<span class="pill ${map[status] || 'info'}">${status || '--'}</span>`;
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => loadPedidos(), 500);
+        }
+
+        async function loadPedidos() {
+            const tbody = document.getElementById('pedidosTable');
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+
+            try {
+                const filters = {
+                    status: document.getElementById('filterStatus').value,
+                    dataInicio: document.getElementById('filterDataInicio').value,
+                    dataFim: document.getElementById('filterDataFim').value,
+                    orderId: document.getElementById('filterOrderId').value,
+                    page: currentPage,
+                    pageSize: pageSize
+                };
+
+                const data = await callService('FCPedidosSP.list', filters);
+
+                if (data.items && data.items.length > 0) {
+                    tbody.innerHTML = data.items.map(p => `
+                        <tr>
+                            <td><strong>${p.orderId || '--'}</strong></td>
+                            <td>${formatDate(p.dataPedido)}</td>
+                            <td>${p.nomeCliente || '--'}</td>
+                            <td>${formatMoney(p.valorTotal)}</td>
+                            <td>${getStatusPill(p.statusFc)}</td>
+                            <td>${getStatusPill(p.statusImport)}</td>
+                            <td>${p.nunota || '--'}</td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="showDetails('${p.orderId}')">
+                                    Detalhes
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    totalPages = Math.ceil((data.total || 0) / pageSize);
+                    updatePagination(data.total || 0);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Nenhum pedido encontrado</td></tr>';
+                    updatePagination(0);
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Erro: ${e.message}</td></tr>`;
+            }
+        }
+
+        function updatePagination(total) {
+            document.getElementById('paginationInfo').textContent =
+                `Mostrando ${Math.min(pageSize, total)} de ${total}`;
+            document.getElementById('btnPrev').disabled = currentPage <= 1;
+            document.getElementById('btnNext').disabled = currentPage >= totalPages;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) { currentPage--; loadPedidos(); }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) { currentPage++; loadPedidos(); }
+        }
+
+        async function showDetails(orderId) {
+            selectedOrderId = orderId;
+            const modal = document.getElementById('modalDetails');
+            const body = document.getElementById('modalBody');
+            body.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
+            modal.classList.add('show');
+
+            try {
+                const data = await callService('FCPedidosSP.get', { orderId });
+                body.innerHTML = `
+                    <div class="detail-row"><span class="detail-label">Order ID</span><span class="detail-value">${data.orderId || '--'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Data Pedido</span><span class="detail-value">${formatDate(data.dataPedido)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Cliente</span><span class="detail-value">${data.nomeCliente || '--'}</span></div>
+                    <div class="detail-row"><span class="detail-label">CPF/CNPJ</span><span class="detail-value">${data.cpfCnpj || '--'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Valor Total</span><span class="detail-value">${formatMoney(data.valorTotal)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Frete</span><span class="detail-value">${formatMoney(data.frete)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Status FC</span><span class="detail-value">${getStatusPill(data.statusFc)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Status Import</span><span class="detail-value">${getStatusPill(data.statusImport)}</span></div>
+                    <div class="detail-row"><span class="detail-label">NUNOTA</span><span class="detail-value">${data.nunota || '--'}</span></div>
+                    <div class="detail-row"><span class="detail-label">CODPARC</span><span class="detail-value">${data.codparc || '--'}</span></div>
+                    ${data.erro ? `<div class="detail-row"><span class="detail-label">Erro</span><span class="detail-value" style="color: var(--danger);">${data.erro}</span></div>` : ''}
+                `;
+            } catch (e) {
+                body.innerHTML = `<div class="empty-state">Erro: ${e.message}</div>`;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalDetails').classList.remove('show');
+            selectedOrderId = null;
+        }
+
+        async function importarPedidos() {
+            if (!confirm('Deseja importar novos pedidos do Fastchannel?')) return;
+            try {
+                const result = await callService('FCAdminSP.importarPedidos', {});
+                alert(result.message || 'Importacao concluida');
+                loadPedidos();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        async function reprocessarPedido() {
+            if (!selectedOrderId) return;
+            if (!confirm(`Reprocessar pedido ${selectedOrderId}?`)) return;
+            try {
+                const result = await callService('FCPedidosSP.reprocessar', { orderId: selectedOrderId });
+                alert(result.message || 'Reprocessamento solicitado');
+                closeModal();
+                loadPedidos();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        async function consultarFC() {
+            if (!selectedOrderId) return;
+            try {
+                const result = await callService('FCPedidosSP.consultarFC', { orderId: selectedOrderId });
+                alert(JSON.stringify(result, null, 2));
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPedidos);
+    </script>
+</body>
+</html>
+

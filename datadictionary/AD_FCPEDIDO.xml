@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadados xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../.gradle/metadados.xsd">
+    <table name="AD_FCPEDIDO" sequenceType="A" sequenceField="IDPEDIDO">
+        <description>Mapeamento de Pedidos Fastchannel x Sankhya</description>
+        <primaryKey>
+            <field name="IDPEDIDO"/>
+        </primaryKey>
+        <instances>
+            <instance name="FC_Pedidos">
+                <description>Pedidos Fastchannel</description>
+                <toolbar>
+                    <action name="reenviarStatus" description="Reenviar Status para Fastchannel"
+                            icon="fa-sync" type="JAVA"
+                            classname="br.com.bellube.fastchannel.action.ReenviarStatusPedidoAction">
+                    </action>
+                    <action name="consultarFastchannel" description="Consultar no Fastchannel"
+                            icon="fa-search" type="JAVA"
+                            classname="br.com.bellube.fastchannel.action.ConsultarPedidoFCAction">
+                    </action>
+                </toolbar>
+            </instance>
+        </instances>
+        <fields>
+            <field name="IDPEDIDO" dataType="INTEIRO" size="10" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>ID do registro</description>
+            </field>
+            <field name="ORDER_ID" dataType="TEXTO" size="100" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>ID do pedido no Fastchannel</description>
+            </field>
+            <field name="NUNOTA" dataType="PESQUISA" targetInstance="CabecalhoNota" targetField="NUNOTA" targetType="INTEIRO" allowSearch="S" visibleOnSearch="S">
+                <description>Numero unico da nota no Sankhya</description>
+            </field>
+            <field name="CODPARC" dataType="PESQUISA" targetInstance="Parceiro" targetField="CODPARC" targetType="INTEIRO" allowSearch="S" visibleOnSearch="S">
+                <description>Codigo do parceiro</description>
+            </field>
+            <field name="STATUS_FC" dataType="INTEIRO" size="5" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Status no Fastchannel</description>
+                <options>
+                    <option value="200" description="Aprovado"/>
+                    <option value="201" description="Criado"/>
+                    <option value="300" description="NF Emitida"/>
+                    <option value="301" description="Em Transito"/>
+                    <option value="302" description="Entregue"/>
+                    <option value="400" description="Cancelado"/>
+                </options>
+            </field>
+            <field name="STATUS_SKW" dataType="TEXTO" size="5" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Status no Sankhya</description>
+                <options>
+                    <option value="P" description="Pendente"/>
+                    <option value="L" description="Liberado"/>
+                    <option value="F" description="Faturado"/>
+                    <option value="C" description="Cancelado"/>
+                </options>
+            </field>
+            <field name="DH_IMPORTACAO" dataType="DATA_HORA" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Data/hora da importacao</description>
+            </field>
+            <field name="DH_FATURAMENTO" dataType="DATA_HORA" mandatory="N" allowSearch="S">
+                <description>Data/hora do faturamento</description>
+            </field>
+            <field name="DH_ENTREGA" dataType="DATA_HORA" mandatory="N" allowSearch="S">
+                <description>Data/hora da entrega</description>
+            </field>
+            <field name="NF_NUMERO" dataType="TEXTO" size="20" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Numero da nota fiscal</description>
+            </field>
+            <field name="NF_SERIE" dataType="TEXTO" size="5" mandatory="N" allowSearch="S">
+                <description>Serie da nota fiscal</description>
+            </field>
+            <field name="NF_CHAVE" dataType="TEXTO" size="60" mandatory="N" allowSearch="S">
+                <description>Chave da NFe</description>
+            </field>
+            <field name="TRACKING_CODE" dataType="TEXTO" size="50" mandatory="N" allowSearch="S">
+                <description>Codigo de rastreamento</description>
+            </field>
+            <field name="OBSERVACAO" dataType="TEXTO" size="500" mandatory="N" allowSearch="N">
+                <description>Observacoes do pedido</description>
+            </field>
+        </fields>
+    </table>
+</metadados>

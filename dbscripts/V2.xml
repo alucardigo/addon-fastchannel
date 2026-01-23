@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<scripts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../.gradle/scripts.xsd">
+
+    <!-- ========================================== -->
+    <!-- SCRIPTS DDL - INTEGRACAO FASTCHANNEL      -->
+    <!-- ========================================== -->
+
+    <!-- AD_FCCONFIG - Tabela de Configuracao -->
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="AD_FCCONFIG" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="TABLE">
+        <oracle>
+            CREATE TABLE AD_FCCONFIG (
+                CODCONFIG NUMBER NOT NULL,
+                CLIENT_ID VARCHAR2(200),
+                CLIENT_SECRET VARCHAR2(500),
+                SCOPE VARCHAR2(200),
+                SUBSCRIPTION_KEY VARCHAR2(100),
+                SUBSCRIPTION_KEY_DISTRIBUTION VARCHAR2(100),
+                SUBSCRIPTION_KEY_CONSUMPTION VARCHAR2(100),
+                BASE_URL VARCHAR2(300),
+                AUTH_URL VARCHAR2(300),
+                CODTIPOPER NUMBER(10),
+                CODLOCAL NUMBER(10),
+                NUTAB NUMBER(10),
+                CODEMP NUMBER(5),
+                RESELLER_ID VARCHAR2(100),
+                STORAGE_ID VARCHAR2(100),
+                TIPNEG NUMBER(10),
+                TOP_PEDIDO NUMBER(10),
+                CODPARC_PADRAO NUMBER(10),
+                TIMEOUT_MS NUMBER(10) DEFAULT 30000,
+                INTERVAL_ORDERS NUMBER(5) DEFAULT 5,
+                INTERVAL_QUEUE NUMBER(5) DEFAULT 2,
+                LOG_RETENTION_DAYS NUMBER(5) DEFAULT 30,
+                MAX_RETRIES NUMBER(5) DEFAULT 3,
+                ATIVO CHAR(1) DEFAULT 'S',
+                BATCH_SIZE NUMBER(5) DEFAULT 50,
+                MAX_REQUESTS_MIN NUMBER(5) DEFAULT 30,
+                LAST_ORDER_SYNC TIMESTAMP,
+                LAST_PRODUCT_SYNC TIMESTAMP,
+                LAST_STOCK_SYNC TIMESTAMP,
+                LAST_PRICE_SYNC TIMESTAMP,
+                DH_CRIACAO TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                DH_ALTERACAO TIMESTAMP,
+                CONSTRAINT PK_AD_FCCONFIG PRIMARY KEY (CODCONFIG)
+            )
+        </oracle>
+        <mssql>
+            CREATE TABLE AD_FCCONFIG (
+                CODCONFIG INT NOT NULL IDENTITY(1,1),
+                CLIENT_ID VARCHAR(200),
+                CLIENT_SECRET VARCHAR(500),
+                SCOPE VARCHAR(200),
+                SUBSCRIPTION_KEY VARCHAR(100),
+                SUBSCRIPTION_KEY_DISTRIBUTION VARCHAR(100),
+                SUBSCRIPTION_KEY_CONSUMPTION VARCHAR(100),
+                BASE_URL VARCHAR(300),
+                AUTH_URL VARCHAR(300),
+                CODTIPOPER INT,
+                CODLOCAL INT,
+                NUTAB INT,
+                CODEMP SMALLINT,
+                RESELLER_ID VARCHAR(100),
+                STORAGE_ID VARCHAR(100),
+                TIPNEG INT,
+                TOP_PEDIDO INT,
+                CODPARC_PADRAO INT,
+                TIMEOUT_MS INT DEFAULT 30000,
+                INTERVAL_ORDERS SMALLINT DEFAULT 5,
+                INTERVAL_QUEUE SMALLINT DEFAULT 2,
+                LOG_RETENTION_DAYS SMALLINT DEFAULT 30,
+                MAX_RETRIES SMALLINT DEFAULT 3,
+                ATIVO CHAR(1) DEFAULT 'S',
+                BATCH_SIZE SMALLINT DEFAULT 50,
+                MAX_REQUESTS_MIN SMALLINT DEFAULT 30,
+                LAST_ORDER_SYNC DATETIME2,
+                LAST_PRODUCT_SYNC DATETIME2,
+                LAST_STOCK_SYNC DATETIME2,
+                LAST_PRICE_SYNC DATETIME2,
+                DH_CRIACAO DATETIME2 DEFAULT CURRENT_TIMESTAMP,
+                DH_ALTERACAO DATETIME2,
+                CONSTRAINT PK_AD_FCCONFIG PRIMARY KEY (CODCONFIG)
+            )
+        </mssql>
+    </sql>
+
+    <!-- AD_FCQUEUE - Fila de Sincronizacao (Outbox Pattern) -->
+    <sql nomeTabela="AD_FCQUEUE" nomeObjeto="AD_FCQUEUE" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="TABLE">
+        <oracle>
+            CREATE TABLE AD_FCQUEUE (
+                IDQUEUE NUMBER NOT NULL,
+                ENTITY_TYPE VARCHAR2(30) NOT NULL,
+                OPERATION VARCHAR2(20) NOT NULL,
+                ENTITY_ID NUMBER,
+                ENTITY_KEY VARCHAR2(100),
+                PAYLOAD CLOB,
+                STATUS VARCHAR2(20) DEFAULT 'PENDENTE',
+                RETRY_COUNT NUMBER(3) DEFAULT 0,
+                LAST_ERROR VARCHAR2(4000),
+                PRIORITY NUMBER(5) DEFAULT 0,
+                DH_CRIACAO TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                DH_PROCESSAMENTO TIMESTAMP,
+                DH_ALTERACAO TIMESTAMP,
+                CONSTRAINT PK_AD_FCQUEUE PRIMARY KEY (IDQUEUE)
+            )
+        </oracle>
+        <mssql>
+            CREATE TABLE AD_FCQUEUE (
+                IDQUEUE INT NOT NULL IDENTITY(1,1),
+                ENTITY_TYPE VARCHAR(30) NOT NULL,
+                OPERATION VARCHAR(20) NOT NULL,
+                ENTITY_ID INT,
+                ENTITY_KEY VARCHAR(100),
+                PAYLOAD NVARCHAR(MAX),
+                STATUS VARCHAR(20) DEFAULT 'PENDENTE',
+                RETRY_COUNT SMALLINT DEFAULT 0,
+                LAST_ERROR VARCHAR(4000),
+                PRIORITY SMALLINT DEFAULT 0,
+                DH_CRIACAO DATETIME2 DEFAULT CURRENT_TIMESTAMP,
+                DH_PROCESSAMENTO DATETIME2,
+                DH_ALTERACAO DATETIME2,
+                CONSTRAINT PK_AD_FCQUEUE PRIMARY KEY (IDQUEUE)
+            )
+        </mssql>
+    </sql>
+
+    <!-- Indice para AD_FCQUEUE -->
+    <sql nomeTabela="AD_FCQUEUE" ordem="3" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX" nomeObjeto="IDX_FCQUEUE_STATUS">
+        <oracle>
+            CREATE INDEX IDX_FCQUEUE_STATUS ON AD_FCQUEUE (STATUS, PRIORITY DESC, DH_CRIACAO)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCQUEUE_STATUS ON AD_FCQUEUE (STATUS, PRIORITY DESC, DH_CRIACAO)
+        </mssql>
+    </sql>
+
+    <!-- AD_FCDEPARA - Tabela De-Para -->
+    <sql nomeTabela="AD_FCDEPARA" nomeObjeto="AD_FCDEPARA" ordem="4" executar="SE_NAO_EXISTIR" tipoObjeto="TABLE">
+        <oracle>
+            CREATE TABLE AD_FCDEPARA (
+                IDDEPARA NUMBER NOT NULL,
+                TIPO_ENTIDADE VARCHAR2(30) NOT NULL,
+                COD_SANKHYA NUMBER NOT NULL,
+                COD_EXTERNO VARCHAR2(100) NOT NULL,
+                DH_CRIACAO TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                DH_ALTERACAO TIMESTAMP,
+                CONSTRAINT PK_AD_FCDEPARA PRIMARY KEY (IDDEPARA),
+                CONSTRAINT UK_FCDEPARA_TIPO_SKW UNIQUE (TIPO_ENTIDADE, COD_SANKHYA)
+            )
+        </oracle>
+        <mssql>
+            CREATE TABLE AD_FCDEPARA (
+                IDDEPARA INT NOT NULL IDENTITY(1,1),
+                TIPO_ENTIDADE VARCHAR(30) NOT NULL,
+                COD_SANKHYA INT NOT NULL,
+                COD_EXTERNO VARCHAR(100) NOT NULL,
+                DH_CRIACAO DATETIME2 DEFAULT CURRENT_TIMESTAMP,
+                DH_ALTERACAO DATETIME2,
+                CONSTRAINT PK_AD_FCDEPARA PRIMARY KEY (IDDEPARA),
+                CONSTRAINT UK_FCDEPARA_TIPO_SKW UNIQUE (TIPO_ENTIDADE, COD_SANKHYA)
+            )
+        </mssql>
+    </sql>
+
+    <!-- Indice para AD_FCDEPARA -->
+    <sql nomeTabela="AD_FCDEPARA" ordem="5" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX" nomeObjeto="IDX_FCDEPARA_EXT">
+        <oracle>
+            CREATE INDEX IDX_FCDEPARA_EXT ON AD_FCDEPARA (TIPO_ENTIDADE, COD_EXTERNO)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCDEPARA_EXT ON AD_FCDEPARA (TIPO_ENTIDADE, COD_EXTERNO)
+        </mssql>
+    </sql>
+
+    <!-- AD_FCPEDIDO - Mapeamento de Pedidos -->
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="AD_FCPEDIDO" ordem="6" executar="SE_NAO_EXISTIR" tipoObjeto="TABLE">
+        <oracle>
+            CREATE TABLE AD_FCPEDIDO (
+                IDPEDIDO NUMBER NOT NULL,
+                ORDER_ID VARCHAR2(100) NOT NULL,
+                NUNOTA NUMBER NOT NULL,
+                CODPARC NUMBER,
+                STATUS_FC NUMBER(5),
+                STATUS_SKW VARCHAR2(5),
+                DH_IMPORTACAO TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                DH_FATURAMENTO TIMESTAMP,
+                DH_ENTREGA TIMESTAMP,
+                NF_NUMERO VARCHAR2(20),
+                NF_SERIE VARCHAR2(5),
+                NF_CHAVE VARCHAR2(60),
+                TRACKING_CODE VARCHAR2(50),
+                OBSERVACAO VARCHAR2(500),
+                CONSTRAINT PK_AD_FCPEDIDO PRIMARY KEY (IDPEDIDO),
+                CONSTRAINT UK_FCPEDIDO_ORDERID UNIQUE (ORDER_ID)
+            )
+        </oracle>
+        <mssql>
+            CREATE TABLE AD_FCPEDIDO (
+                IDPEDIDO INT NOT NULL IDENTITY(1,1),
+                ORDER_ID VARCHAR(100) NOT NULL,
+                NUNOTA INT NOT NULL,
+                CODPARC INT,
+                STATUS_FC SMALLINT,
+                STATUS_SKW VARCHAR(5),
+                DH_IMPORTACAO DATETIME2 DEFAULT CURRENT_TIMESTAMP,
+                DH_FATURAMENTO DATETIME2,
+                DH_ENTREGA DATETIME2,
+                NF_NUMERO VARCHAR(20),
+                NF_SERIE VARCHAR(5),
+                NF_CHAVE VARCHAR(60),
+                TRACKING_CODE VARCHAR(50),
+                OBSERVACAO VARCHAR(500),
+                CONSTRAINT PK_AD_FCPEDIDO PRIMARY KEY (IDPEDIDO),
+                CONSTRAINT UK_FCPEDIDO_ORDERID UNIQUE (ORDER_ID)
+            )
+        </mssql>
+    </sql>
+
+    <!-- Indice para AD_FCPEDIDO -->
+    <sql nomeTabela="AD_FCPEDIDO" ordem="7" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX" nomeObjeto="IDX_FCPEDIDO_NUNOTA">
+        <oracle>
+            CREATE INDEX IDX_FCPEDIDO_NUNOTA ON AD_FCPEDIDO (NUNOTA)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCPEDIDO_NUNOTA ON AD_FCPEDIDO (NUNOTA)
+        </mssql>
+    </sql>
+
+    <!-- AD_FCLOG - Log de Operacoes -->
+    <sql nomeTabela="AD_FCLOG" nomeObjeto="AD_FCLOG" ordem="8" executar="SE_NAO_EXISTIR" tipoObjeto="TABLE">
+        <oracle>
+            CREATE TABLE AD_FCLOG (
+                IDLOG NUMBER NOT NULL,
+                NIVEL VARCHAR2(20),
+                OPERACAO VARCHAR2(50),
+                MENSAGEM VARCHAR2(500),
+                REFERENCIA VARCHAR2(100),
+                DETALHES CLOB,
+                DH_REGISTRO TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT PK_AD_FCLOG PRIMARY KEY (IDLOG)
+            )
+        </oracle>
+        <mssql>
+            CREATE TABLE AD_FCLOG (
+                IDLOG INT NOT NULL IDENTITY(1,1),
+                NIVEL VARCHAR(20),
+                OPERACAO VARCHAR(50),
+                MENSAGEM VARCHAR(500),
+                REFERENCIA VARCHAR(100),
+                DETALHES NVARCHAR(MAX),
+                DH_REGISTRO DATETIME2 DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT PK_AD_FCLOG PRIMARY KEY (IDLOG)
+            )
+        </mssql>
+    </sql>
+
+    <!-- Indice para AD_FCLOG -->
+    <sql nomeTabela="AD_FCLOG" ordem="9" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX" nomeObjeto="IDX_FCLOG_DH">
+        <oracle>
+            CREATE INDEX IDX_FCLOG_DH ON AD_FCLOG (DH_REGISTRO DESC)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCLOG_DH ON AD_FCLOG (DH_REGISTRO DESC)
+        </mssql>
+    </sql>
+
+    <!-- Campo customizado em TGFCAB para armazenar OrderId do Fastchannel -->
+    <sql nomeTabela="TGFCAB" ordem="10" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN" nomeObjeto="AD_FASTCHANNEL_ID">
+        <oracle>
+            ALTER TABLE TGFCAB ADD AD_FASTCHANNEL_ID VARCHAR2(100)
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFCAB ADD AD_FASTCHANNEL_ID VARCHAR(100)
+        </mssql>
+    </sql>
+
+    <!-- Indice para busca por OrderId em TGFCAB -->
+    <sql nomeTabela="TGFCAB" ordem="11" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX" nomeObjeto="IDX_TGFCAB_FCID">
+        <oracle>
+            CREATE INDEX IDX_TGFCAB_FCID ON TGFCAB (AD_FASTCHANNEL_ID) WHERE AD_FASTCHANNEL_ID IS NOT NULL
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_TGFCAB_FCID ON TGFCAB (AD_FASTCHANNEL_ID) WHERE AD_FASTCHANNEL_ID IS NOT NULL
+        </mssql>
+    </sql>
+
+    <!-- Sequence para AD_FCQUEUE (Oracle) -->
+    <sql nomeTabela="AD_FCQUEUE" ordem="12" executar="SE_NAO_EXISTIR" tipoObjeto="PARAMETRO" nomeObjeto="SEQ_AD_FCQUEUE">
+        <oracle>
+            CREATE SEQUENCE SEQ_AD_FCQUEUE START WITH 1 INCREMENT BY 1 NOCACHE
+        </oracle>
+        <mssql>
+            -- SQL Server usa IDENTITY, nao precisa de sequence
+            SELECT 1
+        </mssql>
+    </sql>
+
+    <!-- Sequence para AD_FCDEPARA (Oracle) -->
+    <sql nomeTabela="AD_FCDEPARA" ordem="13" executar="SE_NAO_EXISTIR" tipoObjeto="PARAMETRO" nomeObjeto="SEQ_AD_FCDEPARA">
+        <oracle>
+            CREATE SEQUENCE SEQ_AD_FCDEPARA START WITH 1 INCREMENT BY 1 NOCACHE
+        </oracle>
+        <mssql>
+            SELECT 1
+        </mssql>
+    </sql>
+
+    <!-- Sequence para AD_FCPEDIDO (Oracle) -->
+    <sql nomeTabela="AD_FCPEDIDO" ordem="14" executar="SE_NAO_EXISTIR" tipoObjeto="PARAMETRO" nomeObjeto="SEQ_AD_FCPEDIDO">
+        <oracle>
+            CREATE SEQUENCE SEQ_AD_FCPEDIDO START WITH 1 INCREMENT BY 1 NOCACHE
+        </oracle>
+        <mssql>
+            SELECT 1
+        </mssql>
+    </sql>
+
+    <!-- Sequence para AD_FCLOG (Oracle) -->
+    <sql nomeTabela="AD_FCLOG" ordem="15" executar="SE_NAO_EXISTIR" tipoObjeto="PARAMETRO" nomeObjeto="SEQ_AD_FCLOG">
+        <oracle>
+            CREATE SEQUENCE SEQ_AD_FCLOG START WITH 1 INCREMENT BY 1 NOCACHE
+        </oracle>
+        <mssql>
+            SELECT 1
+        </mssql>
+    </sql>
+
+    <!-- Trigger para auto-incremento AD_FCQUEUE (Oracle) -->
+    <sql nomeTabela="AD_FCQUEUE" ordem="16" executar="SE_NAO_EXISTIR" tipoObjeto="TRIGGER" nomeObjeto="TRG_AD_FCQUEUE_BI">
+        <oracle>
+            CREATE OR REPLACE TRIGGER TRG_AD_FCQUEUE_BI
+            BEFORE INSERT ON AD_FCQUEUE
+            FOR EACH ROW
+            BEGIN
+                IF :NEW.IDQUEUE IS NULL THEN
+                    SELECT SEQ_AD_FCQUEUE.NEXTVAL INTO :NEW.IDQUEUE FROM DUAL;
+                END IF;
+            END;
+        </oracle>
+        <mssql>
+            SELECT 1
+        </mssql>
+    </sql>
+
+    <!-- Trigger para auto-incremento AD_FCDEPARA (Oracle) -->
+    <sql nomeTabela="AD_FCDEPARA" ordem="17" executar="SE_NAO_EXISTIR" tipoObjeto="TRIGGER" nomeObjeto="TRG_AD_FCDEPARA_BI">
+        <oracle>
+            CREATE OR REPLACE TRIGGER TRG_AD_FCDEPARA_BI
+            BEFORE INSERT ON AD_FCDEPARA
+            FOR EACH ROW
+            BEGIN
+                IF :NEW.IDDEPARA IS NULL THEN
+                    SELECT SEQ_AD_FCDEPARA.NEXTVAL INTO :NEW.IDDEPARA FROM DUAL;
+                END IF;
+            END;
+        </oracle>
+        <mssql>
+            SELECT 1
+        </mssql>
+    </sql>
+
+    <!-- Trigger para auto-incremento AD_FCPEDIDO (Oracle) -->
+    <sql nomeTabela="AD_FCPEDIDO" ordem="18" executar="SE_NAO_EXISTIR" tipoObjeto="TRIGGER" nomeObjeto="TRG_AD_FCPEDIDO_BI">
+        <oracle>
+            CREATE OR REPLACE TRIGGER TRG_AD_FCPEDIDO_BI
+            BEFORE INSERT ON AD_FCPEDIDO
+            FOR EACH ROW
+            BEGIN
+                IF :NEW.IDPEDIDO IS NULL THEN
+                    SELECT SEQ_AD_FCPEDIDO.NEXTVAL INTO :NEW.IDPEDIDO FROM DUAL;
+                END IF;
+            END;
+        </oracle>
+        <mssql>
+            SELECT 1
+        </mssql>
+    </sql>
+
+    <!-- Trigger para auto-incremento AD_FCLOG (Oracle) -->
+    <sql nomeTabela="AD_FCLOG" ordem="19" executar="SE_NAO_EXISTIR" tipoObjeto="TRIGGER" nomeObjeto="TRG_AD_FCLOG_BI">
+        <oracle>
+            CREATE OR REPLACE TRIGGER TRG_AD_FCLOG_BI
+            BEFORE INSERT ON AD_FCLOG
+            FOR EACH ROW
+            BEGIN
+                IF :NEW.IDLOG IS NULL THEN
+                    SELECT SEQ_AD_FCLOG.NEXTVAL INTO :NEW.IDLOG FROM DUAL;
+                END IF;
+            END;
+        </oracle>
+        <mssql>
+            SELECT 1
+        </mssql>
+    </sql>
+
+    <!-- Sequence para AD_FCCONFIG (Oracle) -->
+    <sql nomeTabela="AD_FCCONFIG" ordem="20" executar="SE_NAO_EXISTIR" tipoObjeto="PARAMETRO" nomeObjeto="SEQ_AD_FCCONFIG">
+        <oracle>
+            CREATE SEQUENCE SEQ_AD_FCCONFIG START WITH 1 INCREMENT BY 1 NOCACHE
+        </oracle>
+        <mssql>
+            SELECT 1
+        </mssql>
+    </sql>
+
+    <!-- Trigger para auto-incremento AD_FCCONFIG (Oracle) -->
+    <sql nomeTabela="AD_FCCONFIG" ordem="21" executar="SE_NAO_EXISTIR" tipoObjeto="TRIGGER" nomeObjeto="TRG_AD_FCCONFIG_BI">
+        <oracle>
+            CREATE OR REPLACE TRIGGER TRG_AD_FCCONFIG_BI
+            BEFORE INSERT ON AD_FCCONFIG
+            FOR EACH ROW
+            BEGIN
+                IF :NEW.CODCONFIG IS NULL THEN
+                    SELECT SEQ_AD_FCCONFIG.NEXTVAL INTO :NEW.CODCONFIG FROM DUAL;
+                END IF;
+            END;
+        </oracle>
+        <mssql>
+            SELECT 1
+        </mssql>
+    </sql>
+
+</scripts>

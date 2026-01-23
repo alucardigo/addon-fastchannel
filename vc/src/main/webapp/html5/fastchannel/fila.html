@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - Fila de Sincronizacao</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --panel: #16213e;
+            --border: #0f3460;
+            --text: #eaeaea;
+            --muted: #94a3b8;
+            --accent: #00d9ff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo { width: 48px; height: 48px; border-radius: 8px; }
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .header h1 span { color: var(--accent); }
+
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+
+        .nav-tab {
+            padding: 10px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover { border-color: var(--accent); color: var(--text); }
+        .nav-tab.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
+        .stat-value.pending { color: var(--warning); }
+        .stat-value.processing { color: var(--accent); }
+        .stat-value.completed { color: var(--success); }
+        .stat-value.error { color: var(--danger); }
+        .stat-label { font-size: 13px; color: var(--muted); }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .card-title { font-size: 18px; font-weight: 600; }
+
+        .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+
+        .filter-group { display: flex; flex-direction: column; gap: 4px; }
+        .filter-label { font-size: 12px; color: var(--muted); text-transform: uppercase; }
+
+        .form-input {
+            padding: 10px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .form-input:focus { outline: none; border-color: var(--accent); }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--accent); color: var(--bg); }
+        .btn-primary:hover { background: #00b8d9; }
+        .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { border-color: var(--accent); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: var(--bg);
+        }
+
+        td { font-size: 14px; }
+        tr:hover { background: rgba(0, 217, 255, 0.05); }
+
+        .pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .pill.success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .pill.warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .pill.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .pill.info { background: rgba(0, 217, 255, 0.2); color: var(--accent); }
+
+        .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .pagination-info { font-size: 14px; color: var(--muted); }
+        .pagination-buttons { display: flex; gap: 8px; }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .checkbox-col { width: 40px; }
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="logo">
+            <h1>Fast<span>channel</span> - Fila de Sincronizacao</h1>
+        </header>
+
+        <nav class="nav-tabs">
+            <a class="nav-tab" href="dashboard.html">Dashboard</a>
+            <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab active" href="fila.html">Fila de Sincronizacao</a>
+            <a class="nav-tab" href="logs.html">Logs</a>
+        </nav>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value pending" id="statPending">0</div>
+                <div class="stat-label">Pendentes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value processing" id="statProcessing">0</div>
+                <div class="stat-label">Processando</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value completed" id="statCompleted">0</div>
+                <div class="stat-label">Concluidos (24h)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value error" id="statError">0</div>
+                <div class="stat-label">Com Erro</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Itens na Fila</span>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="processarFila()">
+                        Processar Fila Agora
+                    </button>
+                    <button class="btn btn-secondary" onclick="reprocessarSelecionados()">
+                        Reprocessar Selecionados
+                    </button>
+                    <button class="btn btn-danger" onclick="limparErros()">
+                        Limpar Erros
+                    </button>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <span class="filter-label">Status</span>
+                    <select id="filterStatus" class="form-input" onchange="loadFila()">
+                        <option value="">Todos</option>
+                        <option value="PENDENTE">Pendente</option>
+                        <option value="PROCESSANDO">Processando</option>
+                        <option value="CONCLUIDO">Concluido</option>
+                        <option value="ERRO">Com Erro</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Tipo</span>
+                    <select id="filterTipo" class="form-input" onchange="loadFila()">
+                        <option value="">Todos</option>
+                        <option value="STOCK">Estoque</option>
+                        <option value="PRICE">Preco</option>
+                        <option value="PRODUCT">Produto</option>
+                        <option value="ORDER_STATUS">Status Pedido</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">SKU/Referencia</span>
+                    <input type="text" id="filterRef" class="form-input" placeholder="Buscar...">
+                </div>
+                <div class="filter-group" style="justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="loadFila()">Filtrar</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-col">
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Referencia</th>
+                            <th>SKU</th>
+                            <th>Status</th>
+                            <th>Tentativas</th>
+                            <th>Criado em</th>
+                            <th>Ultimo Erro</th>
+                            <th>Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="filaTable">
+                        <tr><td colspan="10" class="empty-state">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <span class="pagination-info" id="paginationInfo">Mostrando 0 de 0</span>
+                <div class="pagination-buttons">
+                    <button class="btn btn-secondary btn-sm" id="btnPrev" onclick="prevPage()" disabled>Anterior</button>
+                    <button class="btn btn-secondary btn-sm" id="btnNext" onclick="nextPage()" disabled>Proximo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function addIfAddon(ctx) {
+                if (!ctx) return;
+                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
+                    ctx = ctx.replace(/^\/mge/, '');
+                }
+                if (ctx.indexOf('/addon-fastchannel') === -1) return;
+                add(ctx);
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+
+            const addonIdx = path.indexOf('/addon-fastchannel');
+            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        console.log('[Fastchannel] contexts', addonContexts);
+        let currentPage = 1;
+        let totalPages = 1;
+        let pageSize = 20;
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+                    if (resp.ok) return await resp.json();
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    lastErr = errMsg;
+                } catch (e) { lastErr = e.message; }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '--';
+            return new Date(dateStr).toLocaleString('pt-BR');
+        }
+
+        function getStatusPill(status) {
+            const map = {
+                'PENDENTE': 'warning',
+                'PROCESSANDO': 'info',
+                'CONCLUIDO': 'success',
+                'ERRO': 'danger'
+            };
+            return `<span class="pill ${map[status] || 'info'}">${status || '--'}</span>`;
+        }
+
+        function getTipoPill(tipo) {
+            const map = {
+                'STOCK': 'info',
+                'PRICE': 'success',
+                'PRODUCT': 'warning',
+                'ORDER_STATUS': 'info'
+            };
+            const labels = {
+                'STOCK': 'Estoque',
+                'PRICE': 'Preco',
+                'PRODUCT': 'Produto',
+                'ORDER_STATUS': 'Status Pedido'
+            };
+            return `<span class="pill ${map[tipo] || 'info'}">${labels[tipo] || tipo || '--'}</span>`;
+        }
+
+        async function loadStats() {
+            try {
+                const data = await callService('FCFilaSP.stats', {});
+                document.getElementById('statPending').textContent = data.pending || 0;
+                document.getElementById('statProcessing').textContent = data.processing || 0;
+                document.getElementById('statCompleted').textContent = data.completed || 0;
+                document.getElementById('statError').textContent = data.error || 0;
+            } catch (e) {
+                console.error('Erro ao carregar stats:', e);
+            }
+        }
+
+        async function loadFila() {
+            const tbody = document.getElementById('filaTable');
+            tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+
+            try {
+                const filters = {
+                    status: document.getElementById('filterStatus').value,
+                    tipo: document.getElementById('filterTipo').value,
+                    ref: document.getElementById('filterRef').value,
+                    page: currentPage,
+                    pageSize: pageSize
+                };
+
+                const data = await callService('FCFilaSP.list', filters);
+
+                if (data.items && data.items.length > 0) {
+                    tbody.innerHTML = data.items.map(item => `
+                        <tr>
+                            <td class="checkbox-col">
+                                <input type="checkbox" class="item-checkbox" value="${item.id}">
+                            </td>
+                            <td>${item.id || '--'}</td>
+                            <td>${getTipoPill(item.tipo)}</td>
+                            <td>${item.referencia || '--'}</td>
+                            <td>${item.sku || '--'}</td>
+                            <td>${getStatusPill(item.status)}</td>
+                            <td>${item.tentativas || 0}</td>
+                            <td>${formatDate(item.dhCriacao)}</td>
+                            <td title="${item.ultimoErro || ''}">${(item.ultimoErro || '--').substring(0, 50)}</td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="reprocessarItem(${item.id})">
+                                    Retry
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    totalPages = Math.ceil((data.total || 0) / pageSize);
+                    updatePagination(data.total || 0);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">Nenhum item na fila</td></tr>';
+                    updatePagination(0);
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="10" class="empty-state">Erro: ${e.message}</td></tr>`;
+            }
+
+            loadStats();
+        }
+
+        function updatePagination(total) {
+            document.getElementById('paginationInfo').textContent = `Mostrando ${Math.min(pageSize, total)} de ${total}`;
+            document.getElementById('btnPrev').disabled = currentPage <= 1;
+            document.getElementById('btnNext').disabled = currentPage >= totalPages;
+        }
+
+        function prevPage() { if (currentPage > 1) { currentPage--; loadFila(); } }
+        function nextPage() { if (currentPage < totalPages) { currentPage++; loadFila(); } }
+
+        function toggleSelectAll() {
+            const checked = document.getElementById('selectAll').checked;
+            document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = checked);
+        }
+
+        function getSelectedIds() {
+            return Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
+        }
+
+        async function processarFila() {
+            if (!confirm('Processar todos os itens pendentes agora?')) return;
+            try {
+                const result = await callService('FCAdminSP.processarFila', {});
+                alert(result.message || 'Processamento iniciado');
+                loadFila();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        async function reprocessarItem(id) {
+            try {
+                const result = await callService('FCFilaSP.reprocessar', { ids: [id] });
+                alert(result.message || 'Item marcado para reprocessamento');
+                loadFila();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        async function reprocessarSelecionados() {
+            const ids = getSelectedIds();
+            if (ids.length === 0) {
+                alert('Selecione pelo menos um item');
+                return;
+            }
+            if (!confirm(`Reprocessar ${ids.length} item(ns)?`)) return;
+            try {
+                const result = await callService('FCFilaSP.reprocessar', { ids });
+                alert(result.message || 'Itens marcados para reprocessamento');
+                loadFila();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        async function limparErros() {
+            if (!confirm('Limpar todos os itens com erro fatal?')) return;
+            try {
+                const result = await callService('FCFilaSP.limparErros', {});
+                alert(result.message || 'Erros limpos');
+                loadFila();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadFila);
+        setInterval(loadStats, 15000);
+    </script>
+</body>
+</html>
+

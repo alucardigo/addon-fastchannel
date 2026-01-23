@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadados xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../.gradle/metadados.xsd">
+    <table name="AD_FCDEPARA" sequenceType="A" sequenceField="IDDEPARA">
+        <description>De-Para de Entidades Sankhya x Fastchannel</description>
+        <primaryKey>
+            <field name="IDDEPARA"/>
+        </primaryKey>
+        <instances>
+            <instance name="FC_DePara">
+                <description>De-Para Sankhya x Fastchannel</description>
+                <toolbar>
+                    <action name="sincronizarProdutos" description="Sincronizar Produtos"
+                            icon="fa-cubes" type="JAVA"
+                            classname="br.com.bellube.fastchannel.action.SincronizarProdutosAction">
+                    </action>
+                </toolbar>
+            </instance>
+        </instances>
+        <fields>
+            <field name="IDDEPARA" dataType="INTEIRO" size="10" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>ID do mapeamento</description>
+            </field>
+            <field name="TIPO_ENTIDADE" dataType="TEXTO" size="30" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>Tipo da Entidade</description>
+                <options>
+                    <option value="PRODUTO" description="Produto"/>
+                    <option value="PARCEIRO" description="Parceiro"/>
+                    <option value="LOCAL" description="Local de Estoque"/>
+                </options>
+            </field>
+            <field name="COD_SANKHYA" dataType="INTEIRO" size="10" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>Codigo no Sankhya (CODPROD, CODPARC, etc)</description>
+            </field>
+            <field name="COD_EXTERNO" dataType="TEXTO" size="100" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>Codigo no Fastchannel (SKU, CustomerId, etc)</description>
+            </field>
+            <field name="DH_CRIACAO" dataType="DATA_HORA" mandatory="N" allowSearch="S">
+                <description>Data/hora de criacao</description>
+            </field>
+            <field name="DH_ALTERACAO" dataType="DATA_HORA" mandatory="N" allowSearch="N">
+                <description>Data/hora da ultima alteracao</description>
+            </field>
+        </fields>
+    </table>
+</metadados>
