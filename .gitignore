@@ -47,3 +47,5 @@ WEB-INF/
 # Node
 node_modules/
 nul
+
+.worktrees/
