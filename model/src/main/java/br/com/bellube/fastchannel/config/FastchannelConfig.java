@@ -40,6 +40,7 @@ public class FastchannelConfig {
     private Timestamp lastProductSync;
     private Timestamp lastStockSync;
     private Timestamp lastPriceSync;
+    private boolean syncStatusEnabled;
 
     private long lastLoadTime;
     private static final long CACHE_TTL_MS = 300_000;
@@ -117,12 +118,19 @@ public class FastchannelConfig {
                 this.lastPriceSync = rs.getTimestamp("LAST_PRICE_SYNC");
                 this.resellerId = rs.getString("RESELLER_ID");
                 this.storageId = rs.getString("STORAGE_ID");
+                this.syncStatusEnabled = "S".equals(rs.getString("SYNC_STATUS_ENABLED"));
 
                 if (this.subscriptionKeyDistribution == null || this.subscriptionKeyDistribution.isEmpty()) {
                     this.subscriptionKeyDistribution = this.subscriptionKey;
+                    if (this.subscriptionKey != null && !this.subscriptionKey.isEmpty()) {
+                        log.warning("DEPRECATED: Usando SUBSCRIPTION_KEY legada para Distribuicao. Atualize a configuracao.");
+                    }
                 }
                 if (this.subscriptionKeyConsumption == null || this.subscriptionKeyConsumption.isEmpty()) {
                     this.subscriptionKeyConsumption = this.subscriptionKey;
+                    if (this.subscriptionKey != null && !this.subscriptionKey.isEmpty()) {
+                        log.warning("DEPRECATED: Usando SUBSCRIPTION_KEY legada para Consumo. Atualize a configuracao.");
+                    }
                 }
                 if (this.batchSize <= 0) this.batchSize = FastchannelConstants.DEFAULT_BATCH_SIZE;
                 if (this.maxRequestsPerMinute <= 0) this.maxRequestsPerMinute = FastchannelConstants.DEFAULT_RATE_LIMIT_PER_MINUTE;
@@ -139,11 +147,12 @@ public class FastchannelConfig {
 
     private void setDefaults() {
         this.authUrl = FastchannelConstants.AUTH_URL;
-        this.baseUrl = FastchannelConstants.ORDER_API_BASE;
+        this.baseUrl = FastchannelConstants.API_BASE_URL_DEFAULT;
         this.subscriptionKey = null;
         this.subscriptionKeyDistribution = null;
         this.subscriptionKeyConsumption = null;
         this.ativo = false;
+        this.syncStatusEnabled = true;
         this.batchSize = FastchannelConstants.DEFAULT_BATCH_SIZE;
         this.maxRequestsPerMinute = FastchannelConstants.DEFAULT_RATE_LIMIT_PER_MINUTE;
     }
@@ -185,7 +194,24 @@ public class FastchannelConfig {
 
     public String getBaseUrl() {
         checkCacheValidity();
-        return baseUrl != null ? baseUrl : FastchannelConstants.ORDER_API_BASE;
+        // Remove trailing slash if present for consistency
+        String url = baseUrl != null ? baseUrl : FastchannelConstants.API_BASE_URL_DEFAULT;
+        if (url.endsWith("/")) {
+            return url.substring(0, url.length() - 1);
+        }
+        return url;
+    }
+
+    public String getOrderApiUrl() {
+        return getBaseUrl() + FastchannelConstants.PATH_ORDER_API;
+    }
+
+    public String getStockApiUrl() {
+        return getBaseUrl() + FastchannelConstants.PATH_STOCK_API;
+    }
+
+    public String getPriceApiUrl() {
+        return getBaseUrl() + FastchannelConstants.PATH_PRICE_API;
     }
 
     public String getAuthUrl() {
@@ -256,6 +282,11 @@ public class FastchannelConfig {
     public Timestamp getLastPriceSync() {
         checkCacheValidity();
         return lastPriceSync;
+    }
+
+    public boolean isSyncStatusEnabled() {
+        checkCacheValidity();
+        return syncStatusEnabled;
     }
 
     public void updateLastOrderSync(Timestamp timestamp) {

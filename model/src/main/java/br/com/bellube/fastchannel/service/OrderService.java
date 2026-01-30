@@ -39,12 +39,16 @@ public class OrderService {
     private final FastchannelOrdersClient ordersClient;
     private final DeparaService deparaService;
     private final LogService logService;
+    private final SankhyaServiceInvoker serviceInvoker;
+    private final OrderXmlBuilder xmlBuilder;
 
     public OrderService() {
         this.config = FastchannelConfig.getInstance();
         this.ordersClient = new FastchannelOrdersClient();
         this.deparaService = DeparaService.getInstance();
         this.logService = LogService.getInstance();
+        this.serviceInvoker = new SankhyaServiceInvoker();
+        this.xmlBuilder = new OrderXmlBuilder();
     }
 
     /**
@@ -80,8 +84,12 @@ public class OrderService {
                             imported++;
                             logService.logOrderImport(order.getOrderId(), nuNota, true, null);
 
-                            // Notificar Fastchannel
-                            ordersClient.markAsSynced(order.getOrderId(), nuNota.toString());
+                            // Notificar Fastchannel (somente se sincronizacao estiver habilitada)
+                            if (config.isSyncStatusEnabled()) {
+                                ordersClient.markAsSynced(order.getOrderId(), nuNota.toString());
+                            } else {
+                                log.fine("Sincronizacao desabilitada. Pedido " + order.getOrderId() + " nao marcado como synced.");
+                            }
                         }
 
                     } catch (Exception e) {
@@ -114,7 +122,7 @@ public class OrderService {
     }
 
     /**
-     * Importa um pedido espec?fico.
+     * Importa um pedido espec?fico usando o servico nativo do Sankhya.
      *
      * @param order dados do pedido
      * @return NUNOTA criado ou null se falhar
@@ -125,20 +133,23 @@ public class OrderService {
         // Validar pedido
         validateOrder(order);
 
-        EntityFacade entityFacade = EntityFacadeFactory.getCoreFacade();
-        JdbcWrapper jdbc = entityFacade.getJdbcWrapper();
-
         try {
             // 1. Localizar ou criar parceiro
             BigDecimal codParc = findOrCreateParceiro(order.getCustomer(), order.getShippingAddress());
 
-            // 2. Criar cabe?alho do pedido
-            BigDecimal nuNota = createCabecalho(order, codParc);
+            // 2. Validar que todos os produtos existem ANTES de criar o pedido
+            validateAllProductsExist(order);
 
-            // 3. Criar itens
-            createItens(nuNota, order.getItems());
+            // 3. Buscar parametros do pedido
+            BigDecimal codTipVenda = getDefaultCodTipVenda();
+            BigDecimal codVend = getDefaultCodVend();
+            BigDecimal codNat = getDefaultCodNat();
+            BigDecimal codCenCus = getDefaultCodCenCus();
 
-            // 4. Registrar na AD_FCPEDIDO
+            // 4. Criar pedido via servico
+            BigDecimal nuNota = importOrderViaService(order, codParc, codTipVenda, codVend, codNat, codCenCus);
+
+            // 5. Registrar na AD_FCPEDIDO
             registerOrderMapping(order.getOrderId(), nuNota, codParc);
 
             log.info("Pedido " + order.getOrderId() + " importado como NUNOTA " + nuNota);
@@ -148,6 +159,85 @@ public class OrderService {
             log.log(Level.SEVERE, "Falha ao importar pedido " + order.getOrderId(), e);
             throw e;
         }
+    }
+
+    /**
+     * Valida que todos os produtos do pedido existem no sistema.
+     * Falha rapido se algum produto nao existir.
+     */
+    private void validateAllProductsExist(OrderDTO order) throws Exception {
+        for (OrderItemDTO item : order.getItems()) {
+            BigDecimal codProd = deparaService.getCodProdBySkuOrEan(item.getSku());
+            if (codProd == null) {
+                throw new Exception("Produto nao encontrado para SKU: " + item.getSku() +
+                                    ". Criacao de produto a partir do Fastchannel nao e permitida.");
+            }
+        }
+    }
+
+    /**
+     * Importa pedido usando servico CACSP.incluirNota.
+     */
+    private BigDecimal importOrderViaService(OrderDTO order, BigDecimal codParc,
+                                             BigDecimal codTipVenda, BigDecimal codVend,
+                                             BigDecimal codNat, BigDecimal codCenCus) throws Exception {
+
+        // Construir XML
+        String requestXml = xmlBuilder.buildIncluirNotaXml(order, codParc, codTipVenda, codVend, codNat, codCenCus);
+
+        log.fine("XML do pedido: " + requestXml);
+
+        // Invocar servico
+        String responseXml = serviceInvoker.invokeService("CACSP.incluirNota", requestXml);
+
+        log.fine("Resposta do servico: " + responseXml);
+
+        // Extrair NUNOTA da resposta
+        BigDecimal nuNota = parseNuNotaFromResponse(responseXml);
+
+        if (nuNota == null) {
+            throw new Exception("Nao foi possivel extrair NUNOTA da resposta do servico");
+        }
+
+        return nuNota;
+    }
+
+    /**
+     * Extrai NUNOTA da resposta XML do servico.
+     */
+    private BigDecimal parseNuNotaFromResponse(String responseXml) {
+        try {
+            // Extrair NUNOTA usando regex simples
+            // Formato esperado: <NUNOTA>12345</NUNOTA>
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<NUNOTA>(\\d+)</NUNOTA>");
+            java.util.regex.Matcher matcher = pattern.matcher(responseXml);
+            if (matcher.find()) {
+                return new BigDecimal(matcher.group(1));
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao parsear NUNOTA da resposta", e);
+        }
+        return null;
+    }
+
+    private BigDecimal getDefaultCodTipVenda() {
+        // TODO: Buscar de configuracao ou parametro
+        return null;
+    }
+
+    private BigDecimal getDefaultCodVend() {
+        // TODO: Buscar de configuracao ou parametro
+        return null;
+    }
+
+    private BigDecimal getDefaultCodNat() {
+        // TODO: Buscar de configuracao ou parametro
+        return null;
+    }
+
+    private BigDecimal getDefaultCodCenCus() {
+        // TODO: Buscar de configuracao ou parametro
+        return null;
     }
 
     private void validateOrder(OrderDTO order) throws Exception {

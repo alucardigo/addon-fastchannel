@@ -36,6 +36,13 @@ public class ReenviarStatusPedidoAction implements AcaoRotinaJava {
                 return;
             }
 
+            // Verificar se sincronizacao de status esta habilitada
+            if (!config.isSyncStatusEnabled()) {
+                resultado.append("[ERRO] Sincronizacao de status est? desabilitada nas configuracoes!");
+                contexto.setMensagemRetorno(resultado.toString());
+                return;
+            }
+
             // Obter registros selecionados
             Registro[] registros = contexto.getLinhas();
 

@@ -83,6 +83,12 @@ public class NotaFiscalListener implements EventoProgramavelJava {
                 return;
             }
 
+            // Verificar se sincronizacao de status esta habilitada
+            if (!config.isSyncStatusEnabled()) {
+                log.fine("Sincronizacao de status desabilitada. Pulando atualizacao.");
+                return;
+            }
+
             DynamicVO vo = (DynamicVO) event.getVo();
             BigDecimal nuNota = vo.asBigDecimal("NUNOTA");
             String statusNota = vo.asString("STATUSNOTA");

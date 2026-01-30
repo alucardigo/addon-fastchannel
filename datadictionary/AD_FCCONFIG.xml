@@ -36,6 +36,13 @@
                     <option value="N" description="Nao"/>
                 </options>
             </field>
+            <field name="SYNC_STATUS_ENABLED" dataType="TEXTO" size="1" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Sincronizar Status com Fastchannel</description>
+                <options>
+                    <option value="S" description="Sim"/>
+                    <option value="N" description="Nao"/>
+                </options>
+            </field>
             <field name="CLIENT_ID" dataType="TEXTO" size="200" mandatory="N" allowSearch="N">
                 <description>Client ID OAuth2</description>
             </field>
@@ -46,7 +53,7 @@
                 <description>Scope OAuth2</description>
             </field>
             <field name="SUBSCRIPTION_KEY" dataType="TEXTO" size="100" mandatory="N" allowSearch="N">
-                <description>Subscription Key Azure APIM</description>
+                <description>(DEPRECATED) Subscription Key Azure APIM</description>
             </field>
             <field name="SUBSCRIPTION_KEY_DISTRIBUTION" dataType="TEXTO" size="100" mandatory="N" allowSearch="N">
                 <description>Subscription Key Distribuicao</description>
