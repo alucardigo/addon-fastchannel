@@ -1,10 +1,14 @@
 -- ============================================================
--- Migration: Adicionar flag SYNC_STATUS_ENABLED
+-- Migration: Adicionar campos de configuracao Sankhya
 -- Data: 2026-01-30
--- Proposito: Permitir desabilitar sincronizacao de status com Fastchannel
+-- Proposito:
+-- 1. Permitir desabilitar sincronizacao de status com Fastchannel
+-- 2. Adicionar credenciais para autenticacao no Sankhya
 -- ============================================================
 
 -- Para SQL Server
+
+-- 1. SYNC_STATUS_ENABLED
 IF NOT EXISTS (
     SELECT * FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'AD_FCCONFIG'
@@ -25,6 +29,63 @@ ELSE
 BEGIN
     PRINT 'Coluna SYNC_STATUS_ENABLED ja existe.';
 END
+GO
+
+-- 2. SANKHYA_SERVER_URL
+IF NOT EXISTS (
+    SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'AD_FCCONFIG'
+    AND COLUMN_NAME = 'SANKHYA_SERVER_URL'
+)
+BEGIN
+    ALTER TABLE AD_FCCONFIG
+    ADD SANKHYA_SERVER_URL VARCHAR(300) NULL;
+
+    PRINT 'Coluna SANKHYA_SERVER_URL adicionada com sucesso.';
+END
+ELSE
+BEGIN
+    PRINT 'Coluna SANKHYA_SERVER_URL ja existe.';
+END
+GO
+
+-- 3. SANKHYA_USER
+IF NOT EXISTS (
+    SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'AD_FCCONFIG'
+    AND COLUMN_NAME = 'SANKHYA_USER'
+)
+BEGIN
+    ALTER TABLE AD_FCCONFIG
+    ADD SANKHYA_USER VARCHAR(100) NULL;
+
+    PRINT 'Coluna SANKHYA_USER adicionada com sucesso.';
+END
+ELSE
+BEGIN
+    PRINT 'Coluna SANKHYA_USER ja existe.';
+END
+GO
+
+-- 4. SANKHYA_PASSWORD
+IF NOT EXISTS (
+    SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'AD_FCCONFIG'
+    AND COLUMN_NAME = 'SANKHYA_PASSWORD'
+)
+BEGIN
+    ALTER TABLE AD_FCCONFIG
+    ADD SANKHYA_PASSWORD VARCHAR(200) NULL;
+
+    PRINT 'Coluna SANKHYA_PASSWORD adicionada com sucesso.';
+END
+ELSE
+BEGIN
+    PRINT 'Coluna SANKHYA_PASSWORD ja existe.';
+END
+GO
+
+PRINT '=== Migracao concluida com sucesso ==='
 GO
 
 -- Para Oracle

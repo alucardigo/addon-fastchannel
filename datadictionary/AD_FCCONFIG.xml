@@ -43,6 +43,15 @@
                     <option value="N" description="Nao"/>
                 </options>
             </field>
+            <field name="SANKHYA_SERVER_URL" dataType="TEXTO" size="300" mandatory="N" allowSearch="N">
+                <description>URL do Servidor Sankhya (ex: http://localhost:8080)</description>
+            </field>
+            <field name="SANKHYA_USER" dataType="TEXTO" size="100" mandatory="N" allowSearch="N">
+                <description>Usuario Sankhya para Autenticacao</description>
+            </field>
+            <field name="SANKHYA_PASSWORD" dataType="TEXTO" size="200" mandatory="N" allowSearch="N" inputType="PASSWORD">
+                <description>Senha Sankhya para Autenticacao</description>
+            </field>
             <field name="CLIENT_ID" dataType="TEXTO" size="200" mandatory="N" allowSearch="N">
                 <description>Client ID OAuth2</description>
             </field>

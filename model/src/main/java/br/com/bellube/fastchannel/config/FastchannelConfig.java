@@ -41,6 +41,9 @@ public class FastchannelConfig {
     private Timestamp lastStockSync;
     private Timestamp lastPriceSync;
     private boolean syncStatusEnabled;
+    private String sankhyaServerUrl;
+    private String sankhyaUser;
+    private String sankhyaPassword;
 
     private long lastLoadTime;
     private static final long CACHE_TTL_MS = 300_000;
@@ -119,6 +122,9 @@ public class FastchannelConfig {
                 this.resellerId = rs.getString("RESELLER_ID");
                 this.storageId = rs.getString("STORAGE_ID");
                 this.syncStatusEnabled = "S".equals(rs.getString("SYNC_STATUS_ENABLED"));
+                this.sankhyaServerUrl = rs.getString("SANKHYA_SERVER_URL");
+                this.sankhyaUser = rs.getString("SANKHYA_USER");
+                this.sankhyaPassword = rs.getString("SANKHYA_PASSWORD");
 
                 if (this.subscriptionKeyDistribution == null || this.subscriptionKeyDistribution.isEmpty()) {
                     this.subscriptionKeyDistribution = this.subscriptionKey;
@@ -153,6 +159,9 @@ public class FastchannelConfig {
         this.subscriptionKeyConsumption = null;
         this.ativo = false;
         this.syncStatusEnabled = true;
+        this.sankhyaServerUrl = null;
+        this.sankhyaUser = null;
+        this.sankhyaPassword = null;
         this.batchSize = FastchannelConstants.DEFAULT_BATCH_SIZE;
         this.maxRequestsPerMinute = FastchannelConstants.DEFAULT_RATE_LIMIT_PER_MINUTE;
     }
@@ -287,6 +296,30 @@ public class FastchannelConfig {
     public boolean isSyncStatusEnabled() {
         checkCacheValidity();
         return syncStatusEnabled;
+    }
+
+    public String getSankhyaServerUrl() {
+        checkCacheValidity();
+        if (sankhyaServerUrl != null && !sankhyaServerUrl.isEmpty()) {
+            return sankhyaServerUrl;
+        }
+        // Fallback: tentar propriedade do sistema
+        String systemUrl = System.getProperty("sankhya.server.url");
+        if (systemUrl != null && !systemUrl.isEmpty()) {
+            return systemUrl;
+        }
+        // Ultimo fallback: variavel de ambiente
+        return System.getenv("SANKHYA_SERVER_URL");
+    }
+
+    public String getSankhyaUser() {
+        checkCacheValidity();
+        return sankhyaUser;
+    }
+
+    public String getSankhyaPassword() {
+        checkCacheValidity();
+        return sankhyaPassword;
     }
 
     public void updateLastOrderSync(Timestamp timestamp) {

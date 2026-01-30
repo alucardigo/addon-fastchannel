@@ -39,16 +39,14 @@ public class OrderService {
     private final FastchannelOrdersClient ordersClient;
     private final DeparaService deparaService;
     private final LogService logService;
-    private final SankhyaServiceInvoker serviceInvoker;
-    private final OrderXmlBuilder xmlBuilder;
+    private final br.com.bellube.fastchannel.service.strategy.OrderCreationOrchestrator orchestrator;
 
     public OrderService() {
         this.config = FastchannelConfig.getInstance();
         this.ordersClient = new FastchannelOrdersClient();
         this.deparaService = DeparaService.getInstance();
         this.logService = LogService.getInstance();
-        this.serviceInvoker = new SankhyaServiceInvoker();
-        this.xmlBuilder = new OrderXmlBuilder();
+        this.orchestrator = new br.com.bellube.fastchannel.service.strategy.OrderCreationOrchestrator();
     }
 
     /**
@@ -176,48 +174,15 @@ public class OrderService {
     }
 
     /**
-     * Importa pedido usando servico CACSP.incluirNota.
+     * Importa pedido usando orquestrador de estrategias com fallback automatico.
+     * Tenta: 1) API Interna, 2) ServiceInvoker, 3) HTTP
      */
     private BigDecimal importOrderViaService(OrderDTO order, BigDecimal codParc,
                                              BigDecimal codTipVenda, BigDecimal codVend,
                                              BigDecimal codNat, BigDecimal codCenCus) throws Exception {
 
-        // Construir XML
-        String requestXml = xmlBuilder.buildIncluirNotaXml(order, codParc, codTipVenda, codVend, codNat, codCenCus);
-
-        log.fine("XML do pedido: " + requestXml);
-
-        // Invocar servico
-        String responseXml = serviceInvoker.invokeService("CACSP.incluirNota", requestXml);
-
-        log.fine("Resposta do servico: " + responseXml);
-
-        // Extrair NUNOTA da resposta
-        BigDecimal nuNota = parseNuNotaFromResponse(responseXml);
-
-        if (nuNota == null) {
-            throw new Exception("Nao foi possivel extrair NUNOTA da resposta do servico");
-        }
-
-        return nuNota;
-    }
-
-    /**
-     * Extrai NUNOTA da resposta XML do servico.
-     */
-    private BigDecimal parseNuNotaFromResponse(String responseXml) {
-        try {
-            // Extrair NUNOTA usando regex simples
-            // Formato esperado: <NUNOTA>12345</NUNOTA>
-            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<NUNOTA>(\\d+)</NUNOTA>");
-            java.util.regex.Matcher matcher = pattern.matcher(responseXml);
-            if (matcher.find()) {
-                return new BigDecimal(matcher.group(1));
-            }
-        } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao parsear NUNOTA da resposta", e);
-        }
-        return null;
+        // Usar orquestrador que tenta estrategias automaticamente
+        return orchestrator.createOrder(order, codParc, codTipVenda, codVend, codNat, codCenCus);
     }
 
     private BigDecimal getDefaultCodTipVenda() {

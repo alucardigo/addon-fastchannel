@@ -41,7 +41,7 @@ public class OrderXmlBuilder {
 
         StringBuilder xml = new StringBuilder();
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.append("<servicerequest serviceName=\"CACSP.incluirNota\">\n");
+        xml.append("<serviceRequest serviceName=\"CACSP.incluirNota\">\n"); // R maiusculo!
         xml.append("  <requestBody>\n");
         xml.append("    <nota>\n");
 
@@ -115,7 +115,7 @@ public class OrderXmlBuilder {
     }
 
     private void appendItens(StringBuilder xml, OrderDTO order) throws Exception {
-        xml.append("      <itens>\n");
+        xml.append("      <itens INFORMARPRECO=\"True\">\n"); // Adicionar atributo INFORMARPRECO!
 
         int sequencia = 1;
         for (OrderItemDTO item : order.getItems()) {

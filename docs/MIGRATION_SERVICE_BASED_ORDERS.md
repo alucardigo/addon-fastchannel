@@ -8,6 +8,16 @@ Esta migração atualiza a importação de pedidos do Fastchannel para usar o se
 
 2026-01-30
 
+## ⚡ ATUALIZAÇÃO v2.0: Sistema de Estratégias com Fallback
+
+A implementação foi **TOTALMENTE REFATORADA** para usar padrão de estratégias com fallback automático:
+
+1. **InternalApiStrategy** (preferencial) - Usa APIs internas do Sankhya
+2. **ServiceInvokerStrategy** (fallback 1) - Usa ServiceInvoker
+3. **HttpServiceStrategy** (fallback 2) - Chamada HTTP com autenticação
+
+Ver detalhes em: `docs/STRATEGY_PATTERN_IMPLEMENTATION.md`
+
 ## Mudanças Principais
 
 ### 1. Nova Flag de Sincronização
