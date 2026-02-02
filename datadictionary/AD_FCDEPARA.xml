@@ -27,6 +27,9 @@
                     <option value="PRODUTO" description="Produto"/>
                     <option value="PARCEIRO" description="Parceiro"/>
                     <option value="LOCAL" description="Local de Estoque"/>
+                    <option value="TABELA_PRECO" description="Tabela de Preco"/>
+                    <option value="STOCK_STORAGE" description="StorageId (Fastchannel) x Empresa/Local"/>
+                    <option value="STOCK_RESELLER" description="ResellerId (Fastchannel) x Empresa"/>
                 </options>
             </field>
             <field name="COD_SANKHYA" dataType="INTEIRO" size="10" mandatory="S" allowSearch="S" visibleOnSearch="S">

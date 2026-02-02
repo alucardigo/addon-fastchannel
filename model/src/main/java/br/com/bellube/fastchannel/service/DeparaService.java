@@ -34,6 +34,11 @@ public class DeparaService {
     public static final String TIPO_PARCEIRO = "PARCEIRO";
     public static final String TIPO_LOCAL = "LOCAL";
     public static final String TIPO_TABELA_PRECO = "TABELA_PRECO";
+    public static final String TIPO_STOCK_STORAGE = "STOCK_STORAGE";
+    public static final String TIPO_STOCK_RESELLER = "STOCK_RESELLER";
+    public static final String TIPO_EMPRESA = "EMPRESA";
+    public static final String TIPO_TOP_PEDIDO = "TOP_PEDIDO";
+    public static final String TIPO_TIPNEG = "TIPNEG";
 
     // Cache: tipo -> (codSankhya -> codExterno)
     private final Map<String, Map<BigDecimal, String>> cacheSankhyaToExterno = new ConcurrentHashMap<>();
@@ -79,6 +84,27 @@ public class DeparaService {
      */
     public BigDecimal getCodParc(String externalId) {
         return getCodigoSankhya(TIPO_PARCEIRO, externalId);
+    }
+
+    /**
+     * Obt?m CODEMP a partir do ID externo (ResellerId/StorageId).
+     */
+    public BigDecimal getCodEmp(String externalId) {
+        return getCodigoSankhya(TIPO_EMPRESA, externalId);
+    }
+
+    /**
+     * Obt?m CODTIPOPER a partir do ID externo (ResellerId/StorageId).
+     */
+    public BigDecimal getCodTipOper(String externalId) {
+        return getCodigoSankhya(TIPO_TOP_PEDIDO, externalId);
+    }
+
+    /**
+     * Obt?m CODTIPVENDA (TIPNEG) a partir do ID externo (ResellerId/StorageId).
+     */
+    public BigDecimal getCodTipVenda(String externalId) {
+        return getCodigoSankhya(TIPO_TIPNEG, externalId);
     }
 
     /**
