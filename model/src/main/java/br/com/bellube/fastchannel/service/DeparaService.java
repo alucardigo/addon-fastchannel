@@ -257,6 +257,49 @@ public class DeparaService {
     }
 
     /**
+     * Busca SKU para estoque usando regra de marca (AD_FASTREF) com de-para como prioridade.
+     */
+    public String getSkuForStock(BigDecimal codProd) {
+        if (codProd == null) return null;
+
+        String sku = getSku(codProd);
+        if (sku != null) return sku;
+
+        ResultSet rs = null;
+        try {
+            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT M.AD_FASTREF, P.REFFORN, P.CODPROD ");
+            sql.appendSql("FROM TGFPRO P ");
+            sql.appendSql("INNER JOIN TGFMAR M ON M.CODIGO = P.CODMARCA ");
+            sql.appendSql("WHERE P.CODPROD = :codProd");
+            sql.setNamedParameter("codProd", codProd);
+
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                String adFastRef = rs.getString("AD_FASTREF");
+                String refForn = rs.getString("REFFORN");
+                BigDecimal cod = rs.getBigDecimal("CODPROD");
+                return computeSkuFromBrandRule(adFastRef, cod, refForn);
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Erro ao buscar SKU por regra de marca", e);
+        } finally {
+            closeQuietly(rs);
+        }
+        return null;
+    }
+
+    public static String computeSkuFromBrandRule(String adFastRef, BigDecimal codProd, String refForn) {
+        if ("R".equalsIgnoreCase(adFastRef)) {
+            return refForn;
+        }
+        if (codProd == null) return null;
+        return codProd.toPlainString();
+    }
+
+    /**
      * Busca CODPROD usando SKU ou EAN.
      */
     public BigDecimal getCodProdBySkuOrEan(String skuOrEan) {
