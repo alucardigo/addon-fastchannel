@@ -11,6 +11,22 @@
 
 ---
 
+## 📦 Estoque - Legado vs Add-on (SQL Server)
+
+### Legado
+- Query `SyncStockFastChannel` usa **Quantity=999** para produtos ativos e 0 para inativos.
+- StorageId/ResellerId são fixos na query.
+- SKU alterna entre `REFFORN` e `CODPROD` conforme `MAR.AD_FASTREF`.
+
+### Add-on (ajustes planejados)
+- Estoque calculado via **TGFEST (ESTOQUE - RESERVADO)**, sem valores fixos.
+- Mapeamento via `AD_FCDEPARA`:
+  - `STOCK_STORAGE`: `CODLOCAL` -> `StorageId`
+  - `STOCK_RESELLER`: `CODEMP` -> `ResellerId`
+- SKU resolvido por regra de marca (`AD_FASTREF`) com de-para como prioridade.
+
+---
+
 ## 📊 Comparação - Legado Node.js
 
 ### ✅ O que o Legado Faz CERTO
