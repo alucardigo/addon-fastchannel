@@ -3,6 +3,7 @@ package br.com.bellube.fastchannel.service;
 import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.config.FastchannelConstants;
 import br.com.bellube.fastchannel.dto.QueueItemDTO;
+import br.com.bellube.fastchannel.service.DeparaService;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
@@ -517,7 +518,35 @@ public class QueueService {
      * Enfileira atualiza??o de estoque (alta prioridade).
      */
     public void enqueueStock(BigDecimal codProd, String sku, BigDecimal quantity) {
-        String payload = gson.toJson(new Object[]{ sku, quantity });
+        BigDecimal codEmp = config.getCodemp();
+        BigDecimal codLocal = config.getCodLocal();
+        enqueueStock(codProd, sku, quantity, codEmp, codLocal);
+    }
+
+    /**
+     * Enfileira atualizacao de estoque com contexto de empresa/local.
+     */
+    public void enqueueStock(BigDecimal codProd, String sku, BigDecimal quantity,
+                             BigDecimal codEmp, BigDecimal codLocal) {
+        if (codEmp == null || codLocal == null) {
+            log.warning("Estoque ignorado: CODEMP/CODLOCAL nao informados para SKU " + sku);
+            return;
+        }
+
+        DeparaService deparaService = DeparaService.getInstance();
+        String storageId = deparaService.getCodigoExterno(DeparaService.TIPO_STOCK_STORAGE, codLocal);
+        String resellerId = deparaService.getCodigoExterno(DeparaService.TIPO_STOCK_RESELLER, codEmp);
+
+        if (storageId == null || storageId.isEmpty()) {
+            log.warning("Estoque ignorado: StorageId nao mapeado para CODLOCAL " + codLocal);
+            return;
+        }
+        if (resellerId == null || resellerId.isEmpty()) {
+            log.warning("Estoque ignorado: ResellerId nao mapeado para CODEMP " + codEmp);
+            return;
+        }
+
+        String payload = buildStockPayload(sku, quantity, codEmp, codLocal, storageId, resellerId);
         enqueue(FastchannelConstants.ENTITY_ESTOQUE, FastchannelConstants.OPERATION_UPDATE,
                 codProd, sku, payload, new BigDecimal(10)); // Prioridade alta
     }
@@ -537,6 +566,27 @@ public class QueueService {
         String payload = gson.toJson(new Object[]{ orderId, status });
         enqueue(FastchannelConstants.ENTITY_PEDIDO_STATUS, FastchannelConstants.OPERATION_UPDATE,
                 nuNota, orderId, payload, new BigDecimal(100)); // Prioridade m?xima
+    }
+
+    String buildStockPayload(String sku, BigDecimal quantity, BigDecimal codEmp, BigDecimal codLocal,
+                             String storageId, String resellerId) {
+        StockPayload payload = new StockPayload();
+        payload.sku = sku;
+        payload.quantity = quantity;
+        payload.codEmp = codEmp;
+        payload.codLocal = codLocal;
+        payload.storageId = storageId;
+        payload.resellerId = resellerId;
+        return gson.toJson(payload);
+    }
+
+    private static final class StockPayload {
+        private String sku;
+        private BigDecimal quantity;
+        private BigDecimal codEmp;
+        private BigDecimal codLocal;
+        private String storageId;
+        private String resellerId;
     }
 }
 

@@ -89,7 +89,7 @@ public class EstoqueListener implements EventoProgramavelJava {
 
             // Obter SKU do produto
             DeparaService deparaService = DeparaService.getInstance();
-            String sku = deparaService.getSkuWithFallback(codProd);
+            String sku = deparaService.getSkuForStock(codProd);
 
             if (sku == null || sku.isEmpty()) {
                 log.fine("Produto " + codProd + " não tem SKU mapeado. Ignorando.");
@@ -98,7 +98,7 @@ public class EstoqueListener implements EventoProgramavelJava {
 
             // Enfileirar para sincronização
             QueueService queueService = QueueService.getInstance();
-            queueService.enqueueStock(codProd, sku, estoque);
+            queueService.enqueueStock(codProd, sku, estoque, codEmp, codLocal);
 
             log.info("Estoque enfileirado: CODPROD " + codProd + " (SKU " + sku + ") = " + estoque);
 

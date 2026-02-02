@@ -9,6 +9,7 @@ import br.com.bellube.fastchannel.http.FastchannelStockClient;
 import br.com.bellube.fastchannel.service.DeparaService;
 import br.com.bellube.fastchannel.service.LogService;
 import br.com.bellube.fastchannel.service.QueueService;
+import br.com.bellube.fastchannel.service.StockResolver;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.event.PersistenceEvent;
@@ -103,7 +104,10 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
 
                     switch (item.getEntityType()) {
                         case FastchannelConstants.ENTITY_ESTOQUE:
-                            processStockItem(item, stockClient, deparaService);
+                            if (!processStockItem(item, stockClient, deparaService)) {
+                                queueService.markAsFatalError(item.getIdQueue(), "Mapping de estoque ausente");
+                                continue;
+                            }
                             break;
 
                         case FastchannelConstants.ENTITY_PRECO:
@@ -149,25 +153,37 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
         log.info("=== Job de Processamento Outbox Finalizado ===");
     }
 
-    private void processStockItem(QueueItemDTO item, FastchannelStockClient stockClient,
-                                  DeparaService deparaService) throws Exception {
+    private boolean processStockItem(QueueItemDTO item, FastchannelStockClient stockClient,
+                                     DeparaService deparaService) throws Exception {
 
         String sku = item.getEntityKey();
         if (sku == null || sku.isEmpty()) {
-            sku = deparaService.getSkuWithFallback(item.getEntityId());
+            sku = deparaService.getSkuForStock(item.getEntityId());
         }
 
         if (sku == null || sku.isEmpty()) {
             throw new Exception("SKU n?o encontrado para CODPROD " + item.getEntityId());
         }
 
+        StockPayload payload = parseStockPayload(item.getPayload());
+        if (payload == null || payload.codEmp == null || payload.codLocal == null
+                || payload.storageId == null || payload.storageId.isEmpty()) {
+            log.warning("Estoque ignorado: payload incompleto para SKU " + sku);
+            return false;
+        }
+
         // Buscar estoque atual do Sankhya
-        BigDecimal quantity = getCurrentStock(item.getEntityId());
+        BigDecimal quantity = new StockResolver().resolve(item.getEntityId(), payload.codEmp, payload.codLocal);
+        if (quantity == null) {
+            log.warning("Estoque ignorado: sem dados para SKU " + sku);
+            return false;
+        }
 
         log.info("Atualizando estoque: SKU " + sku + " = " + quantity);
-        stockClient.updateStock(sku, quantity);
+        stockClient.updateStock(sku, quantity, payload.storageId);
 
         LogService.getInstance().logStockSync(sku, quantity, true, null);
+        return true;
     }
 
     private void processPriceItem(QueueItemDTO item, FastchannelPriceClient priceClient,
@@ -208,34 +224,25 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
         }
     }
 
-    private BigDecimal getCurrentStock(BigDecimal codProd) {
-        FastchannelConfig config = FastchannelConfig.getInstance();
-        BigDecimal codLocal = config.getCodLocal();
-        BigDecimal codEmp = config.getCodemp();
-
-        ResultSet rs = null;
-        try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
-
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("SELECT ESTOQUE FROM TGFEST ");
-            sql.appendSql("WHERE CODPROD = :codProd AND CODLOCAL = :codLocal AND CODEMP = :codEmp");
-
-            sql.setNamedParameter("codProd", codProd);
-            sql.setNamedParameter("codLocal", codLocal);
-            sql.setNamedParameter("codEmp", codEmp);
-
-            rs = sql.executeQuery();
-            if (rs.next()) {
-                BigDecimal estoque = rs.getBigDecimal("ESTOQUE");
-                return estoque != null ? estoque : BigDecimal.ZERO;
-            }
-        } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao buscar estoque", e);
-        } finally {
-            closeQuietly(rs);
+    private StockPayload parseStockPayload(String payloadJson) {
+        if (payloadJson == null || payloadJson.isEmpty()) {
+            return null;
         }
-        return BigDecimal.ZERO;
+        try {
+            return gson.fromJson(payloadJson, StockPayload.class);
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao parsear payload de estoque", e);
+            return null;
+        }
+    }
+
+    private static final class StockPayload {
+        private String sku;
+        private BigDecimal quantity;
+        private BigDecimal codEmp;
+        private BigDecimal codLocal;
+        private String storageId;
+        private String resellerId;
     }
 
     private BigDecimal[] getCurrentPrice(BigDecimal codProd) {

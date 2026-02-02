@@ -43,7 +43,16 @@ public class FastchannelStockClient {
      * @param quantity quantidade disponível
      */
     public void updateStock(String sku, BigDecimal quantity) throws Exception {
-        String storageId = config.getStorageId();
+        updateStock(sku, quantity, null);
+    }
+
+    /**
+     * Atualiza estoque de um SKU específico informando o StorageId.
+     */
+    public void updateStock(String sku, BigDecimal quantity, String storageIdOverride) throws Exception {
+        String storageId = (storageIdOverride != null && !storageIdOverride.isEmpty())
+                ? storageIdOverride
+                : config.getStorageId();
         if (storageId == null || storageId.isEmpty()) {
             throw new Exception("Storage ID não configurado para atualização de estoque.");
         }
