@@ -55,6 +55,36 @@ public class FastchannelDirectServlet extends HttpServlet {
         // Logs
         services.put("FCLogsSP.list", new ServiceInfo(FCLogsService.class, "list"));
         services.put("FCLogsSP.limpar", new ServiceInfo(FCLogsService.class, "limpar"));
+
+        // De-Para (tela de-para.html - implementacao avancada com 5 abas)
+        services.put("FCDeParaSP.list", new ServiceInfo(FCDeparaService.class, "list"));
+        services.put("FCDeParaSP.save", new ServiceInfo(FCDeparaService.class, "save"));
+        services.put("FCDeParaSP.remove", new ServiceInfo(FCDeparaService.class, "remove"));
+        services.put("FCDeParaSP.listDisponiveis", new ServiceInfo(FCDeparaService.class, "listDisponiveis"));
+
+        // De-Para (tela depara.html - implementacao original)
+        services.put("FCDeparaSP.listEmpresas", new ServiceInfo(FCDeparaService.class, "listEmpresas"));
+        services.put("FCDeparaSP.listLocais", new ServiceInfo(FCDeparaService.class, "listLocais"));
+        services.put("FCDeparaSP.listTabelasPreco", new ServiceInfo(FCDeparaService.class, "listTabelasPreco"));
+        services.put("FCDeparaSP.listMappings", new ServiceInfo(FCDeparaService.class, "listMappings"));
+        services.put("FCDeparaSP.saveMappings", new ServiceInfo(FCDeparaService.class, "saveMappings"));
+
+        // Estoque
+        services.put("FCEstoqueSP.list", new ServiceInfo(FCEstoqueService.class, "list"));
+        services.put("FCEstoqueSP.compararFC", new ServiceInfo(FCEstoqueService.class, "compararFC"));
+        services.put("FCEstoqueSP.forcarSync", new ServiceInfo(FCEstoqueService.class, "forcarSync"));
+        services.put("FCEstoqueSP.reprocessar", new ServiceInfo(FCEstoqueService.class, "reprocessar"));
+
+        // Precos
+        services.put("FCPrecosSP.list", new ServiceInfo(FCPrecosService.class, "list"));
+        services.put("FCPrecosSP.compararFC", new ServiceInfo(FCPrecosService.class, "compararFC"));
+        services.put("FCPrecosSP.forcarSync", new ServiceInfo(FCPrecosService.class, "forcarSync"));
+        services.put("FCPrecosSP.reprocessar", new ServiceInfo(FCPrecosService.class, "reprocessar"));
+        services.put("FCPrecosSP.syncEmLote", new ServiceInfo(FCPrecosService.class, "syncEmLote"));
+    }
+
+    static boolean hasService(String name) {
+        return services.containsKey(name);
     }
 
     @Override

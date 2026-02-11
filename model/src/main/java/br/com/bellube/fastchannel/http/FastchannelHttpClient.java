@@ -218,7 +218,9 @@ public class FastchannelHttpClient {
             // Headers padrão Fastchannel
             connection.setRequestProperty("Authorization", "Bearer " + token);
             connection.setRequestProperty("Accept", "application/json");
-            connection.setRequestProperty("Ocp-Apim-Subscription-Key", subscriptionKey);
+            connection.setRequestProperty(getSubscriptionHeaderName(), subscriptionKey);
+            // Compatibilidade com variacoes de gateway
+            connection.setRequestProperty("subscription-key", subscriptionKey);
 
             if (jsonBody != null) {
                 connection.setRequestProperty("Content-Type", "application/json");
@@ -246,6 +248,10 @@ public class FastchannelHttpClient {
                 connection.disconnect();
             }
         }
+    }
+
+    private static String getSubscriptionHeaderName() {
+        return "Subscription-Key";
     }
 
     private String readStream(java.io.InputStream stream) throws Exception {

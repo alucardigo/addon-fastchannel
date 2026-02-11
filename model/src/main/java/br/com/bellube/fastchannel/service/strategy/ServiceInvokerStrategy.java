@@ -2,8 +2,6 @@ package br.com.bellube.fastchannel.service.strategy;
 
 import br.com.bellube.fastchannel.dto.OrderDTO;
 import br.com.bellube.fastchannel.service.OrderXmlBuilder;
-import br.com.sankhya.extensions.actionbutton.utils.ServiceInvoker;
-
 import java.math.BigDecimal;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -52,9 +50,11 @@ public class ServiceInvokerStrategy implements OrderCreationStrategy {
 
             log.fine("[ServiceInvoker] XML: " + requestXml);
 
-            // Invocar servico
-            ServiceInvoker invoker = new ServiceInvoker("CACSP.incluirNota", requestXml);
-            String responseXml = invoker.invoke();
+            // Invocar servico via reflexao para evitar dependencia em tempo de compilacao
+            Class<?> invokerClass = Class.forName("br.com.sankhya.extensions.actionbutton.utils.ServiceInvoker");
+            Object invoker = invokerClass.getConstructor(String.class, String.class)
+                    .newInstance("CACSP.incluirNota", requestXml);
+            String responseXml = (String) invokerClass.getMethod("invoke").invoke(invoker);
 
             log.fine("[ServiceInvoker] Resposta: " + responseXml);
 

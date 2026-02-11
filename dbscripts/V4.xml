@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V4: Campos adicionais para configuracao Fastchannel -->
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="SYNC_STATUS_ENABLED" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD SYNC_STATUS_ENABLED CHAR(1) DEFAULT 'N'
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD SYNC_STATUS_ENABLED CHAR(1) DEFAULT 'N'
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="SANKHYA_SERVER_URL" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_SERVER_URL VARCHAR2(300)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_SERVER_URL VARCHAR(300)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="SANKHYA_USER" ordem="3" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_USER VARCHAR2(100)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_USER VARCHAR(100)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="SANKHYA_PASSWORD" ordem="4" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_PASSWORD VARCHAR2(200)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_PASSWORD VARCHAR(200)
+        </mssql>
+    </sql>
+</alteracoes>

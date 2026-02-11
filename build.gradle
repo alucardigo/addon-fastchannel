@@ -25,11 +25,22 @@ buildscript {
 //Substitua o valor inserido em 'group' por seu domínio, por exemplo: 'br.com.suaempresa'.
 group = 'br.com.bellube.fastchannel'
 //Especifica a versão do addon. É útil para controle de versões, deploys e compatibilidade com o sistema.
-version="1.0.1"
+version="1.1.0"
 //Define uma breve descrição do addon, explicando sua funcionalidade ou objetivo principal.
 description = "Integração Fastchannel Data Lake - Monitoramento e Ingestão de Dados"
 
 apply(plugin: "br.com.sankhya.addonstudio")
+
+// JUnit para testes unitarios
+subprojects {
+    afterEvaluate {
+        if (plugins.hasPlugin('java') || plugins.hasPlugin('java-library')) {
+            dependencies {
+                testImplementation 'junit:junit:4.13.2'
+            }
+        }
+    }
+}
 
 // Load local.properties for machine-specific configuration
 def localProps = new Properties()
@@ -190,6 +201,7 @@ afterEvaluate {
     }
 
     project(':vc').tasks.named('war') {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         dependsOn rootProject.tasks.named('patchExtension')
         dependsOn rootProject.tasks.named('syncExtensionResources')
         dependsOn rootProject.tasks.named('processDashboards')
@@ -413,6 +425,17 @@ afterEvaluate {
         dependsOn 'patchExtension'
         dependsOn 'syncDbScripts'
         dependsOn 'injectExtensionIntoWar'
+        doFirst {
+            def licenseId = System.getenv('ADDON_LICENSE_ID') ?:
+                (project.hasProperty('ADDON_LICENSE_ID') ? project.getProperty('ADDON_LICENSE_ID') : null)
+            if (!licenseId?.trim()) {
+                throw new GradleException(
+                    "ADDON_LICENSE_ID obrigatorio para publishAddon. " +
+                    "Defina via variavel de ambiente ou -PADDON_LICENSE_ID=<id>. " +
+                    "Sem este ID, o addon nao sera registrado corretamente no Portal Sankhya " +
+                    "e nao tera botao de desinstalacao.")
+            }
+        }
     }
 
 }

@@ -5,6 +5,7 @@ import br.com.bellube.fastchannel.dto.OrderDTO;
 import br.com.bellube.fastchannel.dto.OrderItemDTO;
 import br.com.bellube.fastchannel.service.DeparaService;
 import br.com.sankhya.jape.EntityFacade;
+import br.com.sankhya.jape.core.JapeSession;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.jape.wrapper.JapeFactory;
 import br.com.sankhya.jape.wrapper.JapeWrapper;
@@ -56,33 +57,41 @@ public class InternalApiStrategy implements OrderCreationStrategy {
 
         log.info("[InternalAPI] Criando pedido " + order.getOrderId() + " usando API interna");
 
+        JapeSession.SessionHandle hnd = null;
         try {
-            EntityFacade facade = EntityFacadeFactory.getCoreFacade();
+            EntityFacadeFactory.getCoreFacade();
+            hnd = JapeSession.open();
 
-            // Usar transacao gerenciada pelo Sankhya
-            facade.beginTransaction();
+            final BigDecimal[] nuNotaRef = new BigDecimal[1];
+            hnd.execWithTX(new JapeSession.TXBlock() {
+                @Override
+                public void doWithTx() throws Exception {
+                    // 1. Criar cabecalho
+                    BigDecimal nuNota = createCabecalho(order, codParc, codTipVenda, codVend, codNat, codCenCus);
 
-            try {
-                // 1. Criar cabecalho
-                BigDecimal nuNota = createCabecalho(order, codParc, codTipVenda, codVend, codNat, codCenCus);
+                    // 2. Criar itens
+                    createItens(nuNota, order);
 
-                // 2. Criar itens
-                createItens(nuNota, order);
+                    nuNotaRef[0] = nuNota;
+                }
+            });
 
-                // Commit da transacao
-                facade.commitTransaction();
-
-                log.info("[InternalAPI] Pedido " + order.getOrderId() + " criado como NUNOTA " + nuNota);
-                return nuNota;
-
-            } catch (Exception e) {
-                facade.rollbackTransaction();
-                throw e;
+            if (nuNotaRef[0] == null) {
+                throw new Exception("NUNOTA nao gerado via API interna");
             }
+
+            log.info("[InternalAPI] Pedido " + order.getOrderId() + " criado como NUNOTA " + nuNotaRef[0]);
+            return nuNotaRef[0];
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "[InternalAPI] Erro ao criar pedido via API interna", e);
             throw new Exception("Falha na criacao via API interna: " + e.getMessage(), e);
+        } finally {
+            if (hnd != null) {
+                try {
+                    JapeSession.close(hnd);
+                } catch (Exception ignored) {}
+            }
         }
     }
 
@@ -92,15 +101,31 @@ public class InternalApiStrategy implements OrderCreationStrategy {
 
         JapeWrapper cabDAO = JapeFactory.dao("CabecalhoNota");
 
-        BigDecimal codTipOper = config.getCodTipOper();
-        BigDecimal codEmp = config.getCodemp();
+        // Resolucao via De-Para (prioridade: ResellerId > Config)
+        String externalId = order.getResellerId();
+
+        BigDecimal codEmp = deparaService.getCodEmp(externalId);
+        if (codEmp == null) {
+            codEmp = config.getCodemp();
+        }
+
+        BigDecimal codTipOper = deparaService.getCodTipOper(externalId);
+        if (codTipOper == null) {
+            codTipOper = config.getCodTipOper();
+        }
+
+        // Tenta resolver TIPNEG se nao informado
+        if (codTipVenda == null) {
+            codTipVenda = deparaService.getCodTipVenda(externalId);
+        }
+
         BigDecimal codLocal = config.getCodLocal();
 
         if (codTipOper == null) {
-            throw new Exception("CODTIPOPER nao configurado");
+            throw new Exception("CODTIPOPER nao configurado (verifique De-Para ou Config)");
         }
         if (codEmp == null) {
-            throw new Exception("CODEMP nao configurado");
+            throw new Exception("CODEMP nao configurado (verifique De-Para ou Config)");
         }
 
         FluidCreateVO cabBuilder = cabDAO.create()

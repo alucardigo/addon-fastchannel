@@ -1,7 +1,7 @@
 package br.com.bellube.fastchannel.service;
 
-import br.com.sankhya.extensions.actionbutton.utils.ServiceInvoker;
-
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -42,8 +42,10 @@ public class SankhyaServiceInvoker {
         log.info("Invocando servico via ServiceInvoker: " + serviceName);
 
         try {
-            ServiceInvoker invoker = new ServiceInvoker(serviceName, requestXml);
-            String response = invoker.invoke();
+            Class<?> invokerClass = Class.forName("br.com.sankhya.extensions.actionbutton.utils.ServiceInvoker");
+            Object invoker = invokerClass.getConstructor(String.class, String.class)
+                    .newInstance(serviceName, requestXml);
+            String response = (String) invokerClass.getMethod("invoke").invoke(invoker);
 
             if (response == null || response.trim().isEmpty()) {
                 throw new Exception("Resposta vazia do ServiceInvoker");
@@ -87,8 +89,7 @@ public class SankhyaServiceInvoker {
             }
 
             // Ler resposta
-            byte[] responseBytes = conn.getInputStream().readAllBytes();
-            String response = new String(responseBytes, StandardCharsets.UTF_8);
+            String response = readStream(conn.getInputStream());
 
             if (response == null || response.trim().isEmpty()) {
                 throw new Exception("Resposta vazia do servico HTTP");
@@ -105,6 +106,18 @@ public class SankhyaServiceInvoker {
                     conn.disconnect();
                 } catch (Exception ignored) {}
             }
+        }
+    }
+
+    private String readStream(java.io.InputStream stream) throws Exception {
+        if (stream == null) return "";
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+            return sb.toString();
         }
     }
 

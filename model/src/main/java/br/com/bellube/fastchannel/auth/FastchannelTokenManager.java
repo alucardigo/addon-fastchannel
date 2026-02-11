@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -154,10 +155,22 @@ public class FastchannelTokenManager {
 
             if (responseCode == 200) {
                 String responseBody = readResponse(connection);
-                JsonObject json = gson.fromJson(responseBody, JsonObject.class);
+                TokenData tokenData = parseTokenResponse(responseBody);
+                if (tokenData.accessToken == null || tokenData.accessToken.isEmpty()) {
+                    String snippet = responseBody == null ? "" : responseBody.substring(0, Math.min(200, responseBody.length()));
+                    log.severe("Resposta OAuth2 invalida. error=" + tokenData.error + " desc=" + tokenData.errorDescription + " body=" + snippet);
+                    String msg = "Resposta OAuth2 invalida";
+                    if ((tokenData.error != null && !tokenData.error.isEmpty()) || (tokenData.errorDescription != null && !tokenData.errorDescription.isEmpty())) {
+                        msg += ": " + (tokenData.error == null ? "" : tokenData.error)
+                                + ((tokenData.errorDescription == null || tokenData.errorDescription.isEmpty()) ? "" : " - " + tokenData.errorDescription);
+                    } else if (!snippet.isEmpty()) {
+                        msg += ": " + snippet;
+                    }
+                    throw new Exception(msg);
+                }
 
-                this.accessToken = json.get("access_token").getAsString();
-                int expiresIn = json.get("expires_in").getAsInt();
+                this.accessToken = tokenData.accessToken;
+                int expiresIn = tokenData.expiresIn;
                 this.expiresAt = System.currentTimeMillis() + (expiresIn * 1000L);
 
                 log.info("Token Fastchannel renovado com sucesso. Expira em: " + expiresIn + " segundos.");
@@ -165,18 +178,117 @@ public class FastchannelTokenManager {
 
             } else {
                 String errorBody = readErrorResponse(connection);
-                log.severe("Falha na autenticação Fastchannel. HTTP " + responseCode + ": " + errorBody);
-                throw new Exception("Falha na autenticação Fastchannel: HTTP " + responseCode);
+                String snippet = errorBody == null ? "" : errorBody.substring(0, Math.min(200, errorBody.length()));
+                log.severe("Falha na autenticacao Fastchannel. HTTP " + responseCode + ": " + snippet);
+                String msg = "Falha na autenticacao Fastchannel: HTTP " + responseCode;
+                if (snippet != null && !snippet.isEmpty()) {
+                    msg += " - " + snippet;
+                }
+                throw new Exception(msg);
             }
 
         } catch (Exception e) {
-            log.log(Level.SEVERE, "Erro crítico na autenticação Fastchannel", e);
-            throw new Exception("Falha de Autenticação Fastchannel: " + e.getMessage(), e);
+            log.log(Level.SEVERE, "Erro critico na autenticacao Fastchannel", e);
+            String msg = e.getMessage();
+            if (msg == null || msg.trim().isEmpty()) {
+                msg = e.getClass().getSimpleName();
+            }
+            throw new Exception("Falha de Autenticacao Fastchannel: " + msg, e);
         } finally {
             if (connection != null) {
                 connection.disconnect();
             }
         }
+    }
+
+    private static class TokenData {
+        private final String accessToken;
+        private final int expiresIn;
+        private final String error;
+        private final String errorDescription;
+
+        private TokenData(String accessToken, int expiresIn, String error, String errorDescription) {
+            this.accessToken = accessToken;
+            this.expiresIn = expiresIn;
+            this.error = error;
+            this.errorDescription = errorDescription;
+        }
+    }
+
+    private static TokenData parseTokenResponse(String responseBody) {
+        if (responseBody == null || responseBody.trim().isEmpty()) {
+            return new TokenData(null, 0, null, null);
+        }
+
+        JsonObject json;
+        try {
+            json = gson.fromJson(responseBody, JsonObject.class);
+        } catch (Exception e) {
+            return new TokenData(null, 0, null, null);
+        }
+
+        if (json == null) {
+            return new TokenData(null, 0, null, null);
+        }
+
+        String accessToken = getValueByNormalizedKey(json, "access_token");
+        String expiresInValue = getValueByNormalizedKey(json, "expires_in");
+        String error = getValueByNormalizedKey(json, "error");
+        String errorDescription = getValueByNormalizedKey(json, "error_description");
+
+        String normalizedBody = responseBody
+                .replace("\uFEFF", "")
+                .replace("\u200B", "")
+                .replace("\\uFEFF", "");
+        if (accessToken == null && normalizedBody.contains("\"access_token\"")) {
+            accessToken = extractByRegex(normalizedBody, "\"access_token\"\\s*:\\s*\"([^\"]+)\"");
+        }
+        if ((expiresInValue == null || expiresInValue.isEmpty()) && normalizedBody.contains("\"expires_in\"")) {
+            expiresInValue = extractByRegex(normalizedBody, "\"expires_in\"\\s*:\\s*(\\d+)");
+        }
+
+        int expiresIn = 0;
+        if (expiresInValue != null && !expiresInValue.isEmpty()) {
+            try {
+                expiresIn = Integer.parseInt(expiresInValue);
+            } catch (NumberFormatException e) {
+                expiresIn = 0;
+            }
+        }
+
+        return new TokenData(accessToken, expiresIn, error, errorDescription);
+    }
+
+    private static String getValueByNormalizedKey(JsonObject json, String expectedKey) {
+        for (java.util.Map.Entry<String, com.google.gson.JsonElement> entry : json.entrySet()) {
+            String key = entry.getKey();
+            String normalized = normalizeKey(key).replaceAll("\\s+", "");
+            if (expectedKey.equalsIgnoreCase(normalized)) {
+                com.google.gson.JsonElement value = entry.getValue();
+                if (value == null || value.isJsonNull()) {
+                    return null;
+                }
+                return value.getAsString();
+            }
+        }
+        return null;
+    }
+
+    private static String normalizeKey(String key) {
+        if (key == null) return "";
+        return key.replace("\uFEFF", "").replace("\u200B", "").trim();
+    }
+
+    private static String extractByRegex(String text, String pattern) {
+        try {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(pattern).matcher(text);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        } catch (Exception e) {
+            // Ignorar
+        }
+        return null;
     }
 
     private String readResponse(HttpURLConnection connection) throws Exception {
@@ -201,6 +313,10 @@ public class FastchannelTokenManager {
     }
 
     private String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            return value;
+        }
     }
 }

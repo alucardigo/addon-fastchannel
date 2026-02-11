@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Fastchannel Integration - Pedidos</title>
+    <title>Fastchannel Integration - Precos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -262,75 +262,88 @@
     <div class="container">
         <header class="header">
             <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="logo">
-            <h1>Fast<span>channel</span> - Pedidos</h1>
+            <h1>Fast<span>channel</span> - Precos</h1>
         </header>
 
         <nav class="nav-tabs">
             <a class="nav-tab" href="dashboard.html">Dashboard</a>
             <a class="nav-tab" href="config.html">Configuracao</a>
             <a class="nav-tab" href="de-para.html">De-Para</a>
-            <a class="nav-tab active" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab" href="pedidos.html">Pedidos</a>
             <a class="nav-tab" href="estoque.html">Estoque</a>
-            <a class="nav-tab" href="precos.html">Precos</a>
+            <a class="nav-tab active" href="precos.html">Precos</a>
             <a class="nav-tab" href="fila.html">Fila de Sincronizacao</a>
             <a class="nav-tab" href="logs.html">Logs</a>
         </nav>
 
         <div class="card">
             <div class="card-header">
-                <span class="card-title">Pedidos Importados</span>
-                <button class="btn btn-primary" onclick="importarPedidos()">
-                    Importar Novos Pedidos
-                </button>
+                <span class="card-title">Gestao de Precos</span>
             </div>
 
             <div class="filters">
                 <div class="filter-group">
-                    <span class="filter-label">Status</span>
-                    <select id="filterStatus" class="form-input" onchange="loadPedidos()">
-                        <option value="">Todos</option>
-                        <option value="PENDENTE">Pendente</option>
-                        <option value="IMPORTADO">Importado</option>
-                        <option value="ERRO">Com Erro</option>
-                    </select>
+                    <span class="filter-label">SKU</span>
+                    <input type="text" id="filterSku" class="form-input" placeholder="Buscar..."
+                           onkeyup="debounceSearch()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Cod Produto</span>
+                    <input type="number" id="filterCodProd" class="form-input">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Tabela</span>
+                    <input type="number" id="filterNuTab" class="form-input">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Cod Empresa</span>
+                    <input type="number" id="filterCodEmp" class="form-input">
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Data Inicio</span>
-                    <input type="date" id="filterDataInicio" class="form-input" onchange="loadPedidos()">
+                    <input type="date" id="filterDataInicio" class="form-input">
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Data Fim</span>
-                    <input type="date" id="filterDataFim" class="form-input" onchange="loadPedidos()">
+                    <input type="date" id="filterDataFim" class="form-input">
                 </div>
                 <div class="filter-group">
-                    <span class="filter-label">Order ID</span>
-                    <input type="text" id="filterOrderId" class="form-input" placeholder="Buscar..."
-                           onkeyup="debounceSearch()">
+                    <span class="filter-label">Fonte de Dados</span>
+                    <select id="filterSource" class="form-input" onchange="onSourceChange()">
+                        <option value="1">1 - Sankhya (Banco local)</option>
+                    </select>
                 </div>
                 <div class="filter-group" style="justify-content: flex-end;">
-                    <button class="btn btn-secondary" onclick="loadPedidos()">
+                    <button class="btn btn-secondary" onclick="loadPrecos()">
                         Filtrar
                     </button>
                 </div>
+            </div>
+            <div style="margin-bottom: 16px; display: flex; gap: 12px; align-items: center;">
+                <button class="btn btn-primary" onclick="syncSelecionados()" id="btnSyncLote" disabled>
+                    Sincronizar Selecionados
+                </button>
+                <span id="selectedCount" style="color: var(--muted); font-size: 14px;"></span>
             </div>
 
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Order ID</th>
-                            <th>Data Pedido</th>
-                            <th>Cliente</th>
-                            <th>Valor Total</th>
-                            <th>Status FC</th>
-                            <th>Status Import</th>
-                            <th>NUNOTA</th>
+                            <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                            <th>SKU</th>
+                            <th>Descricao</th>
+                            <th>Tabela</th>
+                            <th>Preco Venda</th>
+                            <th>Dt Inicio</th>
+                            <th>Dt Fim</th>
+                            <th>Status</th>
                             <th>Acoes</th>
                         </tr>
                     </thead>
-                    <tbody id="pedidosTable">
+                    <tbody id="precosTable">
                         <tr>
-                            <td colspan="8" class="empty-state">Carregando...</td>
+                            <td colspan="9" class="empty-state">Carregando...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -350,17 +363,16 @@
         </div>
     </div>
 
-    <!-- Modal de Detalhes -->
-    <div id="modalDetails" class="modal">
+    <!-- Modal de Comparacao -->
+    <div id="modalCompare" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="card-title">Detalhes do Pedido</span>
+                <span class="card-title">Comparar com Fastchannel</span>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div id="modalBody"></div>
             <div style="margin-top: 20px; display: flex; gap: 12px;">
-                <button class="btn btn-primary" onclick="reprocessarPedido()">Reprocessar</button>
-                <button class="btn btn-secondary" onclick="consultarFC()">Consultar no FC</button>
+                <button class="btn btn-primary" onclick="forcarSync()">Forcar Sincronizacao</button>
                 <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
             </div>
         </div>
@@ -417,7 +429,10 @@
         let totalPages = 1;
         let pageSize = 20;
         let searchTimeout = null;
-        let selectedOrderId = null;
+        let selectedItem = null;
+        let appConfig = null;
+        let currentSource = 1;
+        let selectedItems = new Set();
 
         function getMgeSession() {
             try {
@@ -472,7 +487,7 @@
 
         function formatDate(dateStr) {
             if (!dateStr) return '--';
-            return new Date(dateStr).toLocaleString('pt-BR');
+            return new Date(dateStr).toLocaleDateString('pt-BR');
         }
 
         function formatMoney(value) {
@@ -481,62 +496,207 @@
         }
 
         function getStatusPill(status) {
+            if (!status) return '<span class="pill success">OK</span>';
             const map = {
                 'PENDENTE': 'warning',
-                'IMPORTADO': 'success',
-                'ERRO': 'danger',
-                'PROCESSANDO': 'info'
+                'PROCESSANDO': 'info',
+                'ERRO': 'danger'
             };
-            return `<span class="pill ${map[status] || 'info'}">${status || '--'}</span>`;
+            return `<span class="pill ${map[status] || 'info'}">${status}</span>`;
+        }
+
+        async function loadConfig() {
+            try {
+                const data = await callService('FCConfigSP.get', {});
+                appConfig = data;
+                populateSourceSelector();
+            } catch (e) {
+                console.error('Erro ao carregar config:', e);
+                // Em caso de erro, usar valores padrão
+                appConfig = {
+                    uiSourceDefault: 1,
+                    uiEnableSource2: false,
+                    uiEnableSource3: false
+                };
+                populateSourceSelector();
+            }
+        }
+
+        function populateSourceSelector() {
+            const select = document.getElementById('filterSource');
+            select.innerHTML = '<option value="1">1 - Sankhya (Banco local)</option>';
+
+            if (appConfig.uiEnableSource2) {
+                const opt = document.createElement('option');
+                opt.value = '2';
+                opt.textContent = '2 - API Fastchannel';
+                select.appendChild(opt);
+            }
+
+            if (appConfig.uiEnableSource3) {
+                const opt = document.createElement('option');
+                opt.value = '3';
+                opt.textContent = '3 - Fila / Logs';
+                select.appendChild(opt);
+            }
+
+            // Define a fonte padrão
+            const defaultSrc = appConfig.uiSourceDefault || 1;
+            if (defaultSrc === 2 && appConfig.uiEnableSource2) {
+                select.value = '2';
+                currentSource = 2;
+            } else if (defaultSrc === 3 && appConfig.uiEnableSource3) {
+                select.value = '3';
+                currentSource = 3;
+            } else {
+                select.value = '1';
+                currentSource = 1;
+            }
+        }
+
+        function onSourceChange() {
+            const select = document.getElementById('filterSource');
+            currentSource = parseInt(select.value) || 1;
+            currentPage = 1; // Resetar para primeira página
+            loadPrecos();
         }
 
         function debounceSearch() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => loadPedidos(), 500);
+            searchTimeout = setTimeout(() => loadPrecos(), 500);
         }
 
-        async function loadPedidos() {
-            const tbody = document.getElementById('pedidosTable');
-            tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+        async function loadPrecos() {
+            const tbody = document.getElementById('precosTable');
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+            selectedItems.clear();
+            updateSelectedCount();
 
             try {
                 const filters = {
-                    status: document.getElementById('filterStatus').value,
+                    source: currentSource,
+                    sku: document.getElementById('filterSku').value,
+                    codProd: document.getElementById('filterCodProd').value,
+                    nuTab: document.getElementById('filterNuTab').value,
+                    codEmp: document.getElementById('filterCodEmp').value,
                     dataInicio: document.getElementById('filterDataInicio').value,
                     dataFim: document.getElementById('filterDataFim').value,
-                    orderId: document.getElementById('filterOrderId').value,
                     page: currentPage,
                     pageSize: pageSize
                 };
 
-                const data = await callService('FCPedidosSP.list', filters);
+                const data = await callService('FCPrecosSP.list', filters);
 
                 if (data.items && data.items.length > 0) {
-                    tbody.innerHTML = data.items.map(p => `
+                    tbody.innerHTML = data.items.map(p => {
+                        const statusInfo = getStatusInfo(p, currentSource);
+                        return `
                         <tr>
-                            <td><strong>${p.orderId || '--'}</strong></td>
-                            <td>${formatDate(p.dataPedido)}</td>
-                            <td>${p.nomeCliente || '--'}</td>
-                            <td>${formatMoney(p.valorTotal)}</td>
-                            <td>${getStatusPill(p.statusFc)}</td>
-                            <td>${getStatusPill(p.statusImport)}</td>
-                            <td>${p.nunota || '--'}</td>
+                            <td><input type="checkbox" class="item-checkbox" value="${p.sku}" onchange="toggleItem('${p.sku}', ${p.codProd})"></td>
+                            <td><strong>${p.sku || '--'}</strong></td>
+                            <td>${p.descricao || '--'}</td>
+                            <td>${p.nuTab || '--'}</td>
+                            <td>${formatMoney(p.vlrVenda)}</td>
+                            <td>${formatDate(p.dtInic)}</td>
+                            <td>${formatDate(p.dtFim)}</td>
+                            <td>${statusInfo}</td>
                             <td>
-                                <button class="btn btn-secondary btn-sm" onclick="showDetails('${p.orderId}')">
-                                    Detalhes
+                                <button class="btn btn-secondary btn-sm" onclick='comparar(${JSON.stringify(p)})'>
+                                    Comparar
                                 </button>
                             </td>
                         </tr>
-                    `).join('');
+                    `}).join('');
 
                     totalPages = Math.ceil((data.total || 0) / pageSize);
                     updatePagination(data.total || 0);
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Nenhum pedido encontrado</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">Nenhum item encontrado</td></tr>';
                     updatePagination(0);
                 }
             } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Erro: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Erro: ${e.message}</td></tr>`;
+            }
+        }
+
+        function getStatusInfo(item, source) {
+            if (source === 2) {
+                // Fonte API - mostra status da API
+                if (item.apiStatus === 'OK') return '<span class="pill success">API OK</span>';
+                if (item.apiStatus === 'NAO_ENCONTRADO') return '<span class="pill warning">Nao Cadastrado</span>';
+                if (item.apiStatus === 'ERRO') return '<span class="pill danger">API Erro</span>';
+            } else if (source === 3) {
+                // Fonte Fila/Logs - mostra status da fila
+                return getStatusPill(item.queueStatus);
+            } else {
+                // Fonte Sankhya - mostra status da fila se houver
+                return getStatusPill(item.queueStatus);
+            }
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            selectedItems.clear();
+            checkboxes.forEach(cb => {
+                cb.checked = selectAll.checked;
+                if (selectAll.checked) {
+                    const sku = cb.value;
+                    const row = cb.closest('tr');
+                    const codProd = row.querySelector('td:nth-child(4)').textContent.trim();
+                    selectedItems.add(JSON.stringify({sku, codProd}));
+                }
+            });
+            updateSelectedCount();
+        }
+
+        function toggleItem(sku, codProd) {
+            const key = JSON.stringify({sku, codProd});
+            if (selectedItems.has(key)) {
+                selectedItems.delete(key);
+            } else {
+                selectedItems.add(key);
+            }
+            updateSelectedCount();
+            document.getElementById('selectAll').checked =
+                selectedItems.size === document.querySelectorAll('.item-checkbox').length;
+        }
+
+        function updateSelectedCount() {
+            const count = selectedItems.size;
+            document.getElementById('selectedCount').textContent =
+                count > 0 ? `${count} item(ns) selecionado(s)` : '';
+            document.getElementById('btnSyncLote').disabled = count === 0;
+        }
+
+        async function syncSelecionados() {
+            if (selectedItems.size === 0) {
+                alert('Selecione ao menos um item');
+                return;
+            }
+
+            const items = Array.from(selectedItems).map(s => JSON.parse(s));
+            const skus = items.map(i => i.sku);
+
+            if (!confirm(`Sincronizar ${skus.length} item(ns)?`)) return;
+
+            try {
+                const result = await callService('FCPrecosSP.syncEmLote', { items });
+
+                let msg = result.message || 'Sincronizacao concluida';
+                if (result.errors && result.errors.length > 0) {
+                    msg += '\n\nErros:\n' + result.errors.slice(0, 5).join('\n');
+                    if (result.errors.length > 5) {
+                        msg += `\n... e mais ${result.errors.length - 5} erro(s)`;
+                    }
+                }
+
+                alert(msg);
+                selectedItems.clear();
+                updateSelectedCount();
+                loadPrecos();
+            } catch (e) {
+                alert('Erro: ' + e.message);
             }
         }
 
@@ -548,81 +708,65 @@
         }
 
         function prevPage() {
-            if (currentPage > 1) { currentPage--; loadPedidos(); }
+            if (currentPage > 1) { currentPage--; loadPrecos(); }
         }
 
         function nextPage() {
-            if (currentPage < totalPages) { currentPage++; loadPedidos(); }
+            if (currentPage < totalPages) { currentPage++; loadPrecos(); }
         }
 
-        async function showDetails(orderId) {
-            selectedOrderId = orderId;
-            const modal = document.getElementById('modalDetails');
+        async function comparar(item) {
+            selectedItem = item;
+            const modal = document.getElementById('modalCompare');
             const body = document.getElementById('modalBody');
             body.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
             modal.classList.add('show');
 
             try {
-                const data = await callService('FCPedidosSP.get', { orderId });
+                const data = await callService('FCPrecosSP.compararFC', { sku: item.sku });
+                const precoSankhya = data.precoSankhya || 0;
+                const precoFC = data.precoFastchannel || 0;
+                const delta = data.delta || 0;
+                const divergente = data.divergencia || false;
+
                 body.innerHTML = `
-                    <div class="detail-row"><span class="detail-label">Order ID</span><span class="detail-value">${data.orderId || '--'}</span></div>
-                    <div class="detail-row"><span class="detail-label">Data Pedido</span><span class="detail-value">${formatDate(data.dataPedido)}</span></div>
-                    <div class="detail-row"><span class="detail-label">Cliente</span><span class="detail-value">${data.nomeCliente || '--'}</span></div>
-                    <div class="detail-row"><span class="detail-label">CPF/CNPJ</span><span class="detail-value">${data.cpfCnpj || '--'}</span></div>
-                    <div class="detail-row"><span class="detail-label">Valor Total</span><span class="detail-value">${formatMoney(data.valorTotal)}</span></div>
-                    <div class="detail-row"><span class="detail-label">Frete</span><span class="detail-value">${formatMoney(data.frete)}</span></div>
-                    <div class="detail-row"><span class="detail-label">Status FC</span><span class="detail-value">${getStatusPill(data.statusFc)}</span></div>
-                    <div class="detail-row"><span class="detail-label">Status Import</span><span class="detail-value">${getStatusPill(data.statusImport)}</span></div>
-                    <div class="detail-row"><span class="detail-label">NUNOTA</span><span class="detail-value">${data.nunota || '--'}</span></div>
-                    <div class="detail-row"><span class="detail-label">CODPARC</span><span class="detail-value">${data.codparc || '--'}</span></div>
-                    ${data.erro ? `<div class="detail-row"><span class="detail-label">Erro</span><span class="detail-value" style="color: var(--danger);">${data.erro}</span></div>` : ''}
+                    <div class="detail-row"><span class="detail-label">SKU</span><span class="detail-value">${data.sku}</span></div>
+                    <div class="detail-row"><span class="detail-label">Preco Sankhya</span><span class="detail-value">${formatMoney(precoSankhya)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Preco Fastchannel</span><span class="detail-value">${precoFC != null ? formatMoney(precoFC) : 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Delta</span><span class="detail-value" style="color: ${divergente ? 'var(--warning)' : 'var(--success)'};">${formatMoney(delta)}</span></div>
+                    ${data.message ? `<div class="detail-row"><span class="detail-label">Obs</span><span class="detail-value">${data.message}</span></div>` : ''}
+                    ${data.error ? `<div class="detail-row"><span class="detail-label">Erro</span><span class="detail-value" style="color: var(--danger);">${data.error}</span></div>` : ''}
                 `;
             } catch (e) {
                 body.innerHTML = `<div class="empty-state">Erro: ${e.message}</div>`;
             }
         }
 
-        function closeModal() {
-            document.getElementById('modalDetails').classList.remove('show');
-            selectedOrderId = null;
-        }
-
-        async function importarPedidos() {
-            if (!confirm('Deseja importar novos pedidos do Fastchannel?')) return;
+        async function forcarSync() {
+            if (!selectedItem) return;
+            if (!confirm(`Forcar sincronizacao do SKU ${selectedItem.sku}?`)) return;
             try {
-                const result = await callService('FCAdminSP.importarPedidos', {});
-                alert(result.message || 'Importacao concluida');
-                loadPedidos();
-            } catch (e) {
-                alert('Erro: ' + e.message);
-            }
-        }
-
-        async function reprocessarPedido() {
-            if (!selectedOrderId) return;
-            if (!confirm(`Reprocessar pedido ${selectedOrderId}?`)) return;
-            try {
-                const result = await callService('FCPedidosSP.reprocessar', { orderId: selectedOrderId });
-                alert(result.message || 'Reprocessamento solicitado');
+                const result = await callService('FCPrecosSP.forcarSync', {
+                    codProd: selectedItem.codProd,
+                    sku: selectedItem.sku
+                });
+                alert(result.message || 'Sincronizacao solicitada');
                 closeModal();
-                loadPedidos();
+                loadPrecos();
             } catch (e) {
                 alert('Erro: ' + e.message);
             }
         }
 
-        async function consultarFC() {
-            if (!selectedOrderId) return;
-            try {
-                const result = await callService('FCPedidosSP.consultarFC', { orderId: selectedOrderId });
-                alert(JSON.stringify(result, null, 2));
-            } catch (e) {
-                alert('Erro: ' + e.message);
-            }
+        function closeModal() {
+            document.getElementById('modalCompare').classList.remove('show');
+            selectedItem = null;
         }
 
-        document.addEventListener('DOMContentLoaded', loadPedidos);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadConfig();
+            loadPrecos();
+        });
     </script>
 </body>
 </html>
-

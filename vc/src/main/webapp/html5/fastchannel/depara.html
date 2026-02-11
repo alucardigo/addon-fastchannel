@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - De-Para</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --panel: #16213e;
+            --border: #0f3460;
+            --text: #eaeaea;
+            --muted: #94a3b8;
+            --accent: #00d9ff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo { width: 48px; height: 48px; border-radius: 8px; }
+
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .header h1 span { color: var(--accent); }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 10px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover { border-color: var(--accent); color: var(--text); }
+        .nav-tab.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title { font-size: 18px; font-weight: 600; }
+
+        .tabs {
+            display: inline-flex;
+            gap: 8px;
+            background: var(--bg);
+            padding: 6px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg);
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .form-input {
+            padding: 10px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        .form-input:focus { outline: none; border-color: var(--accent); }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--accent); color: var(--bg); }
+        .btn-primary:hover { background: #00b8d9; }
+        .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { border-color: var(--accent); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .table-container { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg);
+        }
+
+        td { font-size: 14px; }
+
+        tr:hover { background: rgba(0, 217, 255, 0.05); }
+
+        .changed {
+            outline: 1px solid var(--warning);
+            border-color: var(--warning);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--muted);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .alert.success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+        .alert.error { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="logo">
+            <h1>Fast<span>channel</span> - De-Para</h1>
+        </header>
+
+        <nav class="nav-tabs">
+            <a class="nav-tab" href="dashboard.html">Dashboard</a>
+            <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab active" href="depara.html">De-Para</a>
+            <a class="nav-tab" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab" href="estoque.html">Estoque</a>
+            <a class="nav-tab" href="precos.html">Precos</a>
+            <a class="nav-tab" href="fila.html">Fila de Sincronizacao</a>
+            <a class="nav-tab" href="logs.html">Logs</a>
+        </nav>
+
+        <div id="alertSuccess" class="alert success"></div>
+        <div id="alertError" class="alert error"></div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="empresas" onclick="switchTab('empresas')">Empresas</button>
+                    <button class="tab-btn" data-tab="locais" onclick="switchTab('locais')">Locais</button>
+                    <button class="tab-btn" data-tab="tabelas" onclick="switchTab('tabelas')">Tabelas de Preco</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" onclick="reloadTab()">Recarregar</button>
+                    <button class="btn btn-primary" id="btnSalvar" onclick="saveChanges()" disabled>Salvar alteracoes</button>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <span class="filter-label">Codigo Sankhya</span>
+                    <input type="text" id="filterCodigo" class="form-input" placeholder="Ex: 1" oninput="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Descricao</span>
+                    <input type="text" id="filterDescricao" class="form-input" placeholder="Buscar..." oninput="applyFilters()">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">Cod Sankhya</th>
+                            <th>Descricao</th>
+                            <th style="width: 220px;">Cod Externo (Fastchannel)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deparaTable">
+                        <tr><td colspan="3" class="empty-state">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
+                }
+                return null;
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
+
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        const state = {
+            currentTab: 'empresas',
+            data: { empresas: [], locais: [], tabelas: [] },
+            filtered: { empresas: [], locais: [], tabelas: [] },
+            original: { empresas: {}, locais: {}, tabelas: {} }
+        };
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+                    if (resp.ok) return await resp.json();
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore
+                    }
+                    lastErr = errMsg;
+                } catch (e) {
+                    lastErr = e.message;
+                }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        function showAlert(type, message) {
+            const alertSuccess = document.getElementById('alertSuccess');
+            const alertError = document.getElementById('alertError');
+            alertSuccess.style.display = 'none';
+            alertError.style.display = 'none';
+
+            const alert = type === 'success' ? alertSuccess : alertError;
+            alert.textContent = message;
+            alert.style.display = 'block';
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 4000);
+        }
+
+        function switchTab(tab) {
+            state.currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            applyFilters();
+        }
+
+        function getTipo(tab) {
+            if (tab === 'empresas') return 'EMPRESA';
+            if (tab === 'locais') return 'STOCK_STORAGE';
+            return 'TABELA_PRECO';
+        }
+
+        async function loadTab(tab) {
+            const table = document.getElementById('deparaTable');
+            table.innerHTML = '<tr><td colspan="3" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+
+            const tipo = getTipo(tab);
+            try {
+                let basePromise;
+                if (tab === 'empresas') basePromise = callService('FCDeparaSP.listEmpresas', {});
+                else if (tab === 'locais') basePromise = callService('FCDeparaSP.listLocais', {});
+                else basePromise = callService('FCDeparaSP.listTabelasPreco', {});
+
+                const [base, mappings] = await Promise.all([
+                    basePromise,
+                    callService('FCDeparaSP.listMappings', { tipo })
+                ]);
+
+                const mapped = mergeMappings(base.items || [], mappings.items || []);
+                state.data[tab] = mapped;
+                state.original[tab] = buildOriginalMap(mapped);
+                applyFilters();
+            } catch (e) {
+                table.innerHTML = `<tr><td colspan="3" class="empty-state">Erro: ${e.message}</td></tr>`;
+            }
+        }
+
+        function mergeMappings(base, mappings) {
+            const map = {};
+            mappings.forEach(m => {
+                if (m.codSankhya != null && m.codExterno != null) {
+                    map[m.codSankhya.toString()] = m.codExterno.toString();
+                }
+            });
+            return base.map(item => {
+                const key = item.codSankhya != null ? item.codSankhya.toString() : '';
+                const codExterno = map[key] || '';
+                return { ...item, codExterno };
+            });
+        }
+
+        function buildOriginalMap(items) {
+            const map = {};
+            items.forEach(item => {
+                if (item.codSankhya != null) {
+                    map[item.codSankhya.toString()] = item.codExterno || '';
+                }
+            });
+            return map;
+        }
+
+        function applyFilters() {
+            const tab = state.currentTab;
+            const codFilter = document.getElementById('filterCodigo').value.trim().toLowerCase();
+            const descFilter = document.getElementById('filterDescricao').value.trim().toLowerCase();
+
+            const filtered = state.data[tab].filter(item => {
+                const cod = item.codSankhya != null ? item.codSankhya.toString().toLowerCase() : '';
+                const desc = (item.descricao || '').toLowerCase();
+                const okCod = !codFilter || cod.includes(codFilter);
+                const okDesc = !descFilter || desc.includes(descFilter);
+                return okCod && okDesc;
+            });
+            state.filtered[tab] = filtered;
+            renderTable();
+        }
+
+        function renderTable() {
+            const tab = state.currentTab;
+            const items = state.filtered[tab] || [];
+            const table = document.getElementById('deparaTable');
+
+            if (!items.length) {
+                table.innerHTML = '<tr><td colspan="3" class="empty-state">Nenhum registro encontrado</td></tr>';
+                updateSaveState();
+                return;
+            }
+
+            table.innerHTML = items.map(item => {
+                const key = item.codSankhya != null ? item.codSankhya.toString() : '';
+                const value = item.codExterno || '';
+                const original = state.original[tab][key] || '';
+                const changed = value !== original ? 'changed' : '';
+                return `
+                    <tr>
+                        <td>${item.codSankhya != null ? item.codSankhya : '--'}</td>
+                        <td>${item.descricao || '--'}</td>
+                        <td>
+                            <input class="form-input ${changed}" data-key="${key}" value="${value}" oninput="onChangeValue(event)">
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            updateSaveState();
+        }
+
+        function onChangeValue(event) {
+            const input = event.target;
+            const key = input.getAttribute('data-key');
+            const tab = state.currentTab;
+            const item = state.data[tab].find(i => i.codSankhya != null && i.codSankhya.toString() === key);
+            if (item) {
+                item.codExterno = input.value;
+            }
+            const original = state.original[tab][key] || '';
+            input.classList.toggle('changed', input.value !== original);
+            updateSaveState();
+        }
+
+        function updateSaveState() {
+            const tab = state.currentTab;
+            const hasChanges = state.data[tab].some(item => {
+                const key = item.codSankhya != null ? item.codSankhya.toString() : '';
+                return (item.codExterno || '') !== (state.original[tab][key] || '');
+            });
+            document.getElementById('btnSalvar').disabled = !hasChanges;
+        }
+
+        async function saveChanges() {
+            const tab = state.currentTab;
+            const tipo = getTipo(tab);
+            const changes = state.data[tab].filter(item => {
+                const key = item.codSankhya != null ? item.codSankhya.toString() : '';
+                return (item.codExterno || '') !== (state.original[tab][key] || '');
+            }).map(item => ({
+                codSankhya: item.codSankhya,
+                codExterno: item.codExterno
+            }));
+
+            if (!changes.length) return;
+
+            const btn = document.getElementById('btnSalvar');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Salvando...';
+
+            try {
+                const result = await callService('FCDeparaSP.saveMappings', { tipo, items: changes });
+                showAlert('success', result.message || 'Alteracoes salvas');
+                await loadTab(tab);
+            } catch (e) {
+                showAlert('error', 'Erro ao salvar: ' + e.message);
+            } finally {
+                btn.innerHTML = 'Salvar alteracoes';
+            }
+        }
+
+        function reloadTab() {
+            loadTab(state.currentTab);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTab('empresas');
+        });
+    </script>
+</body>
+</html>

@@ -5,6 +5,9 @@ import br.com.bellube.fastchannel.service.OrderXmlBuilder;
 import br.com.bellube.fastchannel.service.auth.SankhyaAuthManager;
 import br.com.bellube.fastchannel.service.auth.SankhyaAuthManager.AuthContext;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
@@ -117,8 +120,7 @@ public class HttpServiceStrategy implements OrderCreationStrategy {
             }
 
             // Ler resposta
-            byte[] responseBytes = conn.getInputStream().readAllBytes();
-            String response = new String(responseBytes, StandardCharsets.UTF_8);
+            String response = readStream(conn.getInputStream());
 
             if (response == null || response.trim().isEmpty()) {
                 throw new Exception("Resposta vazia do servico HTTP");
@@ -173,5 +175,17 @@ public class HttpServiceStrategy implements OrderCreationStrategy {
             log.log(Level.WARNING, "Erro ao extrair mensagem de erro", e);
         }
         return "Erro desconhecido";
+    }
+
+    private String readStream(InputStream stream) throws Exception {
+        if (stream == null) return "";
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+            return sb.toString();
+        }
     }
 }

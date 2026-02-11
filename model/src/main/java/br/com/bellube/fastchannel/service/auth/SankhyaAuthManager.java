@@ -2,6 +2,9 @@ package br.com.bellube.fastchannel.service.auth;
 
 import br.com.bellube.fastchannel.config.FastchannelConfig;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -98,8 +101,7 @@ public class SankhyaAuthManager {
             }
 
             // Ler resposta
-            byte[] responseBytes = conn.getInputStream().readAllBytes();
-            String response = new String(responseBytes, StandardCharsets.UTF_8);
+            String response = readStream(conn.getInputStream());
 
             // Extrair JSESSIONID da resposta
             String jsessionId = extractJsessionId(response);
@@ -214,5 +216,17 @@ public class SankhyaAuthManager {
                    .replace(">", "&gt;")
                    .replace("\"", "&quot;")
                    .replace("'", "&apos;");
+    }
+
+    private String readStream(InputStream stream) throws Exception {
+        if (stream == null) return "";
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+            return sb.toString();
+        }
     }
 }
