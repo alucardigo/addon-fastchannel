@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='ISO-8859-1' standalone='yes'?>
+<HttpServiceBroker authenticator='br.com.sankhya.dwf.services.DefaultAuthenticator'
+                   global-interceptor='br.com.sankhya.dwf.services.DefaultSPInterceptor'>
+    <providers>
+        <provider domain='FastchannelIntegrationSP'
+                  class='br.com.bellube.fastchannel.service.FastchannelIntegrationSP'
+                  type='ejb-stateless'
+                  jndi='java:app/fastchannelintegration-model/FastchannelIntegrationSP'
+                  authentication='true'/>
+        <provider domain='FastchannelMonitorSP'
+                  class='br.com.bellube.fastchannel.service.FastchannelMonitorSP'
+                  type='ejb-stateless'
+                  jndi='java:app/fastchannelintegration-model/FastchannelMonitorSP'
+                  authentication='true'/>
+
+        <provider serviceName='FastchannelLifecycle.install'
+                  class='br.com.bellube.fastchannel.installation.LifecycleController'
+                  method='install'
+                  type='service-wrapper'
+                  authentication='true'/>
+        <provider serviceName='FastchannelLifecycle.uninstall'
+                  class='br.com.bellube.fastchannel.installation.LifecycleController'
+                  method='uninstall'
+                  type='service-wrapper'
+                  authentication='true'/>
+        <provider serviceName='FastchannelLifecycle.verify'
+                  class='br.com.bellube.fastchannel.installation.LifecycleController'
+                  method='verify'
+                  type='service-wrapper'
+                  authentication='true'/>
+        <provider serviceName='FastchannelLifecycle.deleteWithFallback'
+                  class='br.com.bellube.fastchannel.installation.LifecycleController'
+                  method='deleteWithFallback'
+                  type='service-wrapper'
+                  authentication='true'/>
+        <provider serviceName='FastchannelLifecycle.safeDelete'
+                  class='br.com.bellube.fastchannel.installation.LifecycleController'
+                  method='safeDelete'
+                  type='service-wrapper'
+                  authentication='true'/>
+    </providers>
+</HttpServiceBroker>

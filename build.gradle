@@ -25,7 +25,7 @@ buildscript {
 //Substitua o valor inserido em 'group' por seu domínio, por exemplo: 'br.com.suaempresa'.
 group = 'br.com.bellube.fastchannel'
 //Especifica a versão do addon. É útil para controle de versões, deploys e compatibilidade com o sistema.
-version="1.1.0"
+version="1.1.1"
 //Define uma breve descrição do addon, explicando sua funcionalidade ou objetivo principal.
 description = "Integração Fastchannel Data Lake - Monitoramento e Ingestão de Dados"
 

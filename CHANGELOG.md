@@ -1,5 +1,36 @@
 # CHANGELOG - Addon-FastChannel
 
+## [1.1.1] - 2026-02-11
+
+### Correcao Critica: Logout Forcado ao Abrir Paginas do Addon
+
+#### Causa Raiz
+O `web.xml` do WAR estava usando o **template generico do Sankhya** em vez da versao customizada para o addon. Diferencas criticas:
+
+| Aspecto | Template Generico (ERRADO) | Versao Correta |
+|---------|---------------------------|----------------|
+| `<web-app id>` | `:name` (placeholder) | `addon-fastchannel` |
+| `context-param context-scan` | AUSENTE | `true` |
+| `context-param defaultModuleCallback` | AUSENTE | `AddonBootModuleCallbackImpl` |
+| Filter `fcDebug` (FcRequestDebugFilter) | AUSENTE | Presente |
+| `FastchannelDirectServlet` + mappings | AUSENTE | `/fc-direct`, `/mge/fc-direct` |
+| `loginFilter` para `/html5/*` | AUSENTE | Presente |
+| `checaLogin` mapeado para `/*` | **PRESENTE** (causa do logout) | AUSENTE |
+| `serviceBroker` para `*.sbr` | PRESENTE (duplicado) | AUSENTE |
+| `loginFilter` para `*.sbr` | PRESENTE (duplicado) | AUSENTE |
+| Comentario `<!-- EAR -->` | PRESENTE | AUSENTE |
+
+O mapeamento `checaLogin` para `/*` interceptava TODAS as requisicoes e forcava validacao de login, causando logout imediato ao abrir qualquer pagina HTML5 do addon.
+
+#### Correcao
+- Substituido `vc/src/main/webapp/WEB-INF/web.xml` pela versao correta (identica a referencia em `X:\...\merge-unify`)
+
+#### Sobre o Botao de Desinstalacao
+- O `extension.xml` gerado ja inclui `<vendor><id>2997960</id></vendor>` e `<license-by-resource><default-module>2997960</default-module></license-by-resource>` (correto)
+- O botao de desinstalacao depende do registro no Portal Sankhya; com a publicacao correta, deve aparecer apos a instalacao desta versao
+
+---
+
 ## [1.1.0] - 2026-02-11
 
 ### Resumo
