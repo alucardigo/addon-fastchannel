@@ -116,6 +116,7 @@ public class FCDeparaService {
             while (rs.next()) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("nuTab", rs.getBigDecimal("NUTAB"));
+                item.put("codSankhya", rs.getBigDecimal("NUTAB"));
                 item.put("codTab", rs.getString("CODTAB"));
                 item.put("descricao", rs.getString("DESCRTAB"));
                 item.put("dtVigor", rs.getTimestamp("DTVIGOR"));
