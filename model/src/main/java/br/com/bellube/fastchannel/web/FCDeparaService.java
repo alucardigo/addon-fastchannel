@@ -171,6 +171,7 @@ public class FCDeparaService {
         List<String> columns = new ArrayList<>();
         try {
             DatabaseMetaData meta = conn.getMetaData();
+            // Try with null schema first (works on most setups)
             try (ResultSet rs = meta.getColumns(null, null, table, null)) {
                 while (rs.next()) {
                     String name = rs.getString("COLUMN_NAME");
@@ -179,6 +180,29 @@ public class FCDeparaService {
                     }
                 }
             }
+            // If no columns found, try with SANKHYA schema (MSSQL with non-dbo schema)
+            if (columns.isEmpty()) {
+                try (ResultSet rs = meta.getColumns(null, "SANKHYA", table, null)) {
+                    while (rs.next()) {
+                        String name = rs.getString("COLUMN_NAME");
+                        if (name != null) {
+                            columns.add(name);
+                        }
+                    }
+                }
+            }
+            // If still empty, try with '%' schema wildcard
+            if (columns.isEmpty()) {
+                try (ResultSet rs = meta.getColumns(null, "%", table, null)) {
+                    while (rs.next()) {
+                        String name = rs.getString("COLUMN_NAME");
+                        if (name != null) {
+                            columns.add(name);
+                        }
+                    }
+                }
+            }
+            log.info("[FCDeparaService] Colunas encontradas para " + table + ": " + columns);
         } catch (SQLException e) {
             log.log(Level.WARNING, "Erro ao ler colunas da tabela " + table, e);
         }
