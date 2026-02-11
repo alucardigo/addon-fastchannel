@@ -4,6 +4,9 @@ import br.com.bellube.fastchannel.config.FastchannelConstants;
 import br.com.bellube.fastchannel.dto.PriceDTO;
 import br.com.bellube.fastchannel.http.FastchannelPriceClient;
 import br.com.bellube.fastchannel.service.LogService;
+import br.com.bellube.fastchannel.service.DeparaService;
+import br.com.bellube.fastchannel.service.PriceResolver;
+import br.com.bellube.fastchannel.service.PriceTableResolver;
 import br.com.bellube.fastchannel.service.QueueService;
 import br.com.bellube.fastchannel.util.DBUtil;
 
@@ -69,9 +72,27 @@ public class FCPrecosService {
             }
 
             Object nuTab = params.get("nuTab");
+            String priceTableId = getString(params, "priceTableId");
             if (nuTab != null) {
                 where.append(" AND E.NUTAB = ?");
                 queryParams.add(nuTab);
+            } else if (priceTableId != null && !priceTableId.isEmpty()) {
+                BigDecimal mappedNuTab = resolveNuTabFromPriceTableId(priceTableId);
+                if (mappedNuTab != null) {
+                    where.append(" AND E.NUTAB = ?");
+                    queryParams.add(mappedNuTab);
+                }
+            } else {
+                List<BigDecimal> tables = new PriceTableResolver().resolveEligibleTables();
+                if (!tables.isEmpty()) {
+                    where.append(" AND E.NUTAB IN (");
+                    for (int i = 0; i < tables.size(); i++) {
+                        if (i > 0) where.append(", ");
+                        where.append("?");
+                        queryParams.add(tables.get(i));
+                    }
+                    where.append(")");
+                }
             }
 
             Object codEmp = params.get("codEmp");
@@ -161,7 +182,14 @@ public class FCPrecosService {
                 item.put("codProd", rs.getBigDecimal("CODPROD"));
                 item.put("sku", rs.getString("REFERENCIA"));
                 item.put("descricao", rs.getString("DESCRPROD"));
-                item.put("vlrVenda", rs.getBigDecimal("VLRVENDA"));
+                BigDecimal nuTabRow = rs.getBigDecimal("NUTAB");
+                BigDecimal codProdRow = rs.getBigDecimal("CODPROD");
+                PriceResolver.PriceResult priceResult = null;
+                if (nuTabRow != null && codProdRow != null) {
+                    priceResult = new PriceResolver().resolve(codProdRow, nuTabRow);
+                }
+                item.put("vlrVenda", priceResult != null ? priceResult.getPriceCentavos() : null);
+                item.put("priceTableId", resolvePriceTableId(nuTabRow));
                 item.put("dtInic", rs.getTimestamp("DTINIC"));
                 item.put("dtFim", rs.getTimestamp("DTFIM"));
                 item.put("ativo", rs.getString("ATIVO"));
@@ -224,9 +252,27 @@ public class FCPrecosService {
             }
 
             Object nuTab = params.get("nuTab");
+            String priceTableId = getString(params, "priceTableId");
             if (nuTab != null) {
                 where.append(" AND E.NUTAB = ?");
                 queryParams.add(nuTab);
+            } else if (priceTableId != null && !priceTableId.isEmpty()) {
+                BigDecimal mappedNuTab = resolveNuTabFromPriceTableId(priceTableId);
+                if (mappedNuTab != null) {
+                    where.append(" AND E.NUTAB = ?");
+                    queryParams.add(mappedNuTab);
+                }
+            } else {
+                List<BigDecimal> tables = new PriceTableResolver().resolveEligibleTables();
+                if (!tables.isEmpty()) {
+                    where.append(" AND E.NUTAB IN (");
+                    for (int i = 0; i < tables.size(); i++) {
+                        if (i > 0) where.append(", ");
+                        where.append("?");
+                        queryParams.add(tables.get(i));
+                    }
+                    where.append(")");
+                }
             }
 
             Object codEmp = params.get("codEmp");
@@ -273,7 +319,9 @@ public class FCPrecosService {
                 item.put("codProd", rs.getBigDecimal("CODPROD"));
                 item.put("sku", skuRef);
                 item.put("descricao", rs.getString("DESCRPROD"));
-                item.put("nuTab", rs.getBigDecimal("NUTAB"));
+                BigDecimal nuTabRow = rs.getBigDecimal("NUTAB");
+                item.put("nuTab", nuTabRow);
+                item.put("priceTableId", resolvePriceTableId(nuTabRow));
 
                 try {
                     PriceDTO priceFC = priceClient.getPrice(skuRef);
@@ -283,6 +331,9 @@ public class FCPrecosService {
                         item.put("promotionalPrice", priceFC.getPromotionalPrice());
                         item.put("resellerId", priceFC.getResellerId());
                         item.put("lastUpdate", priceFC.getLastUpdate());
+                        if (priceFC.getPriceTableId() != null) {
+                            item.put("priceTableId", priceFC.getPriceTableId());
+                        }
                         item.put("apiStatus", "OK");
                         item.put("apiMessage", "OK");
                     } else {
@@ -441,17 +492,23 @@ public class FCPrecosService {
         }
 
         try {
-            BigDecimal precoSankhya = getPrecoSankhya(sku);
+            result.put("sku", sku);
+            PriceInfo priceInfo = getPrecoSankhyaInfo(sku);
+            BigDecimal precoSankhya = priceInfo.getPriceCentavos();
+            result.put("precoSankhya", precoSankhya);
+            result.put("nuTab", priceInfo.getNuTab());
+            result.put("priceTableId", priceInfo.getPriceTableId());
+
             FastchannelPriceClient priceClient = new FastchannelPriceClient();
             PriceDTO priceFC = priceClient.getPrice(sku);
-
-            result.put("sku", sku);
-            result.put("precoSankhya", precoSankhya);
 
             if (priceFC != null) {
                 result.put("precoFastchannel", priceFC.getPrice());
                 result.put("listPrice", priceFC.getListPrice());
                 result.put("resellerId", priceFC.getResellerId());
+                if (priceFC.getPriceTableId() != null) {
+                    result.put("priceTableIdFastchannel", priceFC.getPriceTableId());
+                }
                 BigDecimal delta = precoSankhya.subtract(priceFC.getPrice());
                 result.put("delta", delta);
                 result.put("divergencia", delta.compareTo(BigDecimal.ZERO) != 0);
@@ -634,7 +691,7 @@ public class FCPrecosService {
         }
     }
 
-    private BigDecimal getPrecoSankhya(String sku) throws Exception {
+    private PriceInfo getPrecoSankhyaInfo(String sku) throws Exception {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -644,8 +701,8 @@ public class FCPrecosService {
             String orderCol = supportsDtInic(conn) ? "E.DTINIC" : "E.NUTAB";
             String ativoFilter = supportsAtivo(conn) ? " AND E.ATIVO = 'S' " : " ";
             stmt = conn.prepareStatement(
-                "SELECT VLRVENDA FROM ( " +
-                "  SELECT E.VLRVENDA, ROW_NUMBER() OVER (ORDER BY " + orderCol + " DESC) AS RN " +
+                "SELECT CODPROD, NUTAB FROM ( " +
+                "  SELECT E.CODPROD, E.NUTAB, ROW_NUMBER() OVER (ORDER BY " + orderCol + " DESC) AS RN " +
                 "  FROM TGFEXC E " +
                 "  INNER JOIN TGFPRO P ON E.CODPROD = P.CODPROD " +
                 "  WHERE P.REFERENCIA = ? " + ativoFilter +
@@ -655,14 +712,72 @@ public class FCPrecosService {
             rs = stmt.executeQuery();
 
             if (rs.next()) {
-                BigDecimal vlr = rs.getBigDecimal("VLRVENDA");
-                return vlr != null ? vlr : BigDecimal.ZERO;
+                BigDecimal codProd = rs.getBigDecimal("CODPROD");
+                BigDecimal nuTab = rs.getBigDecimal("NUTAB");
+                PriceResolver.PriceResult priceResult = new PriceResolver().resolve(codProd, nuTab);
+                if (priceResult != null && priceResult.getPriceCentavos() != null) {
+                    return new PriceInfo(priceResult.getPriceCentavos(), nuTab, resolvePriceTableId(nuTab));
+                }
+                return new PriceInfo(BigDecimal.ZERO, nuTab, resolvePriceTableId(nuTab));
             }
 
-            return BigDecimal.ZERO;
+            return new PriceInfo(BigDecimal.ZERO, null, null);
 
         } finally {
             DBUtil.closeAll(rs, stmt, conn);
+        }
+    }
+
+    private BigDecimal getPrecoSankhya(String sku) throws Exception {
+        return getPrecoSankhyaInfo(sku).getPriceCentavos();
+    }
+
+    private BigDecimal resolvePriceTableId(BigDecimal nuTab) {
+        if (nuTab == null) return null;
+        String priceTableId = DeparaService.getInstance()
+                .getCodigoExterno(DeparaService.TIPO_TABELA_PRECO, nuTab);
+        if (priceTableId == null || priceTableId.isEmpty()) return null;
+        try {
+            return new BigDecimal(priceTableId);
+        } catch (NumberFormatException e) {
+            log.log(Level.WARNING, "PriceTableId invalido para NUTAB " + nuTab + ": " + priceTableId, e);
+            return null;
+        }
+    }
+
+    private BigDecimal resolveNuTabFromPriceTableId(String priceTableId) {
+        if (priceTableId == null || priceTableId.isEmpty()) return null;
+        BigDecimal nuTab = DeparaService.getInstance()
+                .getCodigoSankhya(DeparaService.TIPO_TABELA_PRECO, priceTableId);
+        if (nuTab != null) return nuTab;
+        try {
+            return new BigDecimal(priceTableId);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static final class PriceInfo {
+        private final BigDecimal priceCentavos;
+        private final BigDecimal nuTab;
+        private final BigDecimal priceTableId;
+
+        private PriceInfo(BigDecimal priceCentavos, BigDecimal nuTab, BigDecimal priceTableId) {
+            this.priceCentavos = priceCentavos;
+            this.nuTab = nuTab;
+            this.priceTableId = priceTableId;
+        }
+
+        private BigDecimal getPriceCentavos() {
+            return priceCentavos;
+        }
+
+        private BigDecimal getNuTab() {
+            return nuTab;
+        }
+
+        private BigDecimal getPriceTableId() {
+            return priceTableId;
         }
     }
 

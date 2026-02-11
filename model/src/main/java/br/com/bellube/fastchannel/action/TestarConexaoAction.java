@@ -30,8 +30,7 @@ public class TestarConexaoAction implements AcaoRotinaJava {
             FastchannelConfig config = FastchannelConfig.getInstance();
 
             if (!config.isAtivo()) {
-                resultado.append("   [ERRO] Integração não está ativa!\n");
-                sucesso = false;
+                resultado.append("   [AVISO] Integração está desativada (não bloqueia conexão)\n");
             } else {
                 resultado.append("   [OK] Integração ativa\n");
             }

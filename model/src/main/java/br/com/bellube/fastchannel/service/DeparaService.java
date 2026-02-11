@@ -167,8 +167,9 @@ public class DeparaService {
             return;
         }
 
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             // Verificar se j? existe
             BigDecimal existingId = getMappingId(jdbc, tipo, codSankhya);
@@ -207,6 +208,8 @@ public class DeparaService {
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao registrar mapeamento", e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -214,8 +217,9 @@ public class DeparaService {
      * Remove mapeamento.
      */
     public void removeMapping(String tipo, BigDecimal codSankhya) {
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             // Buscar c?digo externo para limpar cache
             String codExterno = getCodigoExterno(tipo, codSankhya);
@@ -241,6 +245,8 @@ public class DeparaService {
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao remover mapeamento", e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -266,8 +272,9 @@ public class DeparaService {
         if (sku != null) return sku;
 
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT M.AD_FASTREF, P.REFFORN, P.CODPROD ");
@@ -287,6 +294,7 @@ public class DeparaService {
             log.log(Level.FINE, "Erro ao buscar SKU por regra de marca", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
     }
@@ -336,8 +344,9 @@ public class DeparaService {
 
     private String fetchCodigoExterno(String tipo, BigDecimal codSankhya) {
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT COD_EXTERNO FROM AD_FCDEPARA ");
@@ -354,14 +363,16 @@ public class DeparaService {
             log.log(Level.WARNING, "Erro ao buscar c?digo externo", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
     }
 
     private BigDecimal fetchCodigoSankhya(String tipo, String codExterno) {
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT COD_SANKHYA FROM AD_FCDEPARA ");
@@ -378,6 +389,7 @@ public class DeparaService {
             log.log(Level.WARNING, "Erro ao buscar c?digo Sankhya", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
     }
@@ -403,8 +415,9 @@ public class DeparaService {
 
     private String getReferenciaFromProduct(BigDecimal codProd) {
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT REFERENCIA FROM TGFPRO WHERE CODPROD = :codProd");
@@ -418,14 +431,16 @@ public class DeparaService {
             log.log(Level.FINE, "Erro ao buscar REFERENCIA", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
     }
 
     private BigDecimal getCodProdByReferencia(String referencia) {
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT CODPROD FROM TGFPRO WHERE REFERENCIA = :referencia AND ATIVO = 'S'");
@@ -439,14 +454,16 @@ public class DeparaService {
             log.log(Level.FINE, "Erro ao buscar por REFERENCIA", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
     }
 
     private BigDecimal getCodProdByEan(String ean) {
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT P.CODPROD FROM TGFPRO P ");
@@ -462,8 +479,25 @@ public class DeparaService {
             log.log(Level.FINE, "Erro ao buscar por EAN", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
+    }
+
+    private JdbcWrapper openJdbc() throws Exception {
+        JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+        jdbc.openSession();
+        return jdbc;
+    }
+
+    private void closeJdbc(JdbcWrapper jdbc) {
+        if (jdbc != null) {
+            try {
+                jdbc.closeSession();
+            } catch (Exception e) {
+                log.log(Level.FINE, "Erro ao fechar session do JdbcWrapper", e);
+            }
+        }
     }
 
     private void closeQuietly(ResultSet rs) {

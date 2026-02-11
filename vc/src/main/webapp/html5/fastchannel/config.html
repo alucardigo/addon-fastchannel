@@ -324,7 +324,7 @@
         <nav class="nav-tabs">
             <a class="nav-tab" href="dashboard.html">Dashboard</a>
             <a class="nav-tab active" href="config.html">Configuracao</a>
-            <a class="nav-tab" href="de-para.html">De-Para</a>
+            <a class="nav-tab" href="depara.html">De-Para</a>
             <a class="nav-tab" href="pedidos.html">Pedidos</a>
             <a class="nav-tab" href="estoque.html">Estoque</a>
             <a class="nav-tab" href="precos.html">Precos</a>
@@ -350,31 +350,18 @@
                     <div class="form-hint">Ativa ou desativa a integracao com o Fastchannel</div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Codigo da Empresa <span class="required">*</span></label>
-                        <input type="number" id="codEmp" name="codEmp" class="form-input" placeholder="Ex: 1">
-                        <div class="form-hint">Codigo da empresa no Sankhya (CODEMP)</div>
+                <div class="form-group">
+                    <div class="form-switch">
+                        <label class="switch">
+                            <input type="checkbox" id="syncStatusEnabled" name="syncStatusEnabled">
+                            <span class="switch-slider"></span>
+                        </label>
+                        <span class="form-label" style="margin-bottom: 0;">Atualizar status na Fastchannel</span>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Tipo de Negociacao</label>
-                        <input type="number" id="tipNeg" name="tipNeg" class="form-input" placeholder="Ex: 1">
-                        <div class="form-hint">Tipo de negociacao padrao para pedidos</div>
-                    </div>
+                    <div class="form-hint">Desative para homologacao sem atualizar status na Fastchannel</div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">TOP Pedido Venda</label>
-                        <input type="number" id="topPedido" name="topPedido" class="form-input" placeholder="Ex: 100">
-                        <div class="form-hint">TOP para geracao de pedidos de venda</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Parceiro Padrao</label>
-                        <input type="number" id="codParc" name="codParc" class="form-input" placeholder="Ex: 0">
-                        <div class="form-hint">Parceiro utilizado quando cliente nao existe</div>
-                    </div>
-                </div>
+                <div class="form-hint">Campos de cabecalho do pedido sao resolvidos automaticamente via De-Para.</div>
             </div>
 
             <div class="card">
@@ -422,6 +409,12 @@
 
                 <div class="form-row">
                     <div class="form-group">
+                        <label class="form-label">Subscription Key (Legado)</label>
+                        <input type="text" id="subscriptionKey" name="subscriptionKey" class="form-input"
+                               placeholder="Subscription key legado">
+                        <div class="form-hint">Chave legado usada como fallback historico</div>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Subscription Key Distribuicao</label>
                         <input type="text" id="subscriptionKeyDistribution" name="subscriptionKeyDistribution" class="form-input"
                                placeholder="Subscription key distribuicao">
@@ -441,6 +434,45 @@
                         <input type="number" id="timeout" name="timeout" class="form-input"
                                placeholder="30000" value="30000">
                         <div class="form-hint">Timeout para requisicoes HTTP em milissegundos</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Configuracoes de Precos (UI)</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Fonte Padrao de Precos</label>
+                        <select id="uiSourceDefault" name="uiSourceDefault" class="form-input">
+                            <option value="1">1 - Sankhya (Banco local)</option>
+                            <option value="2">2 - API Fastchannel</option>
+                            <option value="3">3 - Fila / Logs</option>
+                        </select>
+                        <div class="form-hint">Define qual fonte aparece como padrao na tela de precos</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="form-switch">
+                            <label class="switch">
+                                <input type="checkbox" id="uiEnableSource2" name="uiEnableSource2">
+                                <span class="switch-slider"></span>
+                            </label>
+                            <span class="form-label" style="margin-bottom: 0;">Habilitar Fonte 2 (API Fastchannel)</span>
+                        </div>
+                        <div class="form-hint">Exibe a opcao da API na tela de precos</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-switch">
+                            <label class="switch">
+                                <input type="checkbox" id="uiEnableSource3" name="uiEnableSource3">
+                                <span class="switch-slider"></span>
+                            </label>
+                            <span class="form-label" style="margin-bottom: 0;">Habilitar Fonte 3 (Fila / Logs)</span>
+                        </div>
+                        <div class="form-hint">Exibe a opcao de Fila / Logs na tela de precos</div>
                     </div>
                 </div>
             </div>
@@ -494,11 +526,12 @@
     </div>
 
     <script>
-        function resolveAddonContexts() {
+                                function resolveAddonContexts() {
             const origin = window.location.origin || '';
             const path = window.location.pathname || '';
             const search = window.location.search || '';
             const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
 
             function add(ctx) {
                 if (!ctx) return;
@@ -506,20 +539,25 @@
                 if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
             }
 
-            function addIfAddon(ctx) {
-                if (!ctx) return;
-                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
-                    ctx = ctx.replace(/^\/mge/, '');
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
                 }
-                if (ctx.indexOf('/addon-fastchannel') === -1) return;
-                add(ctx);
+                return null;
             }
 
             const htmlIdx = path.indexOf('/html5/');
-            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
 
-            const addonIdx = path.indexOf('/addon-fastchannel');
-            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
 
             if (search) {
                 try {
@@ -528,7 +566,10 @@
                     if (rawUrl) {
                         const decoded = decodeURIComponent(rawUrl);
                         const decodedHtmlIdx = decoded.indexOf('/html5/');
-                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
                     }
                 } catch (e) {
                     // ignore
@@ -620,22 +661,23 @@
 
                 if (data) {
                     document.getElementById('ativo').checked = data.ativo === true || data.ativo === 'S';
-                    document.getElementById('codEmp').value = data.codEmp || '';
-                    document.getElementById('tipNeg').value = data.tipNeg || '';
-                    document.getElementById('topPedido').value = data.topPedido || '';
-                    document.getElementById('codParc').value = data.codParc || '';
                     document.getElementById('clientId').value = data.clientId || '';
                     document.getElementById('clientSecret').value = data.clientSecret || '';
                     document.getElementById('authUrl').value = data.authUrl || '';
                     document.getElementById('scope').value = data.scope || '';
                     document.getElementById('baseUrl').value = data.baseUrl || '';
-                    document.getElementById('subscriptionKeyDistribution').value = data.subscriptionKeyDistribution || data.subscriptionKey || '';
-                    document.getElementById('subscriptionKeyConsumption').value = data.subscriptionKeyConsumption || data.subscriptionKey || '';
+                    document.getElementById('subscriptionKey').value = data.subscriptionKey || '';
+                    document.getElementById('subscriptionKeyDistribution').value = data.subscriptionKeyDistribution || '';
+                    document.getElementById('subscriptionKeyConsumption').value = data.subscriptionKeyConsumption || '';
                     document.getElementById('timeout').value = data.timeout || 30000;
                     document.getElementById('intervalOrders').value = data.intervalOrders || 5;
                     document.getElementById('intervalQueue').value = data.intervalQueue || 2;
                     document.getElementById('logRetention').value = data.logRetention || 30;
                     document.getElementById('maxRetries').value = data.maxRetries || 3;
+                    document.getElementById('syncStatusEnabled').checked = data.syncStatusEnabled === true || data.syncStatusEnabled === 'S';
+                    document.getElementById('uiSourceDefault').value = data.uiSourceDefault != null ? data.uiSourceDefault : 1;
+                    document.getElementById('uiEnableSource2').checked = data.uiEnableSource2 === true || data.uiEnableSource2 === 'S';
+                    document.getElementById('uiEnableSource3').checked = data.uiEnableSource3 === true || data.uiEnableSource3 === 'S';
                 }
             } catch (e) {
                 console.error('Erro ao carregar configuracoes:', e);
@@ -653,22 +695,23 @@
             try {
                 const payload = {
                     ativo: document.getElementById('ativo').checked,
-                    codEmp: parseInt(document.getElementById('codEmp').value) || null,
-                    tipNeg: parseInt(document.getElementById('tipNeg').value) || null,
-                    topPedido: parseInt(document.getElementById('topPedido').value) || null,
-                    codParc: parseInt(document.getElementById('codParc').value) || null,
                     clientId: document.getElementById('clientId').value,
                     clientSecret: document.getElementById('clientSecret').value,
                     authUrl: document.getElementById('authUrl').value,
                     scope: document.getElementById('scope').value,
                     baseUrl: document.getElementById('baseUrl').value,
+                    subscriptionKey: document.getElementById('subscriptionKey').value,
                     subscriptionKeyDistribution: document.getElementById('subscriptionKeyDistribution').value,
                     subscriptionKeyConsumption: document.getElementById('subscriptionKeyConsumption').value,
                     timeout: parseInt(document.getElementById('timeout').value) || 30000,
                     intervalOrders: parseInt(document.getElementById('intervalOrders').value) || 5,
                     intervalQueue: parseInt(document.getElementById('intervalQueue').value) || 2,
                     logRetention: parseInt(document.getElementById('logRetention').value) || 30,
-                    maxRetries: parseInt(document.getElementById('maxRetries').value) || 3
+                    maxRetries: parseInt(document.getElementById('maxRetries').value) || 3,
+                    syncStatusEnabled: document.getElementById('syncStatusEnabled').checked,
+                    uiSourceDefault: parseInt(document.getElementById('uiSourceDefault').value) || 1,
+                    uiEnableSource2: document.getElementById('uiEnableSource2').checked,
+                    uiEnableSource3: document.getElementById('uiEnableSource3').checked
                 };
 
                 const result = await callService('FCConfigSP.save', payload);
@@ -705,4 +748,6 @@
     </script>
 </body>
 </html>
+
+
 

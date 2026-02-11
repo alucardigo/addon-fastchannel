@@ -8,7 +8,11 @@ import br.com.bellube.fastchannel.dto.OrderStatusDTO;
 import br.com.bellube.fastchannel.dto.OrderTrackingDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.annotations.SerializedName;
 
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
@@ -32,6 +36,8 @@ public class FastchannelOrdersClient {
 
     private static final Logger log = Logger.getLogger(FastchannelOrdersClient.class.getName());
     private static final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(Timestamp.class, (JsonDeserializer<Timestamp>) (json, typeOfT, context) ->
+                    parseTimestamp(json))
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
             .create();
 
@@ -57,6 +63,11 @@ public class FastchannelOrdersClient {
      * @return lista de pedidos
      */
     public List<OrderDTO> listOrders(Timestamp lastSync, int page, int pageSize) throws Exception {
+        OrderListResult result = listOrdersWithMeta(lastSync, page, pageSize, null);
+        return result != null && result.getOrders() != null ? result.getOrders() : new ArrayList<>();
+    }
+
+    public OrderListResult listOrdersWithMeta(Timestamp lastSync, int page, int pageSize, Boolean isSynched) throws Exception {
         StringBuilder endpoint = new StringBuilder(FastchannelConstants.ENDPOINT_ORDERS);
         endpoint.append("?page=").append(page);
         endpoint.append("&pageSize=").append(pageSize);
@@ -65,6 +76,10 @@ public class FastchannelOrdersClient {
         String resellerId = config.getResellerId();
         if (resellerId != null && !resellerId.isEmpty()) {
             endpoint.append("&resellerId=").append(resellerId);
+        }
+
+        if (isSynched != null) {
+            endpoint.append("&IsSynched=").append(isSynched ? "true" : "false");
         }
 
         // Filtro por data
@@ -82,11 +97,26 @@ public class FastchannelOrdersClient {
             throw new Exception("Erro ao listar pedidos: " + result.getErrorMessage());
         }
 
-        Type listType = new TypeToken<ArrayList<OrderDTO>>(){}.getType();
-        List<OrderDTO> orders = gson.fromJson(result.getBody(), listType);
+        String body = result.getBody() != null ? result.getBody().trim() : "";
+        List<OrderDTO> orders = new ArrayList<>();
+        Integer totalRecords = null;
+        Integer totalPages = null;
+        if (body.startsWith("[")) {
+            Type listType = new TypeToken<ArrayList<OrderDTO>>(){}.getType();
+            orders = gson.fromJson(body, listType);
+        } else {
+            OrderListResponse response = gson.fromJson(body, OrderListResponse.class);
+            if (response != null) {
+                if (response.payload != null) {
+                    orders = response.payload;
+                }
+                totalRecords = response.totalRecords;
+                totalPages = response.totalPages;
+            }
+        }
 
         log.info("Retornados " + (orders != null ? orders.size() : 0) + " pedidos.");
-        return orders != null ? orders : new ArrayList<>();
+        return new OrderListResult(orders != null ? orders : new ArrayList<>(), totalRecords, totalPages);
     }
 
     /**
@@ -105,7 +135,7 @@ public class FastchannelOrdersClient {
             throw new Exception("Erro ao obter pedido: " + result.getErrorMessage());
         }
 
-        return gson.fromJson(result.getBody(), OrderDTO.class);
+        return parseOrderPayload(result.getBody());
     }
 
     /**
@@ -226,5 +256,98 @@ public class FastchannelOrdersClient {
      */
     public void markAsDelivered(String orderId) throws Exception {
         updateOrderStatus(orderId, FastchannelConstants.STATUS_DELIVERED, "Pedido entregue");
+    }
+
+    private static OrderDTO parseOrderPayload(String body) {
+        if (body == null || body.trim().isEmpty()) {
+            return null;
+        }
+
+        String trimmed = body.trim();
+        if (trimmed.startsWith("{")) {
+            try {
+                JsonObject obj = new com.google.gson.JsonParser().parse(trimmed).getAsJsonObject();
+                if (obj.has("Payload")) {
+                    JsonElement payload = obj.get("Payload");
+                    if (payload != null && payload.isJsonObject()) {
+                        return gson.fromJson(payload, OrderDTO.class);
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        return gson.fromJson(trimmed, OrderDTO.class);
+    }
+
+    private static Timestamp parseTimestamp(JsonElement json) {
+        if (json == null || json.isJsonNull()) {
+            return null;
+        }
+
+        String raw = json.getAsString();
+        if (raw == null || raw.isEmpty()) {
+            return null;
+        }
+
+        raw = raw.trim();
+        if (raw.startsWith("/Date(") && raw.endsWith(")/")) {
+            int start = raw.indexOf('(');
+            int end = raw.indexOf(')');
+            if (start >= 0 && end > start) {
+                String millis = raw.substring(start + 1, end);
+                try {
+                    long value = Long.parseLong(millis);
+                    return new Timestamp(value);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+
+        try {
+            long value = Long.parseLong(raw);
+            return new Timestamp(value);
+        } catch (NumberFormatException ignored) {
+        }
+
+        try {
+            return Timestamp.valueOf(raw.replace("T", " ").replace("Z", ""));
+        } catch (Exception ignored) {
+        }
+
+        return null;
+    }
+
+    private static class OrderListResponse {
+        @SerializedName("Payload")
+        private List<OrderDTO> payload;
+        @SerializedName("TotalRecords")
+        private Integer totalRecords;
+        @SerializedName("TotalPages")
+        private Integer totalPages;
+    }
+
+    public static class OrderListResult {
+        private final List<OrderDTO> orders;
+        private final Integer totalRecords;
+        private final Integer totalPages;
+
+        public OrderListResult(List<OrderDTO> orders, Integer totalRecords, Integer totalPages) {
+            this.orders = orders;
+            this.totalRecords = totalRecords;
+            this.totalPages = totalPages;
+        }
+
+        public List<OrderDTO> getOrders() {
+            return orders;
+        }
+
+        public Integer getTotalRecords() {
+            return totalRecords;
+        }
+
+        public Integer getTotalPages() {
+            return totalPages;
+        }
     }
 }

@@ -2,24 +2,24 @@ package br.com.bellube.fastchannel.job;
 
 import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.config.FastchannelConstants;
+import br.com.bellube.fastchannel.dto.PriceBatchItemDTO;
 import br.com.bellube.fastchannel.dto.QueueItemDTO;
-import br.com.bellube.fastchannel.dto.StockDTO;
 import br.com.bellube.fastchannel.http.FastchannelPriceClient;
 import br.com.bellube.fastchannel.http.FastchannelStockClient;
 import br.com.bellube.fastchannel.service.DeparaService;
 import br.com.bellube.fastchannel.service.LogService;
+import br.com.bellube.fastchannel.service.PriceBatchResolver;
+import br.com.bellube.fastchannel.service.PriceResolver;
+import br.com.bellube.fastchannel.service.PriceTableResolver;
 import br.com.bellube.fastchannel.service.QueueService;
 import br.com.bellube.fastchannel.service.StockResolver;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
-import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.event.PersistenceEvent;
 import br.com.sankhya.jape.event.TransactionContext;
-import br.com.sankhya.jape.sql.NativeSql;
-import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 import com.google.gson.Gson;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -198,13 +198,34 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
             throw new Exception("SKU n?o encontrado para CODPROD " + item.getEntityId());
         }
 
-        // Buscar pre?o atual do Sankhya
-        BigDecimal[] prices = getCurrentPrice(item.getEntityId());
-        BigDecimal price = prices[0];
-        BigDecimal listPrice = prices[1];
+        PriceResolver priceResolver = new PriceResolver();
+        PriceBatchResolver batchResolver = new PriceBatchResolver();
+        PriceTableResolver tableResolver = new PriceTableResolver();
 
-        log.info("Atualizando pre?o: SKU " + sku + " = " + price);
-        priceClient.updatePrice(sku, price, listPrice);
+        List<BigDecimal> tables = new ArrayList<>(tableResolver.resolveEligibleTables());
+        if (tables.isEmpty()) {
+            throw new Exception("Nenhuma tabela de preco elegivel configurada");
+        }
+
+        for (BigDecimal nuTab : tables) {
+            PriceResolver.PriceResult priceResult = priceResolver.resolve(item.getEntityId(), nuTab);
+            if (priceResult == null || priceResult.getPriceCentavos() == null) {
+                log.warning("Preco nao encontrado para SKU " + sku + " (NUTAB " + nuTab + ")");
+                continue;
+            }
+
+            BigDecimal priceTableId = resolvePriceTableId(deparaService, nuTab);
+            BigDecimal price = priceResult.getPriceCentavos();
+            BigDecimal listPrice = priceResult.getListPriceCentavos();
+
+            log.info("Atualizando pre?o: SKU " + sku + " NUTAB " + nuTab + " = " + price);
+            priceClient.updatePrice(sku, price, listPrice, priceTableId);
+
+            List<PriceBatchItemDTO> batches = batchResolver.resolve(item.getEntityId(), nuTab, priceTableId);
+            if (!batches.isEmpty()) {
+                priceClient.updatePriceBatches(sku, priceTableId, batches);
+            }
+        }
 
         LogService.getInstance().logPriceSync(sku, true, null);
     }
@@ -245,41 +266,17 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
         private String resellerId;
     }
 
-    private BigDecimal[] getCurrentPrice(BigDecimal codProd) {
-        FastchannelConfig config = FastchannelConfig.getInstance();
-        BigDecimal nuTab = config.getNuTab();
-
-        ResultSet rs = null;
-        try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
-
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("SELECT VLRVENDA, VLRTABELA FROM TGFEXC ");
-            sql.appendSql("WHERE CODPROD = :codProd AND NUTAB = :nuTab AND ATIVO = 'S'");
-
-            sql.setNamedParameter("codProd", codProd);
-            sql.setNamedParameter("nuTab", nuTab);
-
-            rs = sql.executeQuery();
-            if (rs.next()) {
-                BigDecimal vlrVenda = rs.getBigDecimal("VLRVENDA");
-                BigDecimal vlrTabela = rs.getBigDecimal("VLRTABELA");
-                return new BigDecimal[] {
-                    vlrVenda != null ? vlrVenda : BigDecimal.ZERO,
-                    vlrTabela != null ? vlrTabela : vlrVenda
-                };
-            }
-        } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao buscar pre?o", e);
-        } finally {
-            closeQuietly(rs);
+    private BigDecimal resolvePriceTableId(DeparaService deparaService, BigDecimal nuTab) {
+        if (nuTab == null) return null;
+        String priceTableId = deparaService.getCodigoExterno(DeparaService.TIPO_TABELA_PRECO, nuTab);
+        if (priceTableId == null || priceTableId.trim().isEmpty()) {
+            return nuTab;
         }
-        return new BigDecimal[] { BigDecimal.ZERO, BigDecimal.ZERO };
-    }
-
-    private void closeQuietly(ResultSet rs) {
-        if (rs != null) {
-            try { rs.close(); } catch (Exception ignored) {}
+        try {
+            return new BigDecimal(priceTableId);
+        } catch (NumberFormatException e) {
+            log.warning("PriceTableId invalido para NUTAB " + nuTab + ": " + priceTableId);
+            return nuTab;
         }
     }
 }

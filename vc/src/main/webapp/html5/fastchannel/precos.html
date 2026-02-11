@@ -268,7 +268,7 @@
         <nav class="nav-tabs">
             <a class="nav-tab" href="dashboard.html">Dashboard</a>
             <a class="nav-tab" href="config.html">Configuracao</a>
-            <a class="nav-tab" href="de-para.html">De-Para</a>
+            <a class="nav-tab" href="depara.html">De-Para</a>
             <a class="nav-tab" href="pedidos.html">Pedidos</a>
             <a class="nav-tab" href="estoque.html">Estoque</a>
             <a class="nav-tab active" href="precos.html">Precos</a>
@@ -294,6 +294,10 @@
                 <div class="filter-group">
                     <span class="filter-label">Tabela</span>
                     <input type="number" id="filterNuTab" class="form-input">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">PriceTableId</span>
+                    <input type="number" id="filterPriceTableId" class="form-input">
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Cod Empresa</span>
@@ -334,7 +338,8 @@
                             <th>SKU</th>
                             <th>Descricao</th>
                             <th>Tabela</th>
-                            <th>Preco Venda</th>
+                            <th>PriceTableId</th>
+                            <th>Preco Venda (R$)</th>
                             <th>Dt Inicio</th>
                             <th>Dt Fim</th>
                             <th>Status</th>
@@ -343,7 +348,7 @@
                     </thead>
                     <tbody id="precosTable">
                         <tr>
-                            <td colspan="9" class="empty-state">Carregando...</td>
+                            <td colspan="10" class="empty-state">Carregando...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -379,11 +384,12 @@
     </div>
 
     <script>
-        function resolveAddonContexts() {
+                                function resolveAddonContexts() {
             const origin = window.location.origin || '';
             const path = window.location.pathname || '';
             const search = window.location.search || '';
             const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
 
             function add(ctx) {
                 if (!ctx) return;
@@ -391,20 +397,25 @@
                 if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
             }
 
-            function addIfAddon(ctx) {
-                if (!ctx) return;
-                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
-                    ctx = ctx.replace(/^\/mge/, '');
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
                 }
-                if (ctx.indexOf('/addon-fastchannel') === -1) return;
-                add(ctx);
+                return null;
             }
 
             const htmlIdx = path.indexOf('/html5/');
-            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
 
-            const addonIdx = path.indexOf('/addon-fastchannel');
-            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
 
             if (search) {
                 try {
@@ -413,7 +424,10 @@
                     if (rawUrl) {
                         const decoded = decodeURIComponent(rawUrl);
                         const decodedHtmlIdx = decoded.indexOf('/html5/');
-                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
                     }
                 } catch (e) {
                     // ignore
@@ -490,9 +504,18 @@
             return new Date(dateStr).toLocaleDateString('pt-BR');
         }
 
-        function formatMoney(value) {
-            if (value == null) return 'R$ 0,00';
-            return 'R$ ' + parseFloat(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        function formatCentavos(value) {
+            if (value == null) return '--';
+            const num = typeof value === 'number' ? value : parseInt(value, 10);
+            if (Number.isNaN(num)) return '--';
+            return num.toLocaleString('pt-BR');
+        }
+        function formatMoneyFromCentavos(value) {
+            if (value == null) return '--';
+            const num = typeof value === 'number' ? value : parseInt(value, 10);
+            if (Number.isNaN(num)) return '--';
+            const decimal = num / 100;
+            return decimal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function getStatusPill(status) {
@@ -512,7 +535,7 @@
                 populateSourceSelector();
             } catch (e) {
                 console.error('Erro ao carregar config:', e);
-                // Em caso de erro, usar valores padrão
+                // Em caso de erro, usar valores padr?o
                 appConfig = {
                     uiSourceDefault: 1,
                     uiEnableSource2: false,
@@ -540,7 +563,7 @@
                 select.appendChild(opt);
             }
 
-            // Define a fonte padrão
+            // Define a fonte padr?o
             const defaultSrc = appConfig.uiSourceDefault || 1;
             if (defaultSrc === 2 && appConfig.uiEnableSource2) {
                 select.value = '2';
@@ -557,7 +580,7 @@
         function onSourceChange() {
             const select = document.getElementById('filterSource');
             currentSource = parseInt(select.value) || 1;
-            currentPage = 1; // Resetar para primeira página
+            currentPage = 1; // Resetar para primeira p?gina
             loadPrecos();
         }
 
@@ -568,7 +591,7 @@
 
         async function loadPrecos() {
             const tbody = document.getElementById('precosTable');
-            tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
             selectedItems.clear();
             updateSelectedCount();
 
@@ -578,6 +601,7 @@
                     sku: document.getElementById('filterSku').value,
                     codProd: document.getElementById('filterCodProd').value,
                     nuTab: document.getElementById('filterNuTab').value,
+                    priceTableId: document.getElementById('filterPriceTableId').value,
                     codEmp: document.getElementById('filterCodEmp').value,
                     dataInicio: document.getElementById('filterDataInicio').value,
                     dataFim: document.getElementById('filterDataFim').value,
@@ -592,11 +616,12 @@
                         const statusInfo = getStatusInfo(p, currentSource);
                         return `
                         <tr>
-                            <td><input type="checkbox" class="item-checkbox" value="${p.sku}" onchange="toggleItem('${p.sku}', ${p.codProd})"></td>
+                            <td><input type="checkbox" class="item-checkbox" value="${p.sku}" data-codprod="${p.codProd || ''}" onchange="toggleItem('${p.sku}', ${p.codProd})"></td>
                             <td><strong>${p.sku || '--'}</strong></td>
                             <td>${p.descricao || '--'}</td>
                             <td>${p.nuTab || '--'}</td>
-                            <td>${formatMoney(p.vlrVenda)}</td>
+                            <td>${p.priceTableId || '--'}</td>
+                            <td>${formatMoneyFromCentavos(p.vlrVenda)}</td>
                             <td>${formatDate(p.dtInic)}</td>
                             <td>${formatDate(p.dtFim)}</td>
                             <td>${statusInfo}</td>
@@ -611,11 +636,11 @@
                     totalPages = Math.ceil((data.total || 0) / pageSize);
                     updatePagination(data.total || 0);
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">Nenhum item encontrado</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">Nenhum item encontrado</td></tr>';
                     updatePagination(0);
                 }
             } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Erro: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="empty-state">Erro: ${e.message}</td></tr>`;
             }
         }
 
@@ -642,8 +667,7 @@
                 cb.checked = selectAll.checked;
                 if (selectAll.checked) {
                     const sku = cb.value;
-                    const row = cb.closest('tr');
-                    const codProd = row.querySelector('td:nth-child(4)').textContent.trim();
+                    const codProd = cb.dataset.codprod || null;
                     selectedItems.add(JSON.stringify({sku, codProd}));
                 }
             });
@@ -731,9 +755,11 @@
 
                 body.innerHTML = `
                     <div class="detail-row"><span class="detail-label">SKU</span><span class="detail-value">${data.sku}</span></div>
-                    <div class="detail-row"><span class="detail-label">Preco Sankhya</span><span class="detail-value">${formatMoney(precoSankhya)}</span></div>
-                    <div class="detail-row"><span class="detail-label">Preco Fastchannel</span><span class="detail-value">${precoFC != null ? formatMoney(precoFC) : 'N/A'}</span></div>
-                    <div class="detail-row"><span class="detail-label">Delta</span><span class="detail-value" style="color: ${divergente ? 'var(--warning)' : 'var(--success)'};">${formatMoney(delta)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Preco Sankhya (R$)</span><span class="detail-value">${formatMoneyFromCentavos(precoSankhya)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Preco Fastchannel (R$)</span><span class="detail-value">${precoFC != null ? formatMoneyFromCentavos(precoFC) : 'N/A'}</span></div>
+                    ${data.priceTableId ? `<div class="detail-row"><span class="detail-label">PriceTableId (Sankhya)</span><span class="detail-value">${data.priceTableId}</span></div>` : ''}
+                    ${data.priceTableIdFastchannel ? `<div class="detail-row"><span class="detail-label">PriceTableId (Fastchannel)</span><span class="detail-value">${data.priceTableIdFastchannel}</span></div>` : ''}
+                    <div class="detail-row"><span class="detail-label">Delta (R$)</span><span class="detail-value" style="color: ${divergente ? 'var(--warning)' : 'var(--success)'};">${formatMoneyFromCentavos(delta)}</span></div>
                     ${data.message ? `<div class="detail-row"><span class="detail-label">Obs</span><span class="detail-value">${data.message}</span></div>` : ''}
                     ${data.error ? `<div class="detail-row"><span class="detail-label">Erro</span><span class="detail-value" style="color: var(--danger);">${data.error}</span></div>` : ''}
                 `;

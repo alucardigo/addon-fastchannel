@@ -93,6 +93,33 @@
             color: var(--warning);
         }
 
+        .status-details {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: var(--muted);
+            justify-content: flex-end;
+            margin-top: 6px;
+        }
+
+        .status-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.ok { background: var(--success); }
+        .status-dot.warn { background: var(--warning); }
+        .status-dot.err { background: var(--danger); }
+
         .pulse {
             width: 10px;
             height: 10px;
@@ -147,6 +174,20 @@
             margin-bottom: 24px;
         }
 
+        .grid-main {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .grid-secondary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
         .card {
             background: var(--panel);
             border: 1px solid var(--border);
@@ -194,6 +235,20 @@
             color: var(--muted);
         }
 
+        .orders-split {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
         .stat-row {
             display: flex;
             justify-content: space-between;
@@ -203,6 +258,12 @@
 
         .stat-row:last-child {
             border-bottom: none;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 16px 0;
         }
 
         .stat-row-label {
@@ -377,6 +438,14 @@
                 align-items: flex-start;
             }
 
+            .status-details {
+                justify-content: flex-start;
+            }
+
+            .grid-main {
+                grid-template-columns: 1fr;
+            }
+
             .grid {
                 grid-template-columns: 1fr;
             }
@@ -390,16 +459,36 @@
                 <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="logo">
                 <h1>Fast<span>channel</span> Integration</h1>
             </div>
-            <div id="statusBadge" class="status-badge loading">
-                <div class="pulse yellow"></div>
-                <span>Carregando...</span>
+            <div>
+                <div id="statusBadge" class="status-badge loading">
+                    <div class="pulse yellow"></div>
+                    <span>Carregando...</span>
+                </div>
+                <div class="status-details">
+                    <div class="status-item">
+                        <span id="statusApiDot" class="status-dot warn"></span>
+                        <span>API: </span><strong id="statusApiValue">--</strong>
+                    </div>
+                    <div class="status-item">
+                        <span id="statusTokenDot" class="status-dot warn"></span>
+                        <span>Token: </span><strong id="statusTokenValue">--</strong>
+                    </div>
+                    <div class="status-item">
+                        <span id="statusIntegrationDot" class="status-dot warn"></span>
+                        <span>Integracao: </span><strong id="statusIntegrationValue">--</strong>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-dot warn"></span>
+                        <span>Ultima verif.: </span><strong id="statusLastCheckValue">--</strong>
+                    </div>
+                </div>
             </div>
         </header>
 
         <nav class="nav-tabs">
             <a class="nav-tab active" href="dashboard.html">Dashboard</a>
             <a class="nav-tab" href="config.html">Configuracao</a>
-            <a class="nav-tab" href="de-para.html">De-Para</a>
+            <a class="nav-tab" href="depara.html">De-Para</a>
             <a class="nav-tab" href="pedidos.html">Pedidos</a>
             <a class="nav-tab" href="estoque.html">Estoque</a>
             <a class="nav-tab" href="precos.html">Precos</a>
@@ -424,31 +513,45 @@
             </button>
         </div>
 
-        <div class="grid">
+        <div class="grid-main">
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">Status da Conexao</span>
-                    <div class="card-icon blue">&#x2B50;</div>
+                    <span class="card-title">Pedidos</span>
+                    <div class="card-icon green">&#x1F4E6;</div>
                 </div>
-                <div id="connectionStatus">
-                    <div class="stat-row">
-                        <span class="stat-row-label">API Fastchannel</span>
-                        <span id="apiStatus" class="stat-row-value">--</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Token OAuth2</span>
-                        <span id="tokenStatus" class="stat-row-value">--</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Ultima Verificacao</span>
-                        <span id="lastCheck" class="stat-row-value">--</span>
+                <div id="ordersStats">
+                    <div class="orders-split">
+                        <div>
+                            <div class="section-title">Sankhya</div>
+                            <div class="stat-value" id="ordersToday">0</div>
+                            <div class="stat-label">Importados Hoje</div>
+                            <div class="stat-row">
+                                <span class="stat-row-label">Pendentes</span>
+                                <span id="ordersPending" class="stat-row-value">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-row-label">Com Erro</span>
+                                <span id="ordersError" class="stat-row-value">0</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="section-title">Fastchannel (API)</div>
+                            <div class="stat-row">
+                                <span class="stat-row-label">Pendentes (API)</span>
+                                <span id="ordersFcPending" class="stat-row-value">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-row-label">Amostra Status</span>
+                                <span id="ordersFcStatusSample" class="stat-row-value">--</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">Fila de Sincronizacao</span>
+                    <span class="card-title">Operacoes</span>
                     <div class="card-icon yellow">&#x1F4E4;</div>
                 </div>
                 <div id="queueStats">
@@ -465,51 +568,27 @@
                         <span class="stat-row-label">Com Erro</span>
                         <span id="queueErrors" class="stat-row-value">0</span>
                     </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Pedidos Hoje</span>
-                    <div class="card-icon green">&#x1F4E6;</div>
-                </div>
-                <div id="ordersStats">
-                    <div class="stat-value" id="ordersToday">0</div>
-                    <div class="stat-label">Pedidos Importados</div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Pendentes</span>
-                        <span id="ordersPending" class="stat-row-value">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Com Erro</span>
-                        <span id="ordersError" class="stat-row-value">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Sincronizacoes</span>
-                    <div class="card-icon blue">&#x1F504;</div>
-                </div>
-                <div id="syncStats">
-                    <div class="stat-row">
-                        <span class="stat-row-label">Estoque (24h)</span>
-                        <span id="syncStock" class="stat-row-value">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Precos (24h)</span>
-                        <span id="syncPrice" class="stat-row-value">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-row-label">Produtos (24h)</span>
-                        <span id="syncProduct" class="stat-row-value">0</span>
+                    <div class="section-divider"></div>
+                    <div id="syncStats">
+                        <div class="stat-row">
+                            <span class="stat-row-label">Estoque (24h)</span>
+                            <span id="syncStock" class="stat-row-value">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-row-label">Precos (24h)</span>
+                            <span id="syncPrice" class="stat-row-value">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-row-label">Produtos (24h)</span>
+                            <span id="syncProduct" class="stat-row-value">0</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card">
+        <div class="grid-secondary">
+            <div class="card">
             <div class="card-header">
                 <span class="card-title">Ultimos Logs</span>
                 <div class="refresh-info">
@@ -534,15 +613,17 @@
                 </table>
             </div>
         </div>
+        </div>
     </div>
 
     <script>
-        // Resolve addon context paths
-        function resolveAddonContexts() {
+                // Resolve addon context paths
+                                function resolveAddonContexts() {
             const origin = window.location.origin || '';
             const path = window.location.pathname || '';
             const search = window.location.search || '';
             const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
 
             function add(ctx) {
                 if (!ctx) return;
@@ -550,20 +631,25 @@
                 if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
             }
 
-            function addIfAddon(ctx) {
-                if (!ctx) return;
-                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
-                    ctx = ctx.replace(/^\/mge/, '');
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
                 }
-                if (ctx.indexOf('/addon-fastchannel') === -1) return;
-                add(ctx);
+                return null;
             }
 
             const htmlIdx = path.indexOf('/html5/');
-            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
 
-            const addonIdx = path.indexOf('/addon-fastchannel');
-            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
 
             if (search) {
                 try {
@@ -572,7 +658,10 @@
                     if (rawUrl) {
                         const decoded = decodeURIComponent(rawUrl);
                         const decodedHtmlIdx = decoded.indexOf('/html5/');
-                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
                     }
                 } catch (e) {
                     // ignore
@@ -692,15 +781,18 @@
 
                 // Update connection status
                 if (data.connection) {
-                    document.getElementById('apiStatus').innerHTML =
-                        data.connection.apiOnline
-                            ? '<span class="pill success">Online</span>'
-                            : '<span class="pill danger">Offline</span>';
-                    document.getElementById('tokenStatus').innerHTML =
-                        data.connection.tokenValid
-                            ? '<span class="pill success">Valido</span>'
-                            : '<span class="pill danger">Expirado</span>';
-                    document.getElementById('lastCheck').textContent = formatDate(data.connection.lastCheck);
+                    const apiOk = !!data.connection.apiOnline;
+                    const tokenOk = !!data.connection.tokenValid;
+                    const integOk = !!data.connection.integrationActive;
+
+                    document.getElementById('statusApiValue').textContent = apiOk ? 'Online' : 'Offline';
+                    document.getElementById('statusTokenValue').textContent = tokenOk ? 'Valido' : 'Expirado';
+                    document.getElementById('statusIntegrationValue').textContent = integOk ? 'SIM' : 'NAO';
+                    document.getElementById('statusLastCheckValue').textContent = formatDate(data.connection.lastCheck);
+
+                    document.getElementById('statusApiDot').className = `status-dot ${apiOk ? 'ok' : 'err'}`;
+                    document.getElementById('statusTokenDot').className = `status-dot ${tokenOk ? 'ok' : 'err'}`;
+                    document.getElementById('statusIntegrationDot').className = `status-dot ${integOk ? 'ok' : 'warn'}`;
 
                     updateStatus(data.connection.apiOnline && data.connection.tokenValid,
                         data.connection.apiOnline ? 'Conectado' : 'Desconectado');
@@ -723,6 +815,24 @@
                     document.getElementById('ordersToday').textContent = data.orders.today || 0;
                     document.getElementById('ordersPending').textContent = data.orders.pending || 0;
                     document.getElementById('ordersError').textContent = data.orders.error || 0;
+                }
+
+                if (data.ordersFastchannel) {
+                    document.getElementById('ordersFcPending').textContent = data.ordersFastchannel.pendingTotal || 0;
+                    if (data.ordersFastchannel.error) {
+                        document.getElementById('ordersFcStatusSample').textContent = 'Erro: ' + data.ordersFastchannel.error;
+                    } else if (data.ordersFastchannel.statusSample) {
+                        const entries = Object.entries(data.ordersFastchannel.statusSample);
+                        if (entries.length > 0) {
+                            const sampleText = entries
+                                .slice(0, 3)
+                                .map(([k, v]) => `${k}: ${v}`)
+                                .join(' | ');
+                            document.getElementById('ordersFcStatusSample').textContent = sampleText;
+                        } else {
+                            document.getElementById('ordersFcStatusSample').textContent = '--';
+                        }
+                    }
                 }
 
                 // Update sync stats

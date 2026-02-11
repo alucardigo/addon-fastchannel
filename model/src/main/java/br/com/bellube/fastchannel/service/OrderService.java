@@ -40,6 +40,7 @@ public class OrderService {
     private final DeparaService deparaService;
     private final LogService logService;
     private final br.com.bellube.fastchannel.service.strategy.OrderCreationOrchestrator orchestrator;
+    private final FastchannelHeaderMappingService headerMappingService;
 
     public OrderService() {
         this.config = FastchannelConfig.getInstance();
@@ -47,6 +48,7 @@ public class OrderService {
         this.deparaService = DeparaService.getInstance();
         this.logService = LogService.getInstance();
         this.orchestrator = new br.com.bellube.fastchannel.service.strategy.OrderCreationOrchestrator();
+        this.headerMappingService = new FastchannelHeaderMappingService();
     }
 
     /**
@@ -77,16 +79,31 @@ public class OrderService {
                             continue;
                         }
 
-                        BigDecimal nuNota = importOrder(order);
+                        OrderDTO detailed = null;
+                        try {
+                            detailed = ordersClient.getOrder(order.getOrderId());
+                        } catch (Exception e) {
+                            log.log(Level.WARNING, "Falha ao buscar detalhes do pedido " + order.getOrderId() + ". Usando dados da listagem.", e);
+                        }
+
+                        OrderDTO target = detailed != null ? detailed : order;
+                        if (target.getOrderId() == null) {
+                            target.setOrderId(order.getOrderId());
+                        }
+                        if (target.getResellerId() == null) {
+                            target.setResellerId(order.getResellerId());
+                        }
+
+                        BigDecimal nuNota = importOrder(target);
                         if (nuNota != null) {
                             imported++;
-                            logService.logOrderImport(order.getOrderId(), nuNota, true, null);
+                            logService.logOrderImport(target.getOrderId(), nuNota, true, null);
 
                             // Notificar Fastchannel (somente se sincronizacao estiver habilitada)
                             if (config.isSyncStatusEnabled()) {
-                                ordersClient.markAsSynced(order.getOrderId(), nuNota.toString());
+                                ordersClient.markAsSynced(target.getOrderId(), nuNota.toString());
                             } else {
-                                log.fine("Sincronizacao desabilitada. Pedido " + order.getOrderId() + " nao marcado como synced.");
+                                log.fine("Sincronizacao desabilitada. Pedido " + target.getOrderId() + " nao marcado como synced.");
                             }
                         }
 
@@ -130,30 +147,43 @@ public class OrderService {
 
         // Validar pedido
         validateOrder(order);
+        normalizeOrderValues(order);
 
+        BigDecimal codParc = null;
         try {
+            FastchannelHeaderMappingService.ResolvedHeader resolvedHeader = headerMappingService.resolve(order);
+            order.setCodEmp(resolvedHeader.getCodEmp());
+            order.setCodTipOper(resolvedHeader.getCodTipOper());
+
             // 1. Localizar ou criar parceiro
-            BigDecimal codParc = findOrCreateParceiro(order.getCustomer(), order.getShippingAddress());
+            codParc = resolvedHeader.getCodParc();
+            if (codParc == null) {
+                codParc = findOrCreateParceiro(order.getCustomer(), order.getShippingAddress());
+            }
 
             // 2. Validar que todos os produtos existem ANTES de criar o pedido
             validateAllProductsExist(order);
 
             // 3. Buscar parametros do pedido
-            BigDecimal codTipVenda = getDefaultCodTipVenda();
-            BigDecimal codVend = getDefaultCodVend();
-            BigDecimal codNat = getDefaultCodNat();
-            BigDecimal codCenCus = getDefaultCodCenCus();
+            BigDecimal codTipVenda = resolvedHeader.getCodTipVenda();
+            BigDecimal codVend = resolvedHeader.getCodVend();
+            if (codVend == null) {
+                codVend = getCodVend(codParc);
+            }
+            BigDecimal codNat = resolvedHeader.getCodNat();
+            BigDecimal codCenCus = resolvedHeader.getCodCenCus();
 
             // 4. Criar pedido via servico
             BigDecimal nuNota = importOrderViaService(order, codParc, codTipVenda, codVend, codNat, codCenCus);
 
             // 5. Registrar na AD_FCPEDIDO
-            registerOrderMapping(order.getOrderId(), nuNota, codParc);
+            upsertOrderMapping(order, nuNota, codParc, "SUCESSO", null);
 
             log.info("Pedido " + order.getOrderId() + " importado como NUNOTA " + nuNota);
             return nuNota;
 
         } catch (Exception e) {
+            upsertOrderMapping(order, null, codParc, "ERRO", e.getMessage());
             log.log(Level.SEVERE, "Falha ao importar pedido " + order.getOrderId(), e);
             throw e;
         }
@@ -185,24 +215,33 @@ public class OrderService {
         return orchestrator.createOrder(order, codParc, codTipVenda, codVend, codNat, codCenCus);
     }
 
-    private BigDecimal getDefaultCodTipVenda() {
-        // TODO: Buscar de configuracao ou parametro
-        return null;
-    }
-
-    private BigDecimal getDefaultCodVend() {
-        // TODO: Buscar de configuracao ou parametro
-        return null;
-    }
-
-    private BigDecimal getDefaultCodNat() {
-        // TODO: Buscar de configuracao ou parametro
-        return null;
-    }
-
-    private BigDecimal getDefaultCodCenCus() {
-        // TODO: Buscar de configuracao ou parametro
-        return null;
+    private BigDecimal getCodVend(BigDecimal codParc) {
+        ResultSet rs = null;
+        try {
+            if (codParc != null) {
+                JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+                NativeSql sql = new NativeSql(jdbc);
+                sql.appendSql("SELECT CODVEND FROM TGFPAR WHERE CODPARC = :codParc");
+                sql.setNamedParameter("codParc", codParc);
+                rs = sql.executeQuery();
+                if (rs.next()) {
+                    BigDecimal codVend = rs.getBigDecimal("CODVEND");
+                    if (codVend != null) {
+                        return codVend;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao buscar CODVEND do parceiro", e);
+        } finally {
+            closeQuietly(rs);
+        }
+        BigDecimal fallback = config.getCodVendPadrao();
+        if (fallback == null) {
+            fallback = FastchannelConstants.DEFAULT_CODVEND_PADRAO;
+            log.severe("ALERTA: CODVEND padrao nao configurado. Usando fallback fixo do legado: " + fallback);
+        }
+        return fallback;
     }
 
     private void validateOrder(OrderDTO order) throws Exception {
@@ -214,6 +253,56 @@ public class OrderService {
         }
         if (order.getItems() == null || order.getItems().isEmpty()) {
             throw new Exception("Pedido sem itens");
+        }
+    }
+
+    private void normalizeOrderValues(OrderDTO order) {
+        if (order == null) {
+            return;
+        }
+
+        order.setSubtotal(normalizeMoney(order.getSubtotal()));
+        order.setSubtotalProducts(normalizeMoney(order.getSubtotalProducts()));
+        order.setShippingCost(normalizeMoney(order.getShippingCost()));
+        order.setProductDiscount(normalizeMoney(order.getProductDiscount()));
+        order.setProductDiscountQuota(normalizeMoney(order.getProductDiscountQuota()));
+        order.setProductDiscountCoupon(normalizeMoney(order.getProductDiscountCoupon()));
+        order.setProductDiscountManual(normalizeMoney(order.getProductDiscountManual()));
+        order.setProductDiscountPayment(normalizeMoney(order.getProductDiscountPayment()));
+        order.setProductDiscountAssociation(normalizeMoney(order.getProductDiscountAssociation()));
+        order.setShippingDiscount(normalizeMoney(order.getShippingDiscount()));
+        order.setShippingDiscountCoupon(normalizeMoney(order.getShippingDiscountCoupon()));
+        order.setShippingDiscountManual(normalizeMoney(order.getShippingDiscountManual()));
+        order.setShippingDiscountAmount(normalizeMoney(order.getShippingDiscountAmount()));
+        order.setDiscount(normalizeMoney(order.getDiscount()));
+        order.setTotal(normalizeMoney(order.getTotal()));
+        order.setTotalOrderValue(normalizeMoney(order.getTotalOrderValue()));
+        order.setOrderTotal(normalizeMoney(order.getOrderTotal()));
+
+        if (order.getItems() != null) {
+            for (OrderItemDTO item : order.getItems()) {
+                if (item == null) {
+                    continue;
+                }
+                item.setUnitPrice(normalizeMoney(item.getUnitPrice()));
+                item.setAssociationDiscount(normalizeMoney(item.getAssociationDiscount()));
+                item.setManualDiscount(normalizeMoney(item.getManualDiscount()));
+                item.setCatalogDiscount(normalizeMoney(item.getCatalogDiscount()));
+                item.setQuotaDiscount(normalizeMoney(item.getQuotaDiscount()));
+                item.setCouponDiscount(normalizeMoney(item.getCouponDiscount()));
+                item.setPaymentDiscount(normalizeMoney(item.getPaymentDiscount()));
+                item.setDiscount(normalizeMoney(item.getDiscount()));
+                item.setTotalPrice(normalizeMoney(item.getTotalPrice()));
+
+                if (item.getTotalPrice() == null && item.getQuantity() != null && item.getUnitPrice() != null) {
+                    BigDecimal total = item.getUnitPrice().multiply(item.getQuantity());
+                    BigDecimal disc = item.getDiscount();
+                    if (disc != null) {
+                        total = total.subtract(disc);
+                    }
+                    item.setTotalPrice(total);
+                }
+            }
         }
     }
 
@@ -486,6 +575,68 @@ public class OrderService {
     }
 
     /**
+     * Registra ou atualiza mapeamento do pedido na AD_FCPEDIDO.
+     */
+    private void upsertOrderMapping(OrderDTO order, BigDecimal nuNota, BigDecimal codParc,
+                                    String statusImport, String errorMsg) {
+        try {
+            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+
+            boolean exists = false;
+            ResultSet rs = null;
+            try {
+                NativeSql check = new NativeSql(jdbc);
+                check.appendSql("SELECT 1 FROM AD_FCPEDIDO WHERE ORDER_ID = :orderId");
+                check.setNamedParameter("orderId", order.getOrderId());
+                rs = check.executeQuery();
+                exists = rs.next();
+            } finally {
+                closeQuietly(rs);
+            }
+
+            NativeSql sql = new NativeSql(jdbc);
+            if (exists) {
+                sql.appendSql("UPDATE AD_FCPEDIDO SET ");
+                sql.appendSql("NUNOTA = :nuNota, CODPARC = :codParc, STATUS_FC = :statusFc, STATUS_SKW = :statusSkw, ");
+                sql.appendSql("STATUS_IMPORT = :statusImport, DH_IMPORTACAO = CURRENT_TIMESTAMP, ");
+                sql.appendSql("DH_PEDIDO = :dhPedido, NOME_CLIENTE = :nomeCliente, CPF_CNPJ = :cpfCnpj, ");
+                sql.appendSql("VALOR_TOTAL = :valorTotal, VALOR_FRETE = :valorFrete, ERRO_MSG = :erroMsg ");
+                sql.appendSql("WHERE ORDER_ID = :orderId");
+            } else {
+                sql.appendSql("INSERT INTO AD_FCPEDIDO ");
+                sql.appendSql("(ORDER_ID, NUNOTA, CODPARC, STATUS_FC, STATUS_SKW, STATUS_IMPORT, DH_IMPORTACAO, ");
+                sql.appendSql("DH_PEDIDO, NOME_CLIENTE, CPF_CNPJ, VALOR_TOTAL, VALOR_FRETE, ERRO_MSG) ");
+                sql.appendSql("VALUES (:orderId, :nuNota, :codParc, :statusFc, :statusSkw, :statusImport, CURRENT_TIMESTAMP, ");
+                sql.appendSql(":dhPedido, :nomeCliente, :cpfCnpj, :valorTotal, :valorFrete, :erroMsg)");
+            }
+
+            sql.setNamedParameter("orderId", order.getOrderId());
+            sql.setNamedParameter("nuNota", nuNota);
+            sql.setNamedParameter("codParc", codParc);
+            int statusFc = order.getStatus() > 0 ? order.getStatus() : FastchannelConstants.STATUS_APPROVED;
+            sql.setNamedParameter("statusFc", statusFc);
+            sql.setNamedParameter("statusSkw", "L"); // Liberado
+            sql.setNamedParameter("statusImport", statusImport);
+            sql.setNamedParameter("dhPedido", order.getCreatedAt() != null ? order.getCreatedAt() : new Timestamp(System.currentTimeMillis()));
+            sql.setNamedParameter("nomeCliente", order.getCustomer() != null ? truncate(order.getCustomer().getName(), 120) : null);
+            sql.setNamedParameter("cpfCnpj", order.getCustomer() != null ? truncate(order.getCustomer().getCpfCnpj(), 20) : null);
+            sql.setNamedParameter("valorTotal", order.getTotal());
+            sql.setNamedParameter("valorFrete", getFrete(order));
+            sql.setNamedParameter("erroMsg", truncate(errorMsg, 2000));
+
+            sql.executeUpdate();
+
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao registrar mapeamento de pedido", e);
+        }
+    }
+
+    private BigDecimal getFrete(OrderDTO order) {
+        if (order == null) return null;
+        return order.getShippingCost();
+    }
+
+    /**
      * Verifica se pedido j? foi importado.
      */
     private boolean isOrderAlreadyImported(String orderId) {
@@ -540,6 +691,14 @@ public class OrderService {
         if (rs != null) {
             try { rs.close(); } catch (Exception ignored) {}
         }
+    }
+
+    private BigDecimal normalizeMoney(BigDecimal value) {
+        if (value == null) return null;
+        if (value.scale() <= 0) {
+            return value.movePointLeft(2);
+        }
+        return value;
     }
 }
 

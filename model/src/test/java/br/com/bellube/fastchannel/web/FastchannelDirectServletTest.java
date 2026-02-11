@@ -90,25 +90,10 @@ public class FastchannelDirectServletTest {
         assertNotNull("FCLogsSP.limpar", services.get("FCLogsSP.limpar"));
     }
 
-    // --- De-Para avancado (FCDeParaSP - tela de-para.html) ---
+    // --- De-Para (FCDeparaSP - tela depara.html) ---
 
     @Test
     public void deParaServicesRegistered() throws Exception {
-        Map<String, ?> services = getServicesMap();
-        assertNotNull("FCDeParaSP.list deve estar registrado",
-                services.get("FCDeParaSP.list"));
-        assertNotNull("FCDeParaSP.save deve estar registrado",
-                services.get("FCDeParaSP.save"));
-        assertNotNull("FCDeParaSP.remove deve estar registrado",
-                services.get("FCDeParaSP.remove"));
-        assertNotNull("FCDeParaSP.listDisponiveis deve estar registrado",
-                services.get("FCDeParaSP.listDisponiveis"));
-    }
-
-    // --- De-Para original (FCDeparaSP - tela depara.html) ---
-
-    @Test
-    public void deparaOriginalServicesRegistered() throws Exception {
         Map<String, ?> services = getServicesMap();
         assertNotNull("FCDeparaSP.listEmpresas deve estar registrado",
                 services.get("FCDeparaSP.listEmpresas"));
@@ -122,7 +107,7 @@ public class FastchannelDirectServletTest {
                 services.get("FCDeparaSP.saveMappings"));
     }
 
-    // --- Estoque (NOVOS) ---
+    // --- Estoque ---
 
     @Test
     public void estoqueServicesRegistered() throws Exception {
@@ -133,11 +118,9 @@ public class FastchannelDirectServletTest {
                 services.get("FCEstoqueSP.compararFC"));
         assertNotNull("FCEstoqueSP.forcarSync deve estar registrado",
                 services.get("FCEstoqueSP.forcarSync"));
-        assertNotNull("FCEstoqueSP.reprocessar deve estar registrado",
-                services.get("FCEstoqueSP.reprocessar"));
     }
 
-    // --- Precos (NOVOS) ---
+    // --- Precos ---
 
     @Test
     public void precosServicesRegistered() throws Exception {
@@ -159,9 +142,9 @@ public class FastchannelDirectServletTest {
     @Test
     public void totalServiceCount() throws Exception {
         Map<String, ?> services = getServicesMap();
-        // Dashboard(1) + Config(2) + Admin(3) + Pedidos(4) + Fila(4) + Logs(2)
-        // + DeParaAvancado(4) + DeParaOriginal(5) + Estoque(4) + Precos(5) = 34
-        assertEquals("Total de services registrados deve ser 34", 34, services.size());
+        // Dashboard(1) + Config(2) + Admin(3) + Pedidos(4) + Estoque(3) + Precos(5)
+        // + Fila(4) + Logs(2) + DePara(5) = 29
+        assertEquals("Total de services registrados deve ser 29", 29, services.size());
     }
 
     // --- Teste do metodo hasService ---
@@ -172,8 +155,6 @@ public class FastchannelDirectServletTest {
                 FastchannelDirectServlet.hasService("FCDashboardSP.snapshot"));
         assertTrue("hasService deve retornar true para FCDeparaSP.listEmpresas",
                 FastchannelDirectServlet.hasService("FCDeparaSP.listEmpresas"));
-        assertTrue("hasService deve retornar true para FCDeParaSP.list",
-                FastchannelDirectServlet.hasService("FCDeParaSP.list"));
     }
 
     @Test
@@ -187,7 +168,7 @@ public class FastchannelDirectServletTest {
     @Test
     public void serviceInfoHasCorrectClassAndMethod() throws Exception {
         Map<String, ?> services = getServicesMap();
-        Object info = services.get("FCDeParaSP.list");
+        Object info = services.get("FCDeparaSP.listEmpresas");
         assertNotNull(info);
 
         // Verificar via reflexao que ServiceInfo tem os campos corretos
@@ -200,7 +181,7 @@ public class FastchannelDirectServletTest {
         Field methodField = info.getClass().getDeclaredField("methodName");
         methodField.setAccessible(true);
         String methodName = (String) methodField.get(info);
-        assertEquals("Method name deve ser 'list'", "list", methodName);
+        assertEquals("Method name deve ser 'listEmpresas'", "listEmpresas", methodName);
     }
 
     // --- Testes de JSON parsing/serialization ---

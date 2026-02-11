@@ -2,8 +2,9 @@ package br.com.bellube.fastchannel.http;
 
 import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.config.FastchannelConstants;
-import br.com.bellube.fastchannel.dto.PriceDTO;
 import br.com.bellube.fastchannel.dto.PriceBatchDTO;
+import br.com.bellube.fastchannel.dto.PriceBatchItemDTO;
+import br.com.bellube.fastchannel.dto.PriceDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -47,18 +48,30 @@ public class FastchannelPriceClient {
      * @param listPrice preço de lista (opcional)
      */
     public void updatePrice(String sku, BigDecimal price, BigDecimal listPrice) throws Exception {
+        updatePrice(sku, price, listPrice, null);
+    }
+
+    /**
+     * Atualiza preço de um SKU específico (com tabela de preço).
+     *
+     * @param sku código do produto
+     * @param price preço de venda (centavos)
+     * @param listPrice preço de lista (centavos)
+     * @param priceTableId ID da tabela de preço (opcional)
+     */
+    public void updatePrice(String sku, BigDecimal price, BigDecimal listPrice, BigDecimal priceTableId) throws Exception {
         String resellerId = config.getResellerId();
-        if (resellerId == null || resellerId.isEmpty()) {
-            throw new Exception("Reseller ID não configurado para atualização de preço.");
-        }
 
         String endpoint = String.format(FastchannelConstants.ENDPOINT_PRICE, sku);
 
         PriceDTO priceDto = new PriceDTO();
         priceDto.setSku(sku);
-        priceDto.setResellerId(resellerId);
+        if (resellerId != null && !resellerId.isEmpty()) {
+            priceDto.setResellerId(resellerId);
+        }
         priceDto.setPrice(price);
         priceDto.setListPrice(listPrice != null ? listPrice : price);
+        priceDto.setPriceTableId(priceTableId);
 
         String json = gson.toJson(priceDto);
         log.info("Atualizando preço do SKU " + sku + ": " + price);
@@ -86,7 +99,9 @@ public class FastchannelPriceClient {
         String resellerId = priceDto.getResellerId();
         if (resellerId == null || resellerId.isEmpty()) {
             resellerId = config.getResellerId();
-            priceDto.setResellerId(resellerId);
+            if (resellerId != null && !resellerId.isEmpty()) {
+                priceDto.setResellerId(resellerId);
+            }
         }
 
         String endpoint = String.format(FastchannelConstants.ENDPOINT_PRICE, priceDto.getSku());
@@ -138,6 +153,36 @@ public class FastchannelPriceClient {
         }
 
         log.info("Batch de " + prices.size() + " preços atualizado com sucesso.");
+    }
+
+    /**
+     * Atualiza precos escalonados (batches) de um SKU.
+     *
+     * @param sku código do produto
+     * @param priceTableId ID da tabela de preço (opcional)
+     * @param batches lista de faixas
+     */
+    public void updatePriceBatches(String sku, BigDecimal priceTableId, List<PriceBatchItemDTO> batches) throws Exception {
+        if (batches == null || batches.isEmpty()) {
+            return;
+        }
+
+        String endpoint = String.format(FastchannelConstants.ENDPOINT_PRICE_BATCHES, sku);
+
+        for (PriceBatchItemDTO batch : batches) {
+            if (batch == null) continue;
+            if (batch.getPriceTableId() == null && priceTableId != null) {
+                batch.setPriceTableId(priceTableId);
+            }
+
+            String json = gson.toJson(batch);
+            FastchannelHttpClient.HttpResult result = httpClient.postPrice(endpoint, json);
+
+            if (!result.isSuccess()) {
+                log.warning("Erro ao atualizar batch de preço: HTTP " + result.getStatusCode() + " - " + result.getBody());
+                throw new Exception("Erro ao atualizar batch de preço: " + result.getErrorMessage());
+            }
+        }
     }
 
     /**

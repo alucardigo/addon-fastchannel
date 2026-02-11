@@ -31,8 +31,7 @@ public class FCAdminService {
             FastchannelConfig config = FastchannelConfig.getInstance();
 
             if (!config.isAtivo()) {
-                mensagem.append("   [ERRO] Integracao nao esta ativa!\n");
-                sucesso = false;
+                mensagem.append("   [AVISO] Integracao esta desativada (nao bloqueia conexao)\n");
             } else {
                 mensagem.append("   [OK] Integracao ativa\n");
             }

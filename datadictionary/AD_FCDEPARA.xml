@@ -27,6 +27,12 @@
                     <option value="PRODUTO" description="Produto"/>
                     <option value="PARCEIRO" description="Parceiro"/>
                     <option value="LOCAL" description="Local de Estoque"/>
+                    <option value="EMPRESA" description="Empresa"/>
+                    <option value="TOP_PEDIDO" description="TOP Pedido"/>
+                    <option value="TIPNEG" description="Tipo de Negociacao"/>
+                    <option value="CODNAT" description="Natureza de Operacao"/>
+                    <option value="CODCENCUS" description="Centro de Resultado"/>
+                    <option value="CODVEND" description="Vendedor"/>
                     <option value="TABELA_PRECO" description="Tabela de Preco"/>
                     <option value="STOCK_STORAGE" description="StorageId (Fastchannel) x Empresa/Local"/>
                     <option value="STOCK_RESELLER" description="ResellerId (Fastchannel) x Empresa"/>
