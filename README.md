@@ -1,6 +1,6 @@
 # Addon Fastchannel - Integração Sankhya
 
-Addon para integração do ERP Sankhya com o Fastchannel Data Lake.
+Addon para integração do ERP Sankhya com o Fastchannel.
 
 ## Descrição
 
