@@ -30,8 +30,7 @@ public class TestarConexaoAction implements AcaoRotinaJava {
             FastchannelConfig config = FastchannelConfig.getInstance();
 
             if (!config.isAtivo()) {
-                resultado.append("   [ERRO] Integração não está ativa!\n");
-                sucesso = false;
+                resultado.append("   [AVISO] Integração está desativada (não bloqueia conexão)\n");
             } else {
                 resultado.append("   [OK] Integração ativa\n");
             }
@@ -95,11 +94,11 @@ public class TestarConexaoAction implements AcaoRotinaJava {
                     FastchannelHttpClient httpClient = new FastchannelHttpClient();
                     // Fazer uma chamada simples para verificar conectividade
                     // GET em /orders com limit=1 apenas para testar
-                    String testUrl = config.getBaseUrl() + "/orders?page=1&pageSize=1";
+                    String testUrl = config.getBaseUrl() + "/orders?PageNumber=1&PageSize=1";
                     resultado.append("   Testando: ").append(testUrl).append("\n");
 
                     // O cliente HTTP já trata erros e retries
-                    FastchannelHttpClient.HttpResult result = httpClient.getOrders("/orders?page=1&pageSize=1");
+                    FastchannelHttpClient.HttpResult result = httpClient.getOrders("/orders?PageNumber=1&PageSize=1");
                     if (result.isSuccess()) {
                         resultado.append("   [OK] API respondeu com sucesso!\n");
                         String body = result.getBody();

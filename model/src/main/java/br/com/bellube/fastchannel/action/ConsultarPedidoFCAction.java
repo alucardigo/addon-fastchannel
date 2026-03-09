@@ -1,6 +1,5 @@
 package br.com.bellube.fastchannel.action;
 
-import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.http.FastchannelOrdersClient;
 import br.com.bellube.fastchannel.dto.OrderDTO;
 import br.com.sankhya.extensions.actionbutton.AcaoRotinaJava;
@@ -23,13 +22,7 @@ public class ConsultarPedidoFCAction implements AcaoRotinaJava {
         StringBuilder resultado = new StringBuilder();
 
         try {
-            // Verificar se integração está ativa
-            FastchannelConfig config = FastchannelConfig.getInstance();
-            if (!config.isAtivo()) {
-                resultado.append("[ERRO] Integração não está ativa!");
-                contexto.setMensagemRetorno(resultado.toString());
-                return;
-            }
+            // A consulta à API não depende da integração estar ativa
 
             // Obter registros selecionados
             Registro[] registros = contexto.getLinhas();

@@ -1,5 +1,8 @@
 package br.com.bellube.fastchannel.web;
 
+import br.com.bellube.fastchannel.config.FastchannelConfig;
+import br.com.bellube.fastchannel.dto.OrderDTO;
+import br.com.bellube.fastchannel.http.FastchannelOrdersClient;
 import br.com.bellube.fastchannel.util.DBUtil;
 
 import java.sql.Connection;
@@ -24,10 +27,19 @@ public class FCDashboardService {
         try {
             conn = DBUtil.getConnection();
 
-            // Connection status
+            // Connection status (baseado na configuracao ativa)
+            FastchannelConfig cfg = FastchannelConfig.getInstance();
+            boolean configAtiva = cfg.isAtivo();
+            boolean hasClientId = cfg.getClientId() != null && !cfg.getClientId().trim().isEmpty();
+            boolean hasClientSecret = cfg.getClientSecret() != null && !cfg.getClientSecret().trim().isEmpty();
+            boolean hasBaseUrl = cfg.getBaseUrl() != null && !cfg.getBaseUrl().trim().isEmpty();
+            boolean apiOnline = hasBaseUrl;
+            boolean tokenValid = hasClientId && hasClientSecret;
+
             Map<String, Object> connection = new HashMap<>();
-            connection.put("apiOnline", true);
-            connection.put("tokenValid", true);
+            connection.put("apiOnline", apiOnline);
+            connection.put("tokenValid", tokenValid);
+            connection.put("integrationActive", configAtiva);
             connection.put("lastCheck", new Date());
             result.put("connection", connection);
 
@@ -35,8 +47,9 @@ public class FCDashboardService {
             Map<String, Object> queue = new HashMap<>();
             queue.put("pending", countByStatus(conn, "AD_FCQUEUE", "STATUS", "PENDENTE"));
             queue.put("processing", countByStatus(conn, "AD_FCQUEUE", "STATUS", "PROCESSANDO"));
-            queue.put("completed", countByStatus24h(conn, "AD_FCQUEUE", "STATUS", "CONCLUIDO", "DH_PROCESSAMENTO"));
-            queue.put("errors", countByStatus(conn, "AD_FCQUEUE", "STATUS", "ERRO"));
+            queue.put("completed", countByStatus24h(conn, "AD_FCQUEUE", "STATUS", "ENVIADO", "DH_PROCESSAMENTO"));
+            queue.put("errors", countByStatus(conn, "AD_FCQUEUE", "STATUS", "ERRO")
+                    + countByStatus(conn, "AD_FCQUEUE", "STATUS", "ERRO_FATAL"));
             result.put("queue", queue);
 
             // Orders stats
@@ -45,6 +58,28 @@ public class FCDashboardService {
             orders.put("pending", countByStatus(conn, "AD_FCPEDIDO", "STATUS_IMPORT", "PENDENTE"));
             orders.put("error", countByStatus(conn, "AD_FCPEDIDO", "STATUS_IMPORT", "ERRO"));
             result.put("orders", orders);
+
+            // Fastchannel orders (API) - independent of integration activation
+            Map<String, Object> ordersFc = new HashMap<>();
+            try {
+                FastchannelOrdersClient fcClient = new FastchannelOrdersClient();
+                FastchannelOrdersClient.OrderListResult fcResult = fcClient.listOrdersWithMeta(null, 1, 50, false);
+                Integer pendingTotal = fcResult.getTotalRecords();
+                List<OrderDTO> apiOrders = fcResult.getOrders();
+                ordersFc.put("pendingTotal", pendingTotal != null ? pendingTotal : (apiOrders != null ? apiOrders.size() : 0));
+                Map<String, Integer> statusCounts = new HashMap<>();
+                if (apiOrders != null) {
+                    for (OrderDTO order : apiOrders) {
+                        String status = order.getStatusDescription() != null ? order.getStatusDescription() : "SEM_STATUS";
+                        statusCounts.put(status, statusCounts.getOrDefault(status, 0) + 1);
+                    }
+                }
+                ordersFc.put("statusSample", statusCounts);
+                ordersFc.put("sampleSize", apiOrders != null ? apiOrders.size() : 0);
+            } catch (Exception e) {
+                ordersFc.put("error", e.getMessage());
+            }
+            result.put("ordersFastchannel", ordersFc);
 
             // Sync stats
             Map<String, Object> sync = new HashMap<>();

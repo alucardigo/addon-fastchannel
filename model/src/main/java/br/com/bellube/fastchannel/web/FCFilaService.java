@@ -27,8 +27,8 @@ public class FCFilaService {
 
             result.put("pending", countByStatus(conn, "PENDENTE"));
             result.put("processing", countByStatus(conn, "PROCESSANDO"));
-            result.put("completed", countByStatus24h(conn, "CONCLUIDO"));
-            result.put("error", countByStatus(conn, "ERRO"));
+            result.put("completed", countByStatus24h(conn, "ENVIADO"));
+            result.put("error", countByStatus(conn, "ERRO") + countByStatus(conn, "ERRO_FATAL"));
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao carregar stats", e);
@@ -62,13 +62,13 @@ public class FCFilaService {
 
             String tipo = getString(params, "tipo");
             if (tipo != null && !tipo.isEmpty()) {
-                where.append(" AND TIPO_ENTIDADE = ?");
+                where.append(" AND ENTITY_TYPE = ?");
                 queryParams.add(tipo);
             }
 
             String ref = getString(params, "ref");
             if (ref != null && !ref.isEmpty()) {
-                where.append(" AND (REFERENCIA LIKE ? OR SKU LIKE ?)");
+                where.append(" AND (CAST(ENTITY_ID AS VARCHAR(100)) LIKE ? OR ENTITY_KEY LIKE ?)");
                 queryParams.add("%" + ref + "%");
                 queryParams.add("%" + ref + "%");
             }
@@ -88,7 +88,7 @@ public class FCFilaService {
             countStmt.close();
 
             // Get page - SQL Server syntax
-            String sql = "SELECT IDQUEUE, TIPO_ENTIDADE, REFERENCIA, SKU, STATUS, RETRY_COUNT, DH_CRIACAO, ULTIMO_ERRO " +
+            String sql = "SELECT IDQUEUE, ENTITY_TYPE, ENTITY_ID, ENTITY_KEY, STATUS, RETRY_COUNT, DH_CRIACAO, LAST_ERROR " +
                     "FROM AD_FCQUEUE WHERE " + where +
                     " ORDER BY DH_CRIACAO DESC " +
                     " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
@@ -104,13 +104,13 @@ public class FCFilaService {
             while (rs.next()) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("id", rs.getBigDecimal("IDQUEUE"));
-                item.put("tipo", rs.getString("TIPO_ENTIDADE"));
-                item.put("referencia", rs.getString("REFERENCIA"));
-                item.put("sku", rs.getString("SKU"));
+                item.put("tipo", rs.getString("ENTITY_TYPE"));
+                item.put("referencia", rs.getString("ENTITY_ID"));
+                item.put("sku", rs.getString("ENTITY_KEY"));
                 item.put("status", rs.getString("STATUS"));
                 item.put("tentativas", rs.getBigDecimal("RETRY_COUNT"));
                 item.put("dhCriacao", rs.getTimestamp("DH_CRIACAO"));
-                item.put("ultimoErro", rs.getString("ULTIMO_ERRO"));
+                item.put("ultimoErro", rs.getString("LAST_ERROR"));
                 fila.add(item);
             }
 
@@ -150,7 +150,7 @@ public class FCFilaService {
 
             conn = DBUtil.getConnection();
 
-            String sql = "UPDATE AD_FCQUEUE SET STATUS = 'PENDENTE', RETRY_COUNT = 0, ULTIMO_ERRO = NULL WHERE IDQUEUE = ?";
+            String sql = "UPDATE AD_FCQUEUE SET STATUS = 'PENDENTE', RETRY_COUNT = 0, LAST_ERROR = NULL WHERE IDQUEUE = ?";
             stmt = conn.prepareStatement(sql);
 
             int count = 0;

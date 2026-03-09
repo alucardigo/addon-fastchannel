@@ -39,12 +39,27 @@ public class FastchannelDirectServlet extends HttpServlet {
         services.put("FCAdminSP.testarConexao", new ServiceInfo(FCAdminService.class, "testarConexao"));
         services.put("FCAdminSP.importarPedidos", new ServiceInfo(FCAdminService.class, "importarPedidos"));
         services.put("FCAdminSP.processarFila", new ServiceInfo(FCAdminService.class, "processarFila"));
+        services.put("FCAdminSP.diagnosticoSchema", new ServiceInfo(FCAdminService.class, "diagnosticoSchema"));
+        services.put("FCAdminSP.autocorrigirCentroResultado", new ServiceInfo(FCAdminService.class, "autocorrigirCentroResultado"));
 
         // Pedidos
         services.put("FCPedidosSP.list", new ServiceInfo(FCPedidosService.class, "list"));
         services.put("FCPedidosSP.get", new ServiceInfo(FCPedidosService.class, "get"));
         services.put("FCPedidosSP.reprocessar", new ServiceInfo(FCPedidosService.class, "reprocessar"));
         services.put("FCPedidosSP.consultarFC", new ServiceInfo(FCPedidosService.class, "consultarFC"));
+
+        // Estoque
+        services.put("FCEstoqueSP.list", new ServiceInfo(FCEstoqueService.class, "list"));
+        services.put("FCEstoqueSP.compararFC", new ServiceInfo(FCEstoqueService.class, "compararFC"));
+        services.put("FCEstoqueSP.forcarSync", new ServiceInfo(FCEstoqueService.class, "forcarSync"));
+        services.put("FCEstoqueSP.reprocessar", new ServiceInfo(FCEstoqueService.class, "reprocessar"));
+
+        // Precos
+        services.put("FCPrecosSP.list", new ServiceInfo(FCPrecosService.class, "list"));
+        services.put("FCPrecosSP.compararFC", new ServiceInfo(FCPrecosService.class, "compararFC"));
+        services.put("FCPrecosSP.forcarSync", new ServiceInfo(FCPrecosService.class, "forcarSync"));
+        services.put("FCPrecosSP.reprocessar", new ServiceInfo(FCPrecosService.class, "reprocessar"));
+        services.put("FCPrecosSP.syncEmLote", new ServiceInfo(FCPrecosService.class, "syncEmLote"));
 
         // Fila
         services.put("FCFilaSP.stats", new ServiceInfo(FCFilaService.class, "stats"));
@@ -55,6 +70,17 @@ public class FastchannelDirectServlet extends HttpServlet {
         // Logs
         services.put("FCLogsSP.list", new ServiceInfo(FCLogsService.class, "list"));
         services.put("FCLogsSP.limpar", new ServiceInfo(FCLogsService.class, "limpar"));
+
+        // De-Para
+        services.put("FCDeparaSP.listEmpresas", new ServiceInfo(FCDeparaService.class, "listEmpresas"));
+        services.put("FCDeparaSP.listLocais", new ServiceInfo(FCDeparaService.class, "listLocais"));
+        services.put("FCDeparaSP.listTabelasPreco", new ServiceInfo(FCDeparaService.class, "listTabelasPreco"));
+        services.put("FCDeparaSP.listMappings", new ServiceInfo(FCDeparaService.class, "listMappings"));
+        services.put("FCDeparaSP.saveMappings", new ServiceInfo(FCDeparaService.class, "saveMappings"));
+    }
+
+    static boolean hasService(String name) {
+        return services.containsKey(name);
     }
 
     @Override
@@ -129,11 +155,59 @@ public class FastchannelDirectServlet extends HttpServlet {
         }
 
         String body = sb.toString().trim();
+        Map<String, Object> payload;
         if (body.isEmpty() || body.equals("{}")) {
-            return new HashMap<>();
+            payload = new HashMap<>();
+        } else {
+            payload = parseJson(body);
         }
 
-        return parseJson(body);
+        // Fallback: quando body estiver vazio/indisponivel, tenta obter parametros via query/form.
+        // Isso melhora chamadas diretas por URL e ambientes onde filtros consomem o stream do body.
+        if (payload.isEmpty()) {
+            Map<String, String[]> paramMap = req.getParameterMap();
+            if (paramMap != null && !paramMap.isEmpty()) {
+                for (Map.Entry<String, String[]> entry : paramMap.entrySet()) {
+                    String key = entry.getKey();
+                    if (key == null) continue;
+                    if ("serviceName".equalsIgnoreCase(key) || "mgeSession".equalsIgnoreCase(key)) continue;
+
+                    String[] values = entry.getValue();
+                    if (values == null || values.length == 0) continue;
+
+                    if (values.length == 1) {
+                        payload.put(key, parsePrimitive(values[0]));
+                    } else {
+                        List<Object> list = new ArrayList<>();
+                        for (String v : values) {
+                            list.add(parsePrimitive(v));
+                        }
+                        payload.put(key, list);
+                    }
+                }
+            }
+        }
+
+        return payload;
+    }
+
+    private Object parsePrimitive(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) return "";
+
+        if ("null".equalsIgnoreCase(trimmed)) return null;
+        if ("true".equalsIgnoreCase(trimmed)) return Boolean.TRUE;
+        if ("false".equalsIgnoreCase(trimmed)) return Boolean.FALSE;
+
+        try {
+            if (trimmed.contains(".")) {
+                return Double.parseDouble(trimmed);
+            }
+            return Long.parseLong(trimmed);
+        } catch (NumberFormatException ignore) {
+            return value;
+        }
     }
 
     private void sendError(HttpServletResponse resp, PrintWriter out, int code, String message) {

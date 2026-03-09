@@ -17,9 +17,10 @@ O sistema agora tenta criar o pedido seguindo esta ordem de preferência:
 Para esta versão, novos campos de configuração e logs foram adicionados. **É obrigatório executar os scripts na pasta `dbscripts/`**:
 
 1.  `dbscripts/migration_add_fc_config_defaults.sql`: Adiciona campos `CODNAT`, `CODCENCUS` e `CODVEND_PADRAO` na `AD_FCCONFIG`.
-2.  `dbscripts/migration_add_fc_pedido_fields.sql`: Adiciona campos de rastreio e status (`STATUS_IMPORT`, `VALOR_TOTAL`, etc) na `AD_FCPEDIDO`.
-3.  `dbscripts/migration_add_fc_log_fields.sql`: Ajusta a `AD_FCLOG` para o novo padrão de métricas e detalhes.
+2.  `dbscripts/migration_add_fc_pedido_fields.sql` (SQL Server): Adiciona campos de rastreio e status (`STATUS_IMPORT`, `VALOR_TOTAL`, etc) na `AD_FCPEDIDO`.
+3.  `dbscripts/migration_add_fc_log_fields.sql` (SQL Server): Adiciona `DH_LOG`, faz backfill a partir de `DH_REGISTRO` e recria o indice `IDX_FCLOG_DH` em `AD_FCLOG`.
 4.  `dbscripts/migration_add_sync_status_flag.sql`: Adiciona a flag `SYNC_STATUS_ENABLED`.
+5.  `dbscripts/V2.xml`: Inclui `PRICE_TABLE_TIPOS`, `PRICE_TABLE_IDS` e flags de UI para telas de preços/estoque.
 
 ## Configuração de Estoque (SQL Server)
 
@@ -29,6 +30,13 @@ Para o envio correto de estoque ao Fastchannel, é necessário configurar o de-p
 - **STOCK_RESELLER**: `CODEMP` -> `ResellerId`
 
 Sem esses mapeamentos, o estoque será **ignorado** e um aviso será registrado no log.
+
+## Configuração de Preços (SQL Server)
+
+- **Cálculo**: Preço é resolvido por `[sankhya].SNK_GET_PRECO` (SQL Server).
+- **Unidade**: Payload da Fastchannel usa **centavos**. O add-on converte automaticamente.
+- **Múltiplas tabelas**: Configure `PRICE_TABLE_IDS` (NUTABs explícitos) ou `PRICE_TABLE_TIPOS` (AD_TIPO_FAST). Sem configuração, usa `NUTAB` padrão.
+- **Batch prices**: Faixas de preço são lidas da query legado `SyncBatchPricesFastChannel` e publicadas em `/prices/{ProductId}/batches`.
 
 ## Melhorias de Resiliência
 

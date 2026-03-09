@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V14: De-para padrao para campos de cabecalho de pedido Fastchannel -->
+    <!-- Usa valores do legado: TOP 403, CODVEND 167 -->
+
+    <!-- AD_FCDEPARA: TIPNEG default baseado na primeira TGFTPV com AD_IDFAST preenchido -->
+    <sql nomeTabela="AD_FCDEPARA" nomeObjeto="INS_DEPARA_TIPNEG_DEFAULT" ordem="1" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            MERGE INTO AD_FCDEPARA D
+            USING (
+                SELECT 'TIPNEG' AS TIPO_ENTIDADE,
+                       T.CODTIPVENDA AS COD_SANKHYA,
+                       CAST(T.AD_IDFAST AS VARCHAR2(100)) AS COD_EXTERNO
+                FROM TGFTPV T
+                WHERE T.AD_IDFAST IS NOT NULL
+                  AND ROWNUM = 1
+                ORDER BY T.CODTIPVENDA
+            ) S ON (D.TIPO_ENTIDADE = S.TIPO_ENTIDADE AND D.COD_SANKHYA = S.COD_SANKHYA)
+            WHEN NOT MATCHED THEN
+                INSERT (IDDEPARA, TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO)
+                VALUES (SEQ_AD_FCDEPARA.NEXTVAL, S.TIPO_ENTIDADE, S.COD_SANKHYA, S.COD_EXTERNO, CURRENT_TIMESTAMP)
+        </oracle>
+        <mssql>
+            IF NOT EXISTS (SELECT 1 FROM AD_FCDEPARA WHERE TIPO_ENTIDADE = 'TIPNEG')
+            BEGIN
+                INSERT INTO AD_FCDEPARA (TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO)
+                SELECT TOP 1 'TIPNEG', T.CODTIPVENDA, CAST(T.AD_IDFAST AS VARCHAR(100)), GETDATE()
+                FROM TGFTPV T
+                WHERE T.AD_IDFAST IS NOT NULL
+                ORDER BY T.CODTIPVENDA
+            END
+        </mssql>
+    </sql>
+
+    <!-- AD_FCDEPARA: CODVEND padrao = 167 (FAST) -->
+    <sql nomeTabela="AD_FCDEPARA" nomeObjeto="INS_DEPARA_CODVEND_DEFAULT" ordem="2" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            MERGE INTO AD_FCDEPARA D
+            USING (SELECT 'CODVEND' AS TIPO_ENTIDADE, 167 AS COD_SANKHYA, '0' AS COD_EXTERNO FROM DUAL) S
+            ON (D.TIPO_ENTIDADE = S.TIPO_ENTIDADE AND D.COD_EXTERNO = S.COD_EXTERNO)
+            WHEN NOT MATCHED THEN
+                INSERT (IDDEPARA, TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO)
+                VALUES (SEQ_AD_FCDEPARA.NEXTVAL, S.TIPO_ENTIDADE, S.COD_SANKHYA, S.COD_EXTERNO, CURRENT_TIMESTAMP)
+        </oracle>
+        <mssql>
+            IF NOT EXISTS (SELECT 1 FROM AD_FCDEPARA WHERE TIPO_ENTIDADE = 'CODVEND' AND COD_EXTERNO = '0')
+                INSERT INTO AD_FCDEPARA (TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO)
+                VALUES ('CODVEND', 167, '0', GETDATE())
+        </mssql>
+    </sql>
+
+    <!-- AD_FCDEPARA: TOP_PEDIDO padrao = 403 -->
+    <sql nomeTabela="AD_FCDEPARA" nomeObjeto="INS_DEPARA_TOP_PEDIDO_DEFAULT" ordem="3" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            MERGE INTO AD_FCDEPARA D
+            USING (SELECT 'TOP_PEDIDO' AS TIPO_ENTIDADE, 403 AS COD_SANKHYA, '0' AS COD_EXTERNO FROM DUAL) S
+            ON (D.TIPO_ENTIDADE = S.TIPO_ENTIDADE AND D.COD_EXTERNO = S.COD_EXTERNO)
+            WHEN NOT MATCHED THEN
+                INSERT (IDDEPARA, TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO)
+                VALUES (SEQ_AD_FCDEPARA.NEXTVAL, S.TIPO_ENTIDADE, S.COD_SANKHYA, S.COD_EXTERNO, CURRENT_TIMESTAMP)
+        </oracle>
+        <mssql>
+            IF NOT EXISTS (SELECT 1 FROM AD_FCDEPARA WHERE TIPO_ENTIDADE = 'TOP_PEDIDO' AND COD_EXTERNO = '0')
+                INSERT INTO AD_FCDEPARA (TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO)
+                VALUES ('TOP_PEDIDO', 403, '0', GETDATE())
+        </mssql>
+    </sql>
+
+    <!-- AD_FCDEPARA: CODNAT padrao (lido da config, default 0 = sem filtro) -->
+    <sql nomeTabela="AD_FCDEPARA" nomeObjeto="INS_DEPARA_CODNAT_DEFAULT" ordem="4" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            MERGE INTO AD_FCDEPARA D
+            USING (
+                SELECT 'CODNAT' AS TIPO_ENTIDADE,
+                       NVL(C.CODNAT, 0) AS COD_SANKHYA,
+                       '0' AS COD_EXTERNO
+                FROM AD_FCCONFIG C
+                WHERE C.CODCONFIG = (SELECT MAX(CODCONFIG) FROM AD_FCCONFIG)
+            ) S ON (D.TIPO_ENTIDADE = S.TIPO_ENTIDADE AND D.COD_EXTERNO = S.COD_EXTERNO)
+            WHEN NOT MATCHED THEN
+                INSERT (IDDEPARA, TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO)
+                VALUES (SEQ_AD_FCDEPARA.NEXTVAL, S.TIPO_ENTIDADE, S.COD_SANKHYA, S.COD_EXTERNO, CURRENT_TIMESTAMP)
+        </oracle>
+        <mssql>
+            IF NOT EXISTS (SELECT 1 FROM AD_FCDEPARA WHERE TIPO_ENTIDADE = 'CODNAT' AND COD_EXTERNO = '0')
+                INSERT INTO AD_FCDEPARA (TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO)
+                SELECT 'CODNAT', ISNULL(C.CODNAT, 0), '0', GETDATE()
+                FROM AD_FCCONFIG C
+                WHERE C.CODCONFIG = (SELECT MAX(CODCONFIG) FROM AD_FCCONFIG)
+        </mssql>
+    </sql>
+
+    <!-- AD_FCDEPARA: CODCENCUS padrao (lido da config, default 0 = sem filtro) -->
+    <sql nomeTabela="AD_FCDEPARA" nomeObjeto="INS_DEPARA_CODCENCUS_DEFAULT" ordem="5" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            MERGE INTO AD_FCDEPARA D
+            USING (
+                SELECT 'CODCENCUS' AS TIPO_ENTIDADE,
+                       NVL(C.CODCENCUS, 0) AS COD_SANKHYA,
+                       '0' AS COD_EXTERNO
+                FROM AD_FCCONFIG C
+                WHERE C.CODCONFIG = (SELECT MAX(CODCONFIG) FROM AD_FCCONFIG)
+            ) S ON (D.TIPO_ENTIDADE = S.TIPO_ENTIDADE AND D.COD_EXTERNO = S.COD_EXTERNO)
+            WHEN NOT MATCHED THEN
+                INSERT (IDDEPARA, TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO)
+                VALUES (SEQ_AD_FCDEPARA.NEXTVAL, S.TIPO_ENTIDADE, S.COD_SANKHYA, S.COD_EXTERNO, CURRENT_TIMESTAMP)
+        </oracle>
+        <mssql>
+            IF NOT EXISTS (SELECT 1 FROM AD_FCDEPARA WHERE TIPO_ENTIDADE = 'CODCENCUS' AND COD_EXTERNO = '0')
+                INSERT INTO AD_FCDEPARA (TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO)
+                SELECT 'CODCENCUS', ISNULL(C.CODCENCUS, 0), '0', GETDATE()
+                FROM AD_FCCONFIG C
+                WHERE C.CODCONFIG = (SELECT MAX(CODCONFIG) FROM AD_FCCONFIG)
+        </mssql>
+    </sql>
+</alteracoes>

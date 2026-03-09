@@ -12,11 +12,19 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Cliente HTTP para comunicação com a API Fastchannel Commerce.
@@ -46,6 +54,8 @@ public class FastchannelHttpClient {
     private static final int MAX_RETRIES = FastchannelConstants.DEFAULT_MAX_RETRIES;
     private static final long INITIAL_BACKOFF_MS = 1000;
     private static final double BACKOFF_MULTIPLIER = 2.0;
+    private static volatile SSLSocketFactory insecureSslSocketFactory;
+    private static volatile HostnameVerifier insecureHostnameVerifier;
 
     public FastchannelHttpClient() {
         this(FastchannelConstants.DEFAULT_TIMEOUT_SECONDS);
@@ -61,7 +71,7 @@ public class FastchannelHttpClient {
      * GET request para Order Management API.
      */
     public HttpResult getOrders(String endpoint) throws Exception {
-        String url = config.getBaseUrl() + endpoint;
+        String url = buildOrderUrl(endpoint);
         return executeWithRetry("GET", url, null, config.getSubscriptionKeyDistribution());
     }
 
@@ -69,7 +79,7 @@ public class FastchannelHttpClient {
      * POST request para Order Management API.
      */
     public HttpResult postOrders(String endpoint, String jsonBody) throws Exception {
-        String url = config.getBaseUrl() + endpoint;
+        String url = buildOrderUrl(endpoint);
         return executeWithRetry("POST", url, jsonBody, config.getSubscriptionKeyDistribution());
     }
 
@@ -77,8 +87,16 @@ public class FastchannelHttpClient {
      * PUT request para Order Management API.
      */
     public HttpResult putOrders(String endpoint, String jsonBody) throws Exception {
-        String url = config.getBaseUrl() + endpoint;
+        String url = buildOrderUrl(endpoint);
         return executeWithRetry("PUT", url, jsonBody, config.getSubscriptionKeyDistribution());
+    }
+
+    private String buildOrderUrl(String endpoint) {
+        String configuredBase = config.getBaseUrl();
+        if (configuredBase != null && configuredBase.contains("/order-management/")) {
+            return configuredBase + endpoint;
+        }
+        return FastchannelConstants.ORDER_API_BASE + endpoint;
     }
 
     /**
@@ -86,7 +104,8 @@ public class FastchannelHttpClient {
      */
     public HttpResult getStock(String endpoint) throws Exception {
         String url = FastchannelConstants.STOCK_API_BASE + endpoint;
-        return executeWithRetry("GET", url, null, config.getSubscriptionKeyConsumption());
+        // Legado usa chave de distribuicao para rotas de estoque.
+        return executeWithRetry("GET", url, null, config.getSubscriptionKeyDistribution());
     }
 
     /**
@@ -94,31 +113,44 @@ public class FastchannelHttpClient {
      */
     public HttpResult putStock(String endpoint, String jsonBody) throws Exception {
         String url = FastchannelConstants.STOCK_API_BASE + endpoint;
-        return executeWithRetry("PUT", url, jsonBody, config.getSubscriptionKeyConsumption());
+        // Legado usa chave de distribuicao para rotas de estoque.
+        return executeWithRetry("PUT", url, jsonBody, config.getSubscriptionKeyDistribution());
     }
 
     /**
      * GET request para Price Management API.
      */
     public HttpResult getPrice(String endpoint) throws Exception {
-        String url = FastchannelConstants.PRICE_API_BASE + endpoint;
-        return executeWithRetry("GET", url, null, config.getSubscriptionKeyConsumption());
+        return getPrice(endpoint, config.getSubscriptionKeyConsumption());
     }
 
     /**
      * PUT request para Price Management API.
      */
     public HttpResult putPrice(String endpoint, String jsonBody) throws Exception {
-        String url = FastchannelConstants.PRICE_API_BASE + endpoint;
-        return executeWithRetry("PUT", url, jsonBody, config.getSubscriptionKeyConsumption());
+        return putPrice(endpoint, jsonBody, config.getSubscriptionKeyConsumption());
     }
 
     /**
      * POST request para Price Management API (batches).
      */
     public HttpResult postPrice(String endpoint, String jsonBody) throws Exception {
+        return postPrice(endpoint, jsonBody, config.getSubscriptionKeyConsumption());
+    }
+
+    public HttpResult getPrice(String endpoint, String subscriptionKey) throws Exception {
         String url = FastchannelConstants.PRICE_API_BASE + endpoint;
-        return executeWithRetry("POST", url, jsonBody, config.getSubscriptionKeyConsumption());
+        return executeWithRetry("GET", url, null, subscriptionKey);
+    }
+
+    public HttpResult putPrice(String endpoint, String jsonBody, String subscriptionKey) throws Exception {
+        String url = FastchannelConstants.PRICE_API_BASE + endpoint;
+        return executeWithRetry("PUT", url, jsonBody, subscriptionKey);
+    }
+
+    public HttpResult postPrice(String endpoint, String jsonBody, String subscriptionKey) throws Exception {
+        String url = FastchannelConstants.PRICE_API_BASE + endpoint;
+        return executeWithRetry("POST", url, jsonBody, subscriptionKey);
     }
 
     /**
@@ -210,6 +242,7 @@ public class FastchannelHttpClient {
         try {
             URL url = new URL(urlString);
             connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+            configureSslIfNeeded(connection);
 
             connection.setRequestMethod(method);
             connection.setConnectTimeout(timeoutMs);
@@ -218,7 +251,10 @@ public class FastchannelHttpClient {
             // Headers padrão Fastchannel
             connection.setRequestProperty("Authorization", "Bearer " + token);
             connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty(getSubscriptionHeaderName(), subscriptionKey);
             connection.setRequestProperty("Ocp-Apim-Subscription-Key", subscriptionKey);
+            // Compatibilidade com variacoes de gateway
+            connection.setRequestProperty("subscription-key", subscriptionKey);
 
             if (jsonBody != null) {
                 connection.setRequestProperty("Content-Type", "application/json");
@@ -246,6 +282,45 @@ public class FastchannelHttpClient {
                 connection.disconnect();
             }
         }
+    }
+
+    private static String getSubscriptionHeaderName() {
+        return "Subscription-Key";
+    }
+
+    private void configureSslIfNeeded(HttpURLConnection connection) throws Exception {
+        if (!(connection instanceof HttpsURLConnection)) {
+            return;
+        }
+
+        String configured = System.getProperty("fastchannel.ssl.insecure");
+        if (configured == null || configured.trim().isEmpty()) {
+            configured = System.getenv("FASTCHANNEL_SSL_INSECURE");
+        }
+        boolean insecure = configured == null || configured.trim().isEmpty() || Boolean.parseBoolean(configured);
+        if (!insecure) {
+            return;
+        }
+
+        if (insecureSslSocketFactory == null || insecureHostnameVerifier == null) {
+            synchronized (FastchannelHttpClient.class) {
+                if (insecureSslSocketFactory == null || insecureHostnameVerifier == null) {
+                    TrustManager[] trustAll = new TrustManager[]{new X509TrustManager() {
+                        public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+                        public void checkClientTrusted(X509Certificate[] chain, String authType) {}
+                        public void checkServerTrusted(X509Certificate[] chain, String authType) {}
+                    }};
+                    SSLContext sc = SSLContext.getInstance("TLS");
+                    sc.init(null, trustAll, new SecureRandom());
+                    insecureSslSocketFactory = sc.getSocketFactory();
+                    insecureHostnameVerifier = (hostname, session) -> true;
+                }
+            }
+        }
+
+        HttpsURLConnection https = (HttpsURLConnection) connection;
+        https.setSSLSocketFactory(insecureSslSocketFactory);
+        https.setHostnameVerifier(insecureHostnameVerifier);
     }
 
     private String readStream(java.io.InputStream stream) throws Exception {

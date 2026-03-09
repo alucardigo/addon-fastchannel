@@ -127,9 +127,11 @@ public class ReenviarStatusPedidoAction implements AcaoRotinaJava {
     }
 
     private String buscarInfoNF(BigDecimal nuNota) {
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc.openSession();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT NUMNOTA, SERIENOTA FROM TGFCAB WHERE NUNOTA = :nuNota");
@@ -147,6 +149,9 @@ public class ReenviarStatusPedidoAction implements AcaoRotinaJava {
         } finally {
             if (rs != null) {
                 try { rs.close(); } catch (Exception ignored) {}
+            }
+            if (jdbc != null) {
+                try { jdbc.closeSession(); } catch (Exception ignored) {}
             }
         }
         return null;

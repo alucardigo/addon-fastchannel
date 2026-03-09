@@ -59,8 +59,8 @@ public class TestarEstrategiasAction implements AcaoRotinaJava {
                 resultado.append("[ATENCAO] SANKHYA_PASSWORD nao configurado. Autenticacao HTTP nao funcionara.\n");
             }
 
-            resultado.append("\n[INFO] Ordem de preferencia: InternalAPI > ServiceInvoker > HTTP\n");
-            resultado.append("[INFO] Fallback automatico se estrategia preferencial falhar.\n");
+            resultado.append("\n[INFO] Ordem padrao: InternalAPI (somente)\n");
+            resultado.append("[INFO] HTTP/ServiceInvoker so sao habilitados por opt-in (fastchannel.order.enableLegacyFallbacks=true).\n");
 
         } catch (Exception e) {
             resultado.append("\n[ERRO] Falha no teste: ").append(e.getMessage());

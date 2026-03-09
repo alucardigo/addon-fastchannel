@@ -21,12 +21,14 @@ public class LimparLogsAction implements AcaoRotinaJava {
     @Override
     public void doAction(ContextoAcao contexto) throws Exception {
         StringBuilder resultado = new StringBuilder();
+        JdbcWrapper jdbc = null;
 
         try {
             resultado.append("=== Limpeza de Logs Antigos ===\n\n");
             resultado.append("Removendo logs com mais de ").append(DIAS_PARA_MANTER).append(" dias...\n\n");
 
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc.openSession();
 
             // Contar logs antes
             NativeSql countSql = new NativeSql(jdbc);
@@ -64,6 +66,10 @@ public class LimparLogsAction implements AcaoRotinaJava {
         } catch (Exception e) {
             resultado.append("\n[ERRO] Falha na limpeza: ").append(e.getMessage());
             log.log(Level.SEVERE, "Erro na limpeza de logs", e);
+        } finally {
+            if (jdbc != null) {
+                try { jdbc.closeSession(); } catch (Exception ignored) {}
+            }
         }
 
         contexto.setMensagemRetorno(resultado.toString());

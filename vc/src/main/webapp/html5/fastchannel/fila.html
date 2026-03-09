@@ -220,7 +220,10 @@
         <nav class="nav-tabs">
             <a class="nav-tab" href="dashboard.html">Dashboard</a>
             <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab" href="depara.html">De-Para</a>
             <a class="nav-tab" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab" href="estoque.html">Estoque</a>
+            <a class="nav-tab" href="precos.html">Precos</a>
             <a class="nav-tab active" href="fila.html">Fila de Sincronizacao</a>
             <a class="nav-tab" href="logs.html">Logs</a>
         </nav>
@@ -267,7 +270,7 @@
                         <option value="">Todos</option>
                         <option value="PENDENTE">Pendente</option>
                         <option value="PROCESSANDO">Processando</option>
-                        <option value="CONCLUIDO">Concluido</option>
+                        <option value="ENVIADO">Concluido</option>
                         <option value="ERRO">Com Erro</option>
                     </select>
                 </div>
@@ -325,11 +328,12 @@
     </div>
 
     <script>
-        function resolveAddonContexts() {
+                                function resolveAddonContexts() {
             const origin = window.location.origin || '';
             const path = window.location.pathname || '';
             const search = window.location.search || '';
             const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
 
             function add(ctx) {
                 if (!ctx) return;
@@ -337,20 +341,25 @@
                 if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
             }
 
-            function addIfAddon(ctx) {
-                if (!ctx) return;
-                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
-                    ctx = ctx.replace(/^\/mge/, '');
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
                 }
-                if (ctx.indexOf('/addon-fastchannel') === -1) return;
-                add(ctx);
+                return null;
             }
 
             const htmlIdx = path.indexOf('/html5/');
-            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
 
-            const addonIdx = path.indexOf('/addon-fastchannel');
-            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
 
             if (search) {
                 try {
@@ -359,7 +368,10 @@
                     if (rawUrl) {
                         const decoded = decodeURIComponent(rawUrl);
                         const decodedHtmlIdx = decoded.indexOf('/html5/');
-                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
                     }
                 } catch (e) {
                     // ignore
@@ -374,6 +386,7 @@
         let currentPage = 1;
         let totalPages = 1;
         let pageSize = 20;
+        let currentItems = [];
 
         function getMgeSession() {
             try {
@@ -436,9 +449,14 @@
                 'PENDENTE': 'warning',
                 'PROCESSANDO': 'info',
                 'CONCLUIDO': 'success',
-                'ERRO': 'danger'
+                'ENVIADO': 'success',
+                'ERRO': 'danger',
+                'ERRO_FATAL': 'danger'
             };
-            return `<span class="pill ${map[status] || 'info'}">${status || '--'}</span>`;
+            const labels = {
+                'ENVIADO': 'CONCLUIDO'
+            };
+            return `<span class="pill ${map[status] || 'info'}">${labels[status] || status || '--'}</span>`;
         }
 
         function getTipoPill(tipo) {
@@ -483,9 +501,10 @@
                 };
 
                 const data = await callService('FCFilaSP.list', filters);
+                currentItems = data.items || [];
 
                 if (data.items && data.items.length > 0) {
-                    tbody.innerHTML = data.items.map(item => `
+                    tbody.innerHTML = data.items.map((item, idx) => `
                         <tr>
                             <td class="checkbox-col">
                                 <input type="checkbox" class="item-checkbox" value="${item.id}">
@@ -497,7 +516,10 @@
                             <td>${getStatusPill(item.status)}</td>
                             <td>${item.tentativas || 0}</td>
                             <td>${formatDate(item.dhCriacao)}</td>
-                            <td title="${item.ultimoErro || ''}">${(item.ultimoErro || '--').substring(0, 50)}</td>
+                            <td title="${escapeHtml(item.ultimoErro || '')}">
+                                ${escapeHtml(shortError(item.ultimoErro || '--', 140))}
+                                ${item.ultimoErro ? `<button class="btn btn-secondary btn-sm" style="margin-left:8px;" onclick="verErro(${idx})">Ver</button>` : ''}
+                            </td>
                             <td>
                                 <button class="btn btn-secondary btn-sm" onclick="reprocessarItem(${item.id})">
                                     Retry
@@ -523,6 +545,31 @@
             document.getElementById('paginationInfo').textContent = `Mostrando ${Math.min(pageSize, total)} de ${total}`;
             document.getElementById('btnPrev').disabled = currentPage <= 1;
             document.getElementById('btnNext').disabled = currentPage >= totalPages;
+        }
+
+        function shortError(text, size) {
+            const value = (text || '').toString();
+            if (value.length <= size) return value;
+            return value.substring(0, size) + '...';
+        }
+
+        function escapeHtml(text) {
+            return (text || '')
+                .toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function verErro(idx) {
+            const item = currentItems[idx];
+            if (!item || !item.ultimoErro) {
+                alert('Sem detalhe de erro para este item.');
+                return;
+            }
+            alert(item.ultimoErro);
         }
 
         function prevPage() { if (currentPage > 1) { currentPage--; loadFila(); } }

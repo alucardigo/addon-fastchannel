@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V10: Otimizacoes para consultas de preco em tabelas core Sankhya -->
+
+    <!-- Acelera joins e resolucao de NUTAB por SKU/CODPROD (FCPrecosService source 1/2) -->
+    <sql nomeTabela="TGFEXC" nomeObjeto="IDX_TGFEXC_CODPROD_NUTAB" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX">
+        <oracle>
+            CREATE INDEX IDX_TGFEXC_CODPROD_NUTAB ON TGFEXC (CODPROD, NUTAB)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_TGFEXC_CODPROD_NUTAB ON TGFEXC (CODPROD, NUTAB)
+        </mssql>
+    </sql>
+
+    <!-- Acelera busca/paginacao por SKU com join em CODPROD -->
+    <sql nomeTabela="TGFPRO" nomeObjeto="IDX_TGFPRO_REFERENCIA_CODPROD" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX">
+        <oracle>
+            CREATE INDEX IDX_TGFPRO_REFERENCIA_CODPROD ON TGFPRO (REFERENCIA, CODPROD)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_TGFPRO_REFERENCIA_CODPROD ON TGFPRO (REFERENCIA, CODPROD)
+        </mssql>
+    </sql>
+</alteracoes>
+

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V9: Otimizacoes de performance para consultas de fila, logs e precos -->
+
+    <!-- Suporta ROW_NUMBER/PARTITION por ENTITY_KEY e filtro por ENTITY_TYPE nas telas de precos -->
+    <sql nomeTabela="AD_FCQUEUE" nomeObjeto="IDX_FCQUEUE_ENTITYKEY_DH" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX">
+        <oracle>
+            CREATE INDEX IDX_FCQUEUE_ENTITYKEY_DH ON AD_FCQUEUE (ENTITY_TYPE, ENTITY_KEY, DH_CRIACAO DESC)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCQUEUE_ENTITYKEY_DH ON AD_FCQUEUE (ENTITY_TYPE, ENTITY_KEY, DH_CRIACAO DESC)
+        </mssql>
+    </sql>
+
+    <!-- Suporta filtros por ENTITY_TYPE + STATUS com ordenacao por data de criacao -->
+    <sql nomeTabela="AD_FCQUEUE" nomeObjeto="IDX_FCQUEUE_ETYPE_STATUS_DH" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX">
+        <oracle>
+            CREATE INDEX IDX_FCQUEUE_ETYPE_STATUS_DH ON AD_FCQUEUE (ENTITY_TYPE, STATUS, DH_CRIACAO DESC)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCQUEUE_ETYPE_STATUS_DH ON AD_FCQUEUE (ENTITY_TYPE, STATUS, DH_CRIACAO DESC)
+        </mssql>
+    </sql>
+
+    <!-- Suporta ROW_NUMBER/PARTITION por REFERENCIA com filtro por OPERACAO (PRICE_SYNC/STOCK_SYNC) -->
+    <sql nomeTabela="AD_FCLOG" nomeObjeto="IDX_FCLOG_OP_REF_DHREG" ordem="3" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX">
+        <oracle>
+            CREATE INDEX IDX_FCLOG_OP_REF_DHREG ON AD_FCLOG (OPERACAO, REFERENCIA, DH_REGISTRO DESC)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCLOG_OP_REF_DHREG ON AD_FCLOG (OPERACAO, REFERENCIA, DH_REGISTRO DESC)
+        </mssql>
+    </sql>
+
+    <!-- Suporta dashboard de sincronizacao (OPERACAO + janela de DH_LOG) -->
+    <sql nomeTabela="AD_FCLOG" nomeObjeto="IDX_FCLOG_OP_DHLOG" ordem="4" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX">
+        <oracle>
+            CREATE INDEX IDX_FCLOG_OP_DHLOG ON AD_FCLOG (OPERACAO, DH_LOG DESC)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCLOG_OP_DHLOG ON AD_FCLOG (OPERACAO, DH_LOG DESC)
+        </mssql>
+    </sql>
+</alteracoes>
+

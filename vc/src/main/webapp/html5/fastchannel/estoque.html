@@ -319,6 +319,7 @@
         <nav class="nav-tabs">
             <a class="nav-tab" href="dashboard.html">Dashboard</a>
             <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab" href="depara.html">De-Para</a>
             <a class="nav-tab" href="pedidos.html">Pedidos</a>
             <a class="nav-tab active" href="estoque.html">Estoque</a>
             <a class="nav-tab" href="precos.html">Precos</a>
@@ -456,11 +457,12 @@
     </div>
 
     <script>
-        function resolveAddonContexts() {
+                                function resolveAddonContexts() {
             const origin = window.location.origin || '';
             const path = window.location.pathname || '';
             const search = window.location.search || '';
             const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
 
             function add(ctx) {
                 if (!ctx) return;
@@ -468,20 +470,25 @@
                 if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
             }
 
-            function addIfAddon(ctx) {
-                if (!ctx) return;
-                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
-                    ctx = ctx.replace(/^\/mge/, '');
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
                 }
-                if (ctx.indexOf('/addon-fastchannel') === -1) return;
-                add(ctx);
+                return null;
             }
 
             const htmlIdx = path.indexOf('/html5/');
-            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
 
-            const addonIdx = path.indexOf('/addon-fastchannel');
-            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
 
             if (search) {
                 try {
@@ -490,7 +497,10 @@
                     if (rawUrl) {
                         const decoded = decodeURIComponent(rawUrl);
                         const decodedHtmlIdx = decoded.indexOf('/html5/');
-                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
                     }
                 } catch (e) {
                     // ignore
@@ -607,7 +617,7 @@
 
         function loadUiSettings() {
             const source = getStorage('fc_ui_stock_source', 'sankhya');
-            const autoCompare = getStorage('fc_ui_stock_auto_compare', 'false') === 'true';
+            const autoCompare = getStorage('fc_ui_stock_auto_compare', 'true') === 'true';
             document.getElementById('sourceSelect').value = source;
             document.getElementById('autoCompareToggle').checked = autoCompare;
         }
@@ -626,6 +636,7 @@
 
         function buildFilters() {
             return {
+                includeFc: document.getElementById('autoCompareToggle').checked,
                 status: document.getElementById('filterStatus').value,
                 dataInicio: document.getElementById('filterDataInicio').value,
                 dataFim: document.getElementById('filterDataFim').value,
@@ -668,8 +679,8 @@
                             <td>${item.storageId || '--'}</td>
                             <td>${item.resellerId || '--'}</td>
                             <td>${formatNumber(item.estoque)}</td>
-                            <td id="fc-${key}">--</td>
-                            <td id="delta-${key}">--</td>
+                            <td id="fc-${key}">${formatNumber(item.estoqueFastchannel)}</td>
+                            <td id="delta-${key}">${formatNumber(item.delta)}</td>
                             <td>${getStatusPill(item.queueStatus)}</td>
                             <td>${formatDate(item.queueDate)}</td>
                             <td>${getLogPill(item.logLevel)}</td>
@@ -683,7 +694,7 @@
 
                     totalPages = Math.ceil((data.total || 0) / pageSize) || 1;
                     updatePagination(data.total || 0);
-                    if (document.getElementById('autoCompareToggle').checked) {
+                    if (document.getElementById('autoCompareToggle').checked && !data.includesFc) {
                         await compareBatch(data.items);
                     }
                 } else {
@@ -752,7 +763,11 @@
             const items = collectSelectedItems();
             if (!items.length) return alert('Selecione ao menos um item');
             const result = await callService('FCEstoqueSP.forcarSync', { items });
-            alert(result.message || 'Processado');
+            let msg = result.message || 'Processado';
+            if (Array.isArray(result.errorDetails) && result.errorDetails.length) {
+                msg += '\n\nDetalhes:\n- ' + result.errorDetails.join('\n- ');
+            }
+            alert(msg);
             loadEstoque();
         }
 
@@ -811,7 +826,11 @@
                     deltaCell.textContent = delta == null ? '--' : formatNumber(delta);
                 }
             } catch (e) {
-                // ignore compare errors
+                const key = makeKey(item);
+                const fcCell = document.getElementById(`fc-${key}`);
+                const deltaCell = document.getElementById(`delta-${key}`);
+                if (fcCell) fcCell.textContent = 'ERRO';
+                if (deltaCell) deltaCell.textContent = e && e.message ? e.message : 'Erro na comparacao';
             }
         }
 
@@ -850,7 +869,11 @@
 
         async function forcarSyncItem(item) {
             const result = await callService('FCEstoqueSP.forcarSync', item);
-            alert(result.message || 'Processado');
+            let msg = result.message || 'Processado';
+            if (Array.isArray(result.errorDetails) && result.errorDetails.length) {
+                msg += '\n\nDetalhes:\n- ' + result.errorDetails.join('\n- ');
+            }
+            alert(msg);
             loadEstoque();
         }
 

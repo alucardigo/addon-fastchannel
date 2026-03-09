@@ -2,6 +2,7 @@ package br.com.bellube.fastchannel.listener;
 
 import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.service.DeparaService;
+import br.com.bellube.fastchannel.service.PriceTableResolver;
 import br.com.bellube.fastchannel.service.QueueService;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.event.PersistenceEvent;
@@ -9,6 +10,7 @@ import br.com.sankhya.jape.event.TransactionContext;
 import br.com.sankhya.jape.vo.DynamicVO;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -79,10 +81,18 @@ public class PrecoListener implements EventoProgramavelJava {
             BigDecimal codProd = vo.asBigDecimal("CODPROD");
             BigDecimal nuTab = vo.asBigDecimal("NUTAB");
 
-            // Verificar se é a tabela de preço configurada
-            BigDecimal configNuTab = config.getNuTab();
-            if (configNuTab != null && !configNuTab.equals(nuTab)) {
-                return;
+            // Validar se NUTAB da alteracao pertence ao conjunto elegivel de integracao.
+            List<BigDecimal> eligibleTables = new PriceTableResolver().resolveEligibleTables();
+            if (!eligibleTables.isEmpty()) {
+                if (!eligibleTables.contains(nuTab)) {
+                    log.fine("Tabela de preco " + nuTab + " fora da lista elegivel. Ignorando.");
+                    return;
+                }
+            } else {
+                BigDecimal configNuTab = config.getNuTab();
+                if (configNuTab != null && !configNuTab.equals(nuTab)) {
+                    return;
+                }
             }
 
             // Verificar se está ativo
@@ -93,7 +103,14 @@ public class PrecoListener implements EventoProgramavelJava {
 
             // Obter SKU do produto
             DeparaService deparaService = DeparaService.getInstance();
-            String sku = deparaService.getSkuWithFallback(codProd);
+            if (!deparaService.isIntegracaoAutomaticaAtiva(DeparaService.TIPO_TABELA_PRECO, nuTab)) {
+                log.fine("Tabela de preco " + nuTab + " com integração automática desabilitada.");
+                return;
+            }
+            String sku = deparaService.getSkuForStock(codProd);
+            if (sku != null) {
+                sku = sku.trim();
+            }
 
             if (sku == null || sku.isEmpty()) {
                 log.fine("Produto " + codProd + " não tem SKU mapeado. Ignorando.");

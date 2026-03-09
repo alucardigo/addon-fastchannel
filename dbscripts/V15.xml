@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V15: Flag para desabilitar verificacao de duplicidade de pedidos -->
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="DISABLE_DUPLICATE_CHECK" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD DISABLE_DUPLICATE_CHECK CHAR(1)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD DISABLE_DUPLICATE_CHECK CHAR(1)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="UPD_DISABLE_DUPLICATE_CHECK_DEFAULT" ordem="2" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            UPDATE AD_FCCONFIG
+               SET DISABLE_DUPLICATE_CHECK = NVL(DISABLE_DUPLICATE_CHECK, 'N')
+             WHERE DISABLE_DUPLICATE_CHECK IS NULL
+        </oracle>
+        <mssql>
+            UPDATE AD_FCCONFIG
+               SET DISABLE_DUPLICATE_CHECK = ISNULL(DISABLE_DUPLICATE_CHECK, 'N')
+             WHERE DISABLE_DUPLICATE_CHECK IS NULL
+        </mssql>
+    </sql>
+</alteracoes>

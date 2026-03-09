@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="XDoclet Generator" default="xdoclet_generation" >
+	<property name="jboss.net.version" value="3.2" />
+	<property name="basedirant" value="../" />
+
+	<property name="METAINF" value="${basedirant}/build/META-INF" />
+
+	<taskdef name="ejbdoclet" classname="xdoclet.modules.ejb.EjbDocletTask">
+		<classpath refid="compile.classpath"/>
+	</taskdef>
+	<target name="xdoclet_generation" description="EJB">
+		<ejbdoclet ejbSpec="2.0" excludedTags="@version,@author,@todo" destDir="src" force="true" verbose="true" addedTags="@xdoclet-generated at ${TODAY},@copyright The XDoclet Team,@author XDoclet,@version ${version}">
+			<fileset dir="${sourceDir}" includes="**/*Bean.java" />
+			<remoteinterface destDir="../ejbsrc" />
+			<localinterface destDir="../ejbsrc" />
+			<homeinterface destDir="../ejbsrc" />
+			<localhomeinterface templateFile="../.ant/jape-home.xdt" destDir="../ejbsrc" />
+			<entitybmp templateFile="../.ant/jape.xdt" destDir="../ejbsrc" />
+			<session destDir="../ejbsrc" />
+			<deploymentdescriptor xmlencoding="ISO-8859-1" validateXML="false" destDir="${METAINF}" destinationFile="tinyejb-ejb-jar.xml" />
+			<jboss Version="3.0" destDir="${METAINF}" mergeDir="${METAINF}" />
+		</ejbdoclet>
+		<move file="${METAINF}/jboss.xml" tofile="${METAINF}/tinyejb-jboss.xml" verbose="true" overwrite="true" />
+		<replaceregexp file="${METAINF}/tinyejb-jboss.xml" match="&lt;\!DOCTYPE.*&gt;" replace="" byline="true" />
+		<copy file="empty-jboss.xml" tofile="${basedirant}/build/META-INF/jboss.xml" overwrite="true" />
+		<copy file="empty-ejb-jar.xml" tofile="${basedirant}/build/META-INF/ejb-jar.xml" overwrite="true" />
+		<replaceregexp file="${basedirant}/build/META-INF/tinyejb-ejb-jar.xml" match="&lt;\!DOCTYPE.*&gt;" replace="" byline="true" />
+	</target>
+</project>
