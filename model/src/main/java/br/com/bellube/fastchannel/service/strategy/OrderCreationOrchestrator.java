@@ -20,9 +20,11 @@ public class OrderCreationOrchestrator {
     private static final Logger log = Logger.getLogger(OrderCreationOrchestrator.class.getName());
 
     private final List<OrderCreationStrategy> strategies;
+    private final boolean legacyFallbacksEnabled;
 
     public OrderCreationOrchestrator() {
         this.strategies = new ArrayList<>();
+        this.legacyFallbacksEnabled = isLegacyFallbacksEnabled();
 
         // Ordem de preferencia (do melhor para o pior)
         strategies.add(new InternalApiStrategy());      // 1. API Interna (preferencial)
@@ -50,6 +52,7 @@ public class OrderCreationOrchestrator {
         log.info("=== Iniciando criacao de pedido " + order.getOrderId() + " com fallback automatico ===");
 
         List<String> failedStrategies = new ArrayList<>();
+        Exception rootException = null;
         Exception lastException = null;
 
         for (OrderCreationStrategy strategy : strategies) {
@@ -71,6 +74,9 @@ public class OrderCreationOrchestrator {
 
             } catch (Exception e) {
                 lastException = e;
+                if (rootException == null) {
+                    rootException = e;
+                }
                 String errorMsg = "Estrategia " + strategy.getStrategyName() + " falhou: " + e.getMessage();
                 log.log(Level.WARNING, errorMsg, e);
                 failedStrategies.add(strategy.getStrategyName() + " (erro: " + e.getMessage() + ")");
@@ -85,8 +91,10 @@ public class OrderCreationOrchestrator {
 
         throw new Exception(
             "TODAS as estrategias falharam para pedido " + order.getOrderId() + ". " +
-            "Ultimos erro: " + (lastException != null ? lastException.getMessage() : "desconhecido"),
-            lastException
+            "Detalhes: " + String.join(" | ", failedStrategies) + ". " +
+            "Erro raiz: " + (rootException != null ? rootException.getMessage() : "desconhecido") +
+            ". Ultimo erro: " + (lastException != null ? lastException.getMessage() : "desconhecido"),
+            rootException != null ? rootException : lastException
         );
     }
 
@@ -137,5 +145,24 @@ public class OrderCreationOrchestrator {
 
         result.append("===============================================");
         return result.toString();
+    }
+
+    private boolean isLegacyFallbacksEnabled() {
+        String configured = System.getProperty("fastchannel.order.enableLegacyFallbacks");
+        if (configured == null || configured.trim().isEmpty()) {
+            configured = System.getenv("FASTCHANNEL_ENABLE_LEGACY_FALLBACKS");
+        }
+        // Compatibilidade retroativa com a flag antiga.
+        // Quando habilitada, libera InternalAPI como ultimo fallback.
+        if (configured == null || configured.trim().isEmpty()) {
+            configured = System.getProperty("fastchannel.order.enableInternalApiFallback");
+        }
+        if (configured == null || configured.trim().isEmpty()) {
+            configured = System.getenv("FASTCHANNEL_ENABLE_INTERNAL_API_FALLBACK");
+        }
+        if (configured == null || configured.trim().isEmpty()) {
+            return false;
+        }
+        return Boolean.parseBoolean(configured);
     }
 }

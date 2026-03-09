@@ -2,11 +2,25 @@ package br.com.bellube.fastchannel.web;
 
 import br.com.bellube.fastchannel.auth.FastchannelTokenManager;
 import br.com.bellube.fastchannel.config.FastchannelConfig;
+import br.com.bellube.fastchannel.dto.OrderDTO;
 import br.com.bellube.fastchannel.http.FastchannelHttpClient;
+import br.com.bellube.fastchannel.http.FastchannelOrdersClient;
+import br.com.bellube.fastchannel.job.OutboxProcessorJob;
 import br.com.bellube.fastchannel.service.OrderService;
 import br.com.bellube.fastchannel.service.QueueService;
+import br.com.bellube.fastchannel.util.DBUtil;
+import br.com.sankhya.jape.dao.JdbcWrapper;
+import br.com.sankhya.jape.sql.NativeSql;
+import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,8 +45,7 @@ public class FCAdminService {
             FastchannelConfig config = FastchannelConfig.getInstance();
 
             if (!config.isAtivo()) {
-                mensagem.append("   [ERRO] Integracao nao esta ativa!\n");
-                sucesso = false;
+                mensagem.append("   [AVISO] Integracao esta desativada (nao bloqueia conexao)\n");
             } else {
                 mensagem.append("   [OK] Integracao ativa\n");
             }
@@ -84,7 +97,7 @@ public class FCAdminService {
                 mensagem.append("\n3. Testando conectividade com API...\n");
                 try {
                     FastchannelHttpClient httpClient = new FastchannelHttpClient();
-                    FastchannelHttpClient.HttpResult httpResult = httpClient.getOrders("/orders?page=1&pageSize=1");
+                    FastchannelHttpClient.HttpResult httpResult = httpClient.getOrders("/orders?PageNumber=1&PageSize=1");
 
                     if (httpResult.isSuccess()) {
                         mensagem.append("   [OK] API respondeu com sucesso!\n");
@@ -129,12 +142,31 @@ public class FCAdminService {
                 return result;
             }
 
+            boolean retryOnly = getBoolean(params, "retryOnly");
+            int retryLimit = getInt(params, "retryLimit", 50);
+            if (retryLimit <= 0) retryLimit = 50;
+
             OrderService orderService = new OrderService();
-            int imported = orderService.importPendingOrders();
+            int retriedImported = retryErroredOrders(orderService, retryLimit);
+            int imported = retryOnly ? 0 : orderService.importPendingOrders();
+            int totalImported = retriedImported + imported;
+            String diagnostic = null;
+            if (!retryOnly && imported == 0) {
+                diagnostic = buildOrdersDiagnostic(config);
+            }
 
             result.put("success", true);
-            result.put("message", "Importacao concluida! " + imported + " pedido(s) importado(s).");
-            result.put("count", imported);
+            String message = "Importacao concluida! " + totalImported +
+                    " pedido(s) importado(s). Reprocessados: " + retriedImported +
+                    ", novos da API: " + imported + ".";
+            if (diagnostic != null && !diagnostic.isEmpty()) {
+                message += " " + diagnostic;
+                result.put("diagnostic", diagnostic);
+            }
+            result.put("message", message);
+            result.put("count", totalImported);
+            result.put("reprocessedCount", retriedImported);
+            result.put("pendingApiCount", imported);
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao importar pedidos", e);
@@ -157,12 +189,20 @@ public class FCAdminService {
             }
 
             QueueService queueService = QueueService.getInstance();
-            // Processar itens pendentes manualmente chamando getPendingItems
-            int processed = queueService.countPending();
+            int pendingBefore = queueService.countPending();
+
+            // Processamento manual imediato da fila.
+            OutboxProcessorJob job = new OutboxProcessorJob();
+            job.executeScheduler();
+
+            int pendingAfter = queueService.countPending();
+            int processed = Math.max(0, pendingBefore - pendingAfter);
 
             result.put("success", true);
-            result.put("message", "Fila possui " + processed + " item(ns) pendente(s). Processamento agendado.");
+            result.put("message", "Fila processada. Pendentes antes: " + pendingBefore + ", depois: " + pendingAfter + ".");
             result.put("count", processed);
+            result.put("pendingBefore", pendingBefore);
+            result.put("pendingAfter", pendingAfter);
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao processar fila", e);
@@ -171,5 +211,278 @@ public class FCAdminService {
         }
 
         return result;
+    }
+
+    private int retryErroredOrders(OrderService orderService, int limit) throws Exception {
+        if (orderService == null || limit <= 0) return 0;
+
+        List<String> orderIds = loadErroredOrderIds(limit);
+        if (orderIds.isEmpty()) return 0;
+
+        FastchannelOrdersClient ordersClient = new FastchannelOrdersClient();
+        int imported = 0;
+
+        for (String orderId : orderIds) {
+            try {
+                OrderDTO order = ordersClient.getOrder(orderId);
+                if (order == null) {
+                    log.warning("Pedido " + orderId + " nao encontrado no Fastchannel para reprocessamento.");
+                    continue;
+                }
+                BigDecimal nuNota = orderService.importOrder(order);
+                if (nuNota != null) {
+                    imported++;
+                }
+            } catch (Exception e) {
+                log.log(Level.WARNING, "Falha ao reprocessar pedido " + orderId, e);
+            }
+        }
+
+        return imported;
+    }
+
+    private String buildOrdersDiagnostic(FastchannelConfig config) {
+        try {
+            FastchannelOrdersClient client = new FastchannelOrdersClient();
+            Timestamp lastSync = config != null ? config.getLastOrderSync() : null;
+
+            FastchannelOrdersClient.OrderListResult withCursor = client.listOrdersWithMeta(lastSync, 1, 1, Boolean.FALSE);
+            FastchannelOrdersClient.OrderListResult withoutCursor = client.listOrdersWithMeta(null, 1, 1, Boolean.FALSE);
+
+            int withCursorCount = estimateTotal(withCursor);
+            int withoutCursorCount = estimateTotal(withoutCursor);
+
+            return "Diagnostico API: pendentes (IsSynched=false) com cursor="
+                    + (lastSync != null ? lastSync : "null")
+                    + " => " + withCursorCount
+                    + ", sem cursor => " + withoutCursorCount + ".";
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Falha ao montar diagnostico de pedidos", e);
+            return "Diagnostico API indisponivel: " + e.getMessage();
+        }
+    }
+
+    private int estimateTotal(FastchannelOrdersClient.OrderListResult result) {
+        if (result == null) return 0;
+        if (result.getTotalRecords() != null) return result.getTotalRecords();
+        if (result.getOrders() != null) return result.getOrders().size();
+        return 0;
+    }
+
+    private List<String> loadErroredOrderIds(int limit) {
+        List<String> ids = new ArrayList<>();
+        if (limit <= 0) return ids;
+
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement(
+                    "SELECT ORDER_ID FROM AD_FCPEDIDO " +
+                    "WHERE NUNOTA IS NULL " +
+                    "AND UPPER(COALESCE(STATUS_IMPORT, '')) IN ('ERRO', 'PENDENTE') " +
+                    "ORDER BY DH_IMPORTACAO DESC " +
+                    "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY");
+            stmt.setInt(1, limit);
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                String orderId = rs.getString("ORDER_ID");
+                if (orderId != null && !orderId.trim().isEmpty()) {
+                    ids.add(orderId.trim());
+                }
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao carregar pedidos ERRO/PENDENTE para reprocessamento", e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
+        }
+        return ids;
+    }
+
+    public Map<String, Object> diagnosticoSchema(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+        JdbcWrapper jdbc = null;
+        ResultSet rs = null;
+        try {
+            jdbc = openJdbc();
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT TABLE_NAME, COLUMN_NAME ");
+            sql.appendSql("FROM INFORMATION_SCHEMA.COLUMNS ");
+            sql.appendSql("WHERE TABLE_NAME IN ('TGFTOP','TGFCAB','TSIUSU','AD_FCCONFIG') ");
+            sql.appendSql("AND (COLUMN_NAME LIKE 'CODCEN%' OR COLUMN_NAME LIKE 'CODTIP%' ");
+            sql.appendSql("OR COLUMN_NAME LIKE 'CODNAT%' OR COLUMN_NAME LIKE 'CODVEND%' ");
+            sql.appendSql("OR COLUMN_NAME IN ('NOMUSU','NOMEUSU','CODUSU')) ");
+            sql.appendSql("ORDER BY TABLE_NAME, COLUMN_NAME");
+            rs = sql.executeQuery();
+
+            List<Map<String, Object>> cols = new ArrayList<>();
+            while (rs.next()) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("table", rs.getString("TABLE_NAME"));
+                row.put("column", rs.getString("COLUMN_NAME"));
+                cols.add(row);
+            }
+
+            result.put("success", true);
+            result.put("columns", cols);
+            result.put("count", cols.size());
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Erro no diagnostico de schema", e);
+            result.put("success", false);
+            result.put("message", e.getMessage());
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (Exception ignored) {}
+            }
+            closeJdbc(jdbc);
+        }
+        return result;
+    }
+
+    public Map<String, Object> autocorrigirCentroResultado(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+        JdbcWrapper jdbc = null;
+        ResultSet rs = null;
+        try {
+            jdbc = openJdbc();
+
+            BigDecimal codCenCusAtual = null;
+            BigDecimal codNatAtual = null;
+            NativeSql sqlAtual = new NativeSql(jdbc);
+            sqlAtual.appendSql("SELECT TOP 1 CODCONFIG, CODCENCUS, CODNAT FROM AD_FCCONFIG ORDER BY CODCONFIG DESC");
+            rs = sqlAtual.executeQuery();
+            BigDecimal codConfig = null;
+            if (rs.next()) {
+                codConfig = rs.getBigDecimal("CODCONFIG");
+                codCenCusAtual = rs.getBigDecimal("CODCENCUS");
+                codNatAtual = rs.getBigDecimal("CODNAT");
+            }
+            closeQuietly(rs);
+
+            if (codConfig == null) {
+                result.put("success", false);
+                result.put("message", "AD_FCCONFIG sem registros");
+                return result;
+            }
+
+            BigDecimal codCenCus = codCenCusAtual;
+            BigDecimal codNat = codNatAtual;
+            String origemCenCus = null;
+            String origemNat = null;
+
+            FastchannelConfig config = FastchannelConfig.getInstance();
+            String usuario = config.getSankhyaUser();
+            if (codCenCus == null && usuario != null && !usuario.trim().isEmpty()) {
+                NativeSql sqlUsu = new NativeSql(jdbc);
+                sqlUsu.appendSql("SELECT TOP 1 CODCENCUSPAD FROM TSIUSU ");
+                sqlUsu.appendSql("WHERE UPPER(NOMEUSU)=UPPER(:nomeUsu) AND CODCENCUSPAD IS NOT NULL");
+                sqlUsu.setNamedParameter("nomeUsu", usuario);
+                rs = sqlUsu.executeQuery();
+                if (rs.next()) {
+                    codCenCus = rs.getBigDecimal("CODCENCUSPAD");
+                    origemCenCus = "TSIUSU.CODCENCUSPAD";
+                }
+                closeQuietly(rs);
+            }
+
+            if (codCenCus == null || codNat == null) {
+                NativeSql sqlCab = new NativeSql(jdbc);
+                sqlCab.appendSql("SELECT TOP 1 CODCENCUS, CODNAT FROM TGFCAB ");
+                sqlCab.appendSql("WHERE (CODCENCUS IS NOT NULL OR CODNAT IS NOT NULL) ORDER BY NUNOTA DESC");
+                rs = sqlCab.executeQuery();
+                if (rs.next()) {
+                    if (codCenCus == null) {
+                        codCenCus = rs.getBigDecimal("CODCENCUS");
+                        if (codCenCus != null) {
+                            origemCenCus = "TGFCAB.CODCENCUS";
+                        }
+                    }
+                    if (codNat == null) {
+                        codNat = rs.getBigDecimal("CODNAT");
+                        if (codNat != null) {
+                            origemNat = "TGFCAB.CODNAT";
+                        }
+                    }
+                }
+                closeQuietly(rs);
+            }
+
+            if (codCenCus == null && codNat == null) {
+                result.put("success", false);
+                result.put("message", "Nao foi possivel encontrar CODCENCUS/CODNAT para autocorrecao");
+                return result;
+            }
+
+            NativeSql sqlUpd = new NativeSql(jdbc);
+            sqlUpd.appendSql("UPDATE AD_FCCONFIG SET CODCENCUS = :codCenCus, CODNAT = :codNat WHERE CODCONFIG = :codConfig");
+            sqlUpd.setNamedParameter("codCenCus", codCenCus);
+            sqlUpd.setNamedParameter("codNat", codNat);
+            sqlUpd.setNamedParameter("codConfig", codConfig);
+            sqlUpd.executeUpdate();
+
+            config.reload();
+
+            result.put("success", true);
+            result.put("message", "CODCENCUS/CODNAT atualizados com sucesso");
+            result.put("codCenCus", codCenCus);
+            result.put("codNat", codNat);
+            result.put("origemCenCus", origemCenCus);
+            result.put("origemNat", origemNat);
+            return result;
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Erro na autocorrecao de CODCENCUS", e);
+            result.put("success", false);
+            result.put("message", e.getMessage());
+            return result;
+        } finally {
+            closeQuietly(rs);
+            closeJdbc(jdbc);
+        }
+    }
+
+    private void closeQuietly(ResultSet rs) {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (Exception ignored) {}
+        }
+    }
+
+    private JdbcWrapper openJdbc() throws Exception {
+        JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+        jdbc.openSession();
+        return jdbc;
+    }
+
+    private void closeJdbc(JdbcWrapper jdbc) {
+        if (jdbc != null) {
+            try {
+                jdbc.closeSession();
+            } catch (Exception e) {
+                log.log(Level.FINE, "Erro ao fechar JdbcWrapper", e);
+            }
+        }
+    }
+
+    private int getInt(Map<String, Object> params, String key, int defaultValue) {
+        Object value = params.get(key);
+        if (value == null) return defaultValue;
+        if (value instanceof Number) return ((Number) value).intValue();
+        try {
+            return Integer.parseInt(value.toString());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    private boolean getBoolean(Map<String, Object> params, String key) {
+        Object value = params.get(key);
+        if (value == null) return false;
+        if (value instanceof Boolean) return (Boolean) value;
+        String text = value.toString();
+        return "true".equalsIgnoreCase(text) || "1".equals(text) || "S".equalsIgnoreCase(text);
     }
 }

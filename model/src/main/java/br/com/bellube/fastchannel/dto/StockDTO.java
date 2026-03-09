@@ -18,6 +18,14 @@ public class StockDTO {
     private BigDecimal availableQuantity;
     private Timestamp lastUpdate;
 
+    // Compatibilidade com payloads PascalCase retornados pela API.
+    private String ProductId;
+    private String StorageId;
+    private BigDecimal Quantity;
+    private BigDecimal ReservedQuantity;
+    private BigDecimal AvailableQuantity;
+    private Timestamp LastUpdate;
+
     // Campos adicionais Sankhya (para mapeamento interno)
     private transient BigDecimal codProd;
     private transient BigDecimal codLocal;
@@ -34,51 +42,63 @@ public class StockDTO {
     // ==================== GETTERS e SETTERS ====================
 
     public String getSku() {
-        return sku;
+        if (sku != null && !sku.isEmpty()) return sku;
+        return ProductId;
     }
 
     public void setSku(String sku) {
         this.sku = sku;
+        this.ProductId = sku;
     }
 
     public String getStorageId() {
-        return storageId;
+        if (storageId != null && !storageId.isEmpty()) return storageId;
+        return StorageId;
     }
 
     public void setStorageId(String storageId) {
         this.storageId = storageId;
+        this.StorageId = storageId;
     }
 
     public BigDecimal getQuantity() {
-        return quantity;
+        if (quantity != null) return quantity;
+        return Quantity;
     }
 
     public void setQuantity(BigDecimal quantity) {
         this.quantity = quantity;
+        this.Quantity = quantity;
     }
 
     public BigDecimal getReservedQuantity() {
-        return reservedQuantity;
+        if (reservedQuantity != null) return reservedQuantity;
+        return ReservedQuantity;
     }
 
     public void setReservedQuantity(BigDecimal reservedQuantity) {
         this.reservedQuantity = reservedQuantity;
+        this.ReservedQuantity = reservedQuantity;
     }
 
     public BigDecimal getAvailableQuantity() {
-        return availableQuantity;
+        if (availableQuantity != null) return availableQuantity;
+        return AvailableQuantity;
     }
 
     public void setAvailableQuantity(BigDecimal availableQuantity) {
         this.availableQuantity = availableQuantity;
+        this.AvailableQuantity = availableQuantity;
     }
 
     public Timestamp getLastUpdate() {
-        return lastUpdate;
+        if (lastUpdate != null) return lastUpdate;
+        return LastUpdate;
     }
 
     public void setLastUpdate(Timestamp lastUpdate) {
         this.lastUpdate = lastUpdate;
+        this.LastUpdate = lastUpdate;
     }
 
     public BigDecimal getCodProd() {

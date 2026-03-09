@@ -2,8 +2,9 @@ package br.com.bellube.fastchannel.http;
 
 import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.config.FastchannelConstants;
-import br.com.bellube.fastchannel.dto.PriceDTO;
 import br.com.bellube.fastchannel.dto.PriceBatchDTO;
+import br.com.bellube.fastchannel.dto.PriceBatchItemDTO;
+import br.com.bellube.fastchannel.dto.PriceDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -20,6 +21,10 @@ import java.util.logging.Logger;
  * - Consultar preço atual
  */
 public class FastchannelPriceClient {
+    public enum Channel {
+        DISTRIBUTION,
+        CONSUMPTION
+    }
 
     private static final Logger log = Logger.getLogger(FastchannelPriceClient.class.getName());
     private static final Gson gson = new GsonBuilder()
@@ -28,15 +33,24 @@ public class FastchannelPriceClient {
 
     private final FastchannelHttpClient httpClient;
     private final FastchannelConfig config;
+    private final Channel channel;
 
     public FastchannelPriceClient() {
-        this.httpClient = new FastchannelHttpClient();
-        this.config = FastchannelConfig.getInstance();
+        this(new FastchannelHttpClient(), Channel.CONSUMPTION);
+    }
+
+    public FastchannelPriceClient(Channel channel) {
+        this(new FastchannelHttpClient(), channel);
     }
 
     public FastchannelPriceClient(FastchannelHttpClient httpClient) {
+        this(httpClient, Channel.CONSUMPTION);
+    }
+
+    public FastchannelPriceClient(FastchannelHttpClient httpClient, Channel channel) {
         this.httpClient = httpClient;
         this.config = FastchannelConfig.getInstance();
+        this.channel = channel != null ? channel : Channel.CONSUMPTION;
     }
 
     /**
@@ -47,27 +61,39 @@ public class FastchannelPriceClient {
      * @param listPrice preço de lista (opcional)
      */
     public void updatePrice(String sku, BigDecimal price, BigDecimal listPrice) throws Exception {
+        updatePrice(sku, price, listPrice, null);
+    }
+
+    /**
+     * Atualiza preço de um SKU específico (com tabela de preço).
+     *
+     * @param sku código do produto
+     * @param price preço de venda (centavos)
+     * @param listPrice preço de lista (centavos)
+     * @param priceTableId ID da tabela de preço (opcional)
+     */
+    public void updatePrice(String sku, BigDecimal price, BigDecimal listPrice, BigDecimal priceTableId) throws Exception {
         String resellerId = config.getResellerId();
-        if (resellerId == null || resellerId.isEmpty()) {
-            throw new Exception("Reseller ID não configurado para atualização de preço.");
-        }
 
         String endpoint = String.format(FastchannelConstants.ENDPOINT_PRICE, sku);
 
         PriceDTO priceDto = new PriceDTO();
         priceDto.setSku(sku);
-        priceDto.setResellerId(resellerId);
+        if (resellerId != null && !resellerId.isEmpty()) {
+            priceDto.setResellerId(resellerId);
+        }
         priceDto.setPrice(price);
         priceDto.setListPrice(listPrice != null ? listPrice : price);
+        priceDto.setPriceTableId(priceTableId);
 
         String json = gson.toJson(priceDto);
         log.info("Atualizando preço do SKU " + sku + ": " + price);
 
-        FastchannelHttpClient.HttpResult result = httpClient.putPrice(endpoint, json);
+        FastchannelHttpClient.HttpResult result = httpClient.putPrice(endpoint, json, getSubscriptionKeyForChannel());
 
         if (!result.isSuccess()) {
             log.warning("Erro ao atualizar preço: HTTP " + result.getStatusCode() + " - " + result.getBody());
-            throw new Exception("Erro ao atualizar preço: " + result.getErrorMessage());
+            throw new Exception(buildHttpError("PUT", endpoint, sku, result));
         }
 
         log.info("Preço do SKU " + sku + " atualizado com sucesso.");
@@ -86,7 +112,9 @@ public class FastchannelPriceClient {
         String resellerId = priceDto.getResellerId();
         if (resellerId == null || resellerId.isEmpty()) {
             resellerId = config.getResellerId();
-            priceDto.setResellerId(resellerId);
+            if (resellerId != null && !resellerId.isEmpty()) {
+                priceDto.setResellerId(resellerId);
+            }
         }
 
         String endpoint = String.format(FastchannelConstants.ENDPOINT_PRICE, priceDto.getSku());
@@ -94,11 +122,11 @@ public class FastchannelPriceClient {
 
         log.info("Atualizando preço completo do SKU " + priceDto.getSku());
 
-        FastchannelHttpClient.HttpResult result = httpClient.putPrice(endpoint, json);
+        FastchannelHttpClient.HttpResult result = httpClient.putPrice(endpoint, json, getSubscriptionKeyForChannel());
 
         if (!result.isSuccess()) {
             log.warning("Erro ao atualizar preço: HTTP " + result.getStatusCode() + " - " + result.getBody());
-            throw new Exception("Erro ao atualizar preço: " + result.getErrorMessage());
+            throw new Exception(buildHttpError("PUT", endpoint, priceDto.getSku(), result));
         }
 
         log.info("Preço do SKU " + priceDto.getSku() + " atualizado com sucesso.");
@@ -130,14 +158,44 @@ public class FastchannelPriceClient {
         String json = gson.toJson(batch);
         log.info("Atualizando " + prices.size() + " preços em batch para reseller " + resellerId);
 
-        FastchannelHttpClient.HttpResult result = httpClient.postPrice(endpoint, json);
+        FastchannelHttpClient.HttpResult result = httpClient.postPrice(endpoint, json, getSubscriptionKeyForChannel());
 
         if (!result.isSuccess()) {
             log.warning("Erro ao atualizar preços em batch: HTTP " + result.getStatusCode() + " - " + result.getBody());
-            throw new Exception("Erro ao atualizar preços em batch: " + result.getErrorMessage());
+            throw new Exception(buildHttpError("POST", endpoint, null, result));
         }
 
         log.info("Batch de " + prices.size() + " preços atualizado com sucesso.");
+    }
+
+    /**
+     * Atualiza precos escalonados (batches) de um SKU.
+     *
+     * @param sku código do produto
+     * @param priceTableId ID da tabela de preço (opcional)
+     * @param batches lista de faixas
+     */
+    public void updatePriceBatches(String sku, BigDecimal priceTableId, List<PriceBatchItemDTO> batches) throws Exception {
+        if (batches == null || batches.isEmpty()) {
+            return;
+        }
+
+        String endpoint = String.format(FastchannelConstants.ENDPOINT_PRICE_BATCHES, sku);
+
+        for (PriceBatchItemDTO batch : batches) {
+            if (batch == null) continue;
+            if (batch.getPriceTableId() == null && priceTableId != null) {
+                batch.setPriceTableId(priceTableId);
+            }
+
+            String json = gson.toJson(batch);
+            FastchannelHttpClient.HttpResult result = httpClient.postPrice(endpoint, json, getSubscriptionKeyForChannel());
+
+            if (!result.isSuccess()) {
+                log.warning("Erro ao atualizar batch de preço: HTTP " + result.getStatusCode() + " - " + result.getBody());
+                throw new Exception(buildHttpError("POST", endpoint, sku, result));
+            }
+        }
     }
 
     /**
@@ -149,7 +207,7 @@ public class FastchannelPriceClient {
     public PriceDTO getPrice(String sku) throws Exception {
         String endpoint = String.format(FastchannelConstants.ENDPOINT_PRICE, sku);
 
-        FastchannelHttpClient.HttpResult result = httpClient.getPrice(endpoint);
+        FastchannelHttpClient.HttpResult result = httpClient.getPrice(endpoint, getSubscriptionKeyForChannel());
 
         if (result.getStatusCode() == 404) {
             log.info("SKU " + sku + " não tem preço cadastrado no Fastchannel.");
@@ -158,9 +216,40 @@ public class FastchannelPriceClient {
 
         if (!result.isSuccess()) {
             log.warning("Erro ao consultar preço: HTTP " + result.getStatusCode());
-            throw new Exception("Erro ao consultar preço: " + result.getErrorMessage());
+            throw new Exception(buildHttpError("GET", endpoint, sku, result));
         }
 
         return gson.fromJson(result.getBody(), PriceDTO.class);
+    }
+
+    private String buildHttpError(String method, String endpoint, String sku, FastchannelHttpClient.HttpResult result) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Erro ").append(method).append(" preco Fastchannel");
+        if (sku != null && !sku.isEmpty()) {
+            sb.append(" [SKU=").append(sku).append("]");
+        }
+        sb.append(" endpoint=").append(endpoint);
+        sb.append(" status=").append(result.getStatusCode());
+        String body = result.getBody();
+        if (body != null && !body.trim().isEmpty()) {
+            sb.append(" body=").append(truncate(body.trim(), 1500));
+        }
+        return sb.toString();
+    }
+
+    private String truncate(String value, int max) {
+        if (value == null) return null;
+        return value.length() > max ? value.substring(0, max) : value;
+    }
+
+    public Channel getChannel() {
+        return channel;
+    }
+
+    private String getSubscriptionKeyForChannel() {
+        if (channel == Channel.DISTRIBUTION) {
+            return config.getSubscriptionKeyDistribution();
+        }
+        return config.getSubscriptionKeyConsumption();
     }
 }

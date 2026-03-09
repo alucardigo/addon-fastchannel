@@ -22,11 +22,13 @@ public class LimparErrosFataisAction implements AcaoRotinaJava {
     @Override
     public void doAction(ContextoAcao contexto) throws Exception {
         StringBuilder resultado = new StringBuilder();
+        JdbcWrapper jdbc = null;
 
         try {
             resultado.append("=== Limpeza de Itens com Erro Fatal ===\n\n");
 
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc.openSession();
 
             // Contar itens antes
             NativeSql countSql = new NativeSql(jdbc);
@@ -63,6 +65,10 @@ public class LimparErrosFataisAction implements AcaoRotinaJava {
         } catch (Exception e) {
             resultado.append("\n[ERRO] Falha na limpeza: ").append(e.getMessage());
             log.log(Level.SEVERE, "Erro na limpeza de erros fatais", e);
+        } finally {
+            if (jdbc != null) {
+                try { jdbc.closeSession(); } catch (Exception ignored) {}
+            }
         }
 
         contexto.setMensagemRetorno(resultado.toString());

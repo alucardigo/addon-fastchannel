@@ -72,13 +72,13 @@ public class QueueService {
                         String entityKey, String payload, BigDecimal priority) {
 
         JdbcWrapper jdbc = null;
-        ResultSet rs = null;
+        String normalizedEntityKey = normalizeEntityKey(entityKey);
 
         try {
-            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             // Debounce: verificar se j? existe item similar recente
-            if (hasPendingItem(jdbc, entityType, entityId, entityKey)) {
+            if (hasPendingItem(jdbc, entityType, entityId, normalizedEntityKey)) {
                 log.fine("Item j? na fila (debounce): " + entityType + "/" + entityId);
                 return;
             }
@@ -94,17 +94,19 @@ public class QueueService {
             sql.setNamedParameter("entityType", entityType);
             sql.setNamedParameter("operation", operation);
             sql.setNamedParameter("entityId", entityId);
-            sql.setNamedParameter("entityKey", entityKey);
+            sql.setNamedParameter("entityKey", normalizedEntityKey);
             sql.setNamedParameter("payload", payload);
             sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_PENDENTE);
             sql.setNamedParameter("priority", priority);
 
             sql.executeUpdate();
 
-            log.info("Enfileirado: " + entityType + "/" + operation + " - " + entityKey);
+            log.info("Enfileirado: " + entityType + "/" + operation + " - " + normalizedEntityKey);
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao enfileirar item", e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -134,6 +136,12 @@ public class QueueService {
         }
     }
 
+    private String normalizeEntityKey(String entityKey) {
+        if (entityKey == null) return null;
+        String normalized = entityKey.trim();
+        return normalized.isEmpty() ? null : normalized;
+    }
+
     /**
      * Busca pr?ximos itens pendentes para processamento.
      *
@@ -146,7 +154,7 @@ public class QueueService {
         ResultSet rs = null;
 
         try {
-            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT IDQUEUE, ENTITY_TYPE, OPERATION, ENTITY_ID, ENTITY_KEY, ");
@@ -154,7 +162,7 @@ public class QueueService {
             sql.appendSql("FROM AD_FCQUEUE ");
             sql.appendSql("WHERE STATUS = :status ");
             sql.appendSql("ORDER BY PRIORITY DESC, DH_CRIACAO ASC ");
-            sql.appendSql("FETCH FIRST :limit ROWS ONLY");
+            sql.appendSql("OFFSET 0 ROWS FETCH NEXT :limit ROWS ONLY");
 
             sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_PENDENTE);
             sql.setNamedParameter("limit", batchSize);
@@ -181,6 +189,7 @@ public class QueueService {
             log.log(Level.SEVERE, "Erro ao buscar itens pendentes", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
 
         return items;
@@ -195,7 +204,7 @@ public class QueueService {
         ResultSet rs = null;
 
         try {
-            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT IDQUEUE, ENTITY_TYPE, OPERATION, ENTITY_ID, ENTITY_KEY, ");
@@ -203,7 +212,7 @@ public class QueueService {
             sql.appendSql("FROM AD_FCQUEUE ");
             sql.appendSql("WHERE STATUS = :status AND ENTITY_TYPE = :entityType ");
             sql.appendSql("ORDER BY PRIORITY DESC, DH_CRIACAO ASC ");
-            sql.appendSql("FETCH FIRST :limit ROWS ONLY");
+            sql.appendSql("OFFSET 0 ROWS FETCH NEXT :limit ROWS ONLY");
 
             sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_PENDENTE);
             sql.setNamedParameter("entityType", entityType);
@@ -231,6 +240,7 @@ public class QueueService {
             log.log(Level.SEVERE, "Erro ao buscar itens por tipo", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
 
         return items;
@@ -247,8 +257,9 @@ public class QueueService {
      * Marca item como enviado com sucesso.
      */
     public void markAsSuccess(BigDecimal idQueue) {
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("UPDATE AD_FCQUEUE SET ");
@@ -264,6 +275,8 @@ public class QueueService {
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao marcar item como sucesso", e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -271,8 +284,9 @@ public class QueueService {
      * Marca item como erro (para retry).
      */
     public void markAsError(BigDecimal idQueue, String errorMessage) {
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("UPDATE AD_FCQUEUE SET ");
@@ -290,6 +304,8 @@ public class QueueService {
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao marcar item como erro", e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -305,8 +321,9 @@ public class QueueService {
      * Reativa itens com erro para reprocessamento.
      */
     public int reactivateErrorItems(int maxRetries) {
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("UPDATE AD_FCQUEUE SET ");
@@ -327,6 +344,8 @@ public class QueueService {
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao reativar itens", e);
             return 0;
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -338,7 +357,7 @@ public class QueueService {
         ResultSet rs = null;
 
         try {
-            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT COUNT(*) AS TOTAL FROM AD_FCQUEUE ");
@@ -355,6 +374,7 @@ public class QueueService {
             log.log(Level.WARNING, "Erro ao contar itens pendentes", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
 
         return 0;
@@ -368,7 +388,7 @@ public class QueueService {
         ResultSet rs = null;
 
         try {
-            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT COUNT(*) AS TOTAL FROM AD_FCQUEUE ");
@@ -385,6 +405,7 @@ public class QueueService {
             log.log(Level.WARNING, "Erro ao contar itens com erro", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
 
         return 0;
@@ -394,8 +415,9 @@ public class QueueService {
      * Reseta item para reprocessamento (zera tentativas e status para PENDENTE).
      */
     public void resetForRetry(BigDecimal codQueue) {
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("UPDATE AD_FCQUEUE SET ");
@@ -413,6 +435,8 @@ public class QueueService {
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao resetar item para retry", e);
             throw new RuntimeException("Falha ao resetar item: " + e.getMessage(), e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -424,7 +448,7 @@ public class QueueService {
         ResultSet rs = null;
 
         try {
-            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT COUNT(*) AS TOTAL FROM AD_FCQUEUE ");
@@ -442,6 +466,7 @@ public class QueueService {
             log.log(Level.WARNING, "Erro ao contar itens pendentes", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
 
         return 0;
@@ -451,8 +476,9 @@ public class QueueService {
      * Limpa itens antigos j? processados.
      */
     public int cleanupOldItems(int daysToKeep) {
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("DELETE FROM AD_FCQUEUE ");
@@ -471,12 +497,15 @@ public class QueueService {
         } catch (Exception e) {
             log.log(Level.WARNING, "Erro ao limpar itens antigos", e);
             return 0;
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
     private void updateStatus(BigDecimal idQueue, String status, String errorMessage) {
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("UPDATE AD_FCQUEUE SET ");
@@ -491,6 +520,8 @@ public class QueueService {
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao atualizar status", e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -502,6 +533,22 @@ public class QueueService {
     private void closeQuietly(ResultSet rs) {
         if (rs != null) {
             try { rs.close(); } catch (Exception ignored) {}
+        }
+    }
+
+    private JdbcWrapper openJdbc() throws Exception {
+        JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+        jdbc.openSession();
+        return jdbc;
+    }
+
+    private void closeJdbc(JdbcWrapper jdbc) {
+        if (jdbc != null) {
+            try {
+                jdbc.closeSession();
+            } catch (Exception e) {
+                log.log(Level.FINE, "Erro ao fechar JdbcWrapper", e);
+            }
         }
     }
 
@@ -534,8 +581,8 @@ public class QueueService {
         }
 
         DeparaService deparaService = DeparaService.getInstance();
-        String storageId = deparaService.getCodigoExterno(DeparaService.TIPO_STOCK_STORAGE, codLocal);
-        String resellerId = deparaService.getCodigoExterno(DeparaService.TIPO_STOCK_RESELLER, codEmp);
+        String storageId = resolveStorageId(deparaService, codLocal);
+        String resellerId = resolveResellerId(deparaService, codEmp);
 
         if (storageId == null || storageId.isEmpty()) {
             log.warning("Estoque ignorado: StorageId nao mapeado para CODLOCAL " + codLocal);
@@ -549,6 +596,44 @@ public class QueueService {
         String payload = buildStockPayload(sku, quantity, codEmp, codLocal, storageId, resellerId);
         enqueue(FastchannelConstants.ENTITY_ESTOQUE, FastchannelConstants.OPERATION_UPDATE,
                 codProd, sku, payload, new BigDecimal(10)); // Prioridade alta
+    }
+
+    private String resolveStorageId(DeparaService deparaService, BigDecimal codLocal) {
+        String storageId = deparaService.getCodigoExternoAtivo(DeparaService.TIPO_STOCK_STORAGE, codLocal);
+        if ((storageId == null || storageId.isEmpty()) && isGlobalStorageFallbackEnabled()) {
+            storageId = config.getStorageId();
+        }
+        return storageId;
+    }
+
+    private String resolveResellerId(DeparaService deparaService, BigDecimal codEmp) {
+        String resellerId = deparaService.getCodigoExternoAtivo(DeparaService.TIPO_STOCK_RESELLER, codEmp);
+        if ((resellerId == null || resellerId.isEmpty()) && isGlobalResellerFallbackEnabled()) {
+            resellerId = config.getResellerId();
+        }
+        return resellerId;
+    }
+
+    private boolean isGlobalStorageFallbackEnabled() {
+        String configured = System.getProperty("fastchannel.stock.allowGlobalStorageFallback");
+        if (configured == null || configured.trim().isEmpty()) {
+            configured = System.getenv("FASTCHANNEL_STOCK_ALLOW_GLOBAL_STORAGE_FALLBACK");
+        }
+        if (configured == null || configured.trim().isEmpty()) {
+            return true;
+        }
+        return Boolean.parseBoolean(configured);
+    }
+
+    private boolean isGlobalResellerFallbackEnabled() {
+        String configured = System.getProperty("fastchannel.stock.allowGlobalResellerFallback");
+        if (configured == null || configured.trim().isEmpty()) {
+            configured = System.getenv("FASTCHANNEL_STOCK_ALLOW_GLOBAL_RESELLER_FALLBACK");
+        }
+        if (configured == null || configured.trim().isEmpty()) {
+            return true;
+        }
+        return Boolean.parseBoolean(configured);
     }
 
     /**

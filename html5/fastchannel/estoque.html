@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - Estoque</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --panel: #16213e;
+            --border: #0f3460;
+            --text: #eaeaea;
+            --muted: #94a3b8;
+            --accent: #00d9ff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: 1500px; margin: 0 auto; padding: 24px; }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo { width: 48px; height: 48px; border-radius: 8px; }
+
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .header h1 span { color: var(--accent); }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 10px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover { border-color: var(--accent); color: var(--text); }
+        .nav-tab.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title { font-size: 18px; font-weight: 600; }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .switch {
+            position: relative;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--border);
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .switch input:checked + .switch-slider {
+            background: var(--accent);
+        }
+
+        .switch input:checked + .switch-slider:before {
+            transform: translateX(22px);
+        }
+
+        .form-input {
+            padding: 10px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .form-input:focus { outline: none; border-color: var(--accent); }
+
+        select.form-input { cursor: pointer; }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--accent); color: var(--bg); }
+        .btn-primary:hover { background: #00b8d9; }
+        .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { border-color: var(--accent); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .table-container { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg);
+        }
+
+        td { font-size: 14px; }
+
+        tr:hover { background: rgba(0, 217, 255, 0.05); }
+
+        .pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .pill.success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .pill.warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .pill.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .pill.info { background: rgba(0, 217, 255, 0.2); color: var(--accent); }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--muted);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .pagination-info { font-size: 14px; color: var(--muted); }
+
+        .pagination-buttons { display: flex; gap: 8px; }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover { color: var(--text); }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-label { color: var(--muted); }
+        .detail-value { font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="logo">
+            <h1>Fast<span>channel</span> - Estoque</h1>
+        </header>
+
+        <nav class="nav-tabs">
+            <a class="nav-tab" href="dashboard.html">Dashboard</a>
+            <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab active" href="estoque.html">Estoque</a>
+            <a class="nav-tab" href="precos.html">Precos</a>
+            <a class="nav-tab" href="fila.html">Fila de Sincronizacao</a>
+            <a class="nav-tab" href="logs.html">Logs</a>
+        </nav>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Estoque Sankhya + Fastchannel</span>
+                <div class="toggle-row">
+                    <label class="filter-label">Base</label>
+                    <select id="sourceSelect" class="form-input" onchange="updateSource()">
+                        <option value="sankhya">Sankhya</option>
+                        <option value="queue">Fila (pendentes/erros)</option>
+                    </select>
+                    <label class="filter-label">Comparar automatico</label>
+                    <label class="switch">
+                        <input type="checkbox" id="autoCompareToggle" onchange="toggleAutoCompare()">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <span class="filter-label">Status Fila</span>
+                    <select id="filterStatus" class="form-input" onchange="loadEstoque()">
+                        <option value="">Todos</option>
+                        <option value="PENDENTE">Pendente</option>
+                        <option value="PROCESSANDO">Processando</option>
+                        <option value="ENVIADO">Enviado</option>
+                        <option value="ERRO">Erro</option>
+                        <option value="ERRO_FATAL">Erro Fatal</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Data Inicio</span>
+                    <input type="date" id="filterDataInicio" class="form-input" onchange="loadEstoque()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Data Fim</span>
+                    <input type="date" id="filterDataFim" class="form-input" onchange="loadEstoque()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">SKU</span>
+                    <input type="text" id="filterSku" class="form-input" placeholder="Buscar..."
+                           onkeyup="debounceSearch()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">CODPROD</span>
+                    <input type="number" id="filterCodProd" class="form-input" placeholder="Codigo"
+                           onkeyup="debounceSearch()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Local</span>
+                    <input type="number" id="filterCodLocal" class="form-input" placeholder="Local"
+                           onkeyup="debounceSearch()">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Empresa</span>
+                    <input type="number" id="filterCodEmp" class="form-input" placeholder="Empresa"
+                           onkeyup="debounceSearch()">
+                </div>
+                <div class="filter-group" style="justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="loadEstoque()">
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-header">
+                <div class="toggle-row">
+                    <button class="btn btn-primary" onclick="forcarSyncSelecionados()">Forcar Sync Selecionados</button>
+                    <button class="btn btn-secondary" onclick="reprocessarSelecionados()">Reprocessar Selecionados</button>
+                    <button class="btn btn-secondary" onclick="compararSelecionados()">Comparar Selecionados</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="checkAll" onchange="toggleSelectAll()"></th>
+                            <th>SKU</th>
+                            <th>CODPROD</th>
+                            <th>Descricao</th>
+                            <th>Local</th>
+                            <th>Empresa</th>
+                            <th>StorageId</th>
+                            <th>ResellerId</th>
+                            <th>Estoque</th>
+                            <th>FC Estoque</th>
+                            <th>Delta</th>
+                            <th>Status Fila</th>
+                            <th>Ult Fila</th>
+                            <th>Ult Log</th>
+                            <th>Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="estoqueTable">
+                        <tr>
+                            <td colspan="15" class="empty-state">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <span class="pagination-info" id="paginationInfo">Mostrando 0 de 0</span>
+                <div class="pagination-buttons">
+                    <button class="btn btn-secondary btn-sm" id="btnPrev" onclick="prevPage()" disabled>
+                        Anterior
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="btnNext" onclick="nextPage()" disabled>
+                        Proximo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalCompare" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="card-title">Comparacao de Estoque</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="compareBody"></div>
+            <div style="margin-top: 20px; display: flex; gap: 12px;">
+                <button class="btn btn-primary" onclick="forcarSyncModal()">Forcar Sync</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function addIfAddon(ctx) {
+                if (!ctx) return;
+                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
+                    ctx = ctx.replace(/^\/mge/, '');
+                }
+                if (ctx.indexOf('/addon-fastchannel') === -1) return;
+                add(ctx);
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+
+            const addonIdx = path.indexOf('/addon-fastchannel');
+            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        console.log('[Fastchannel] contexts', addonContexts);
+        let currentPage = 1;
+        let totalPages = 1;
+        let pageSize = 20;
+        let searchTimeout = null;
+        let selected = new Set();
+        let lastCompareItem = null;
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+                    if (resp.ok) return await resp.json();
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    lastErr = errMsg;
+                } catch (e) { lastErr = e.message; }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '--';
+            return new Date(dateStr).toLocaleString('pt-BR');
+        }
+
+        function formatNumber(value) {
+            if (value == null) return '--';
+            return parseFloat(value).toLocaleString('pt-BR');
+        }
+
+        function getStatusPill(status) {
+            const map = {
+                'PENDENTE': 'warning',
+                'PROCESSANDO': 'info',
+                'ENVIADO': 'success',
+                'ERRO': 'danger',
+                'ERRO_FATAL': 'danger'
+            };
+            return `<span class="pill ${map[status] || 'info'}">${status || '--'}</span>`;
+        }
+
+        function getLogPill(level) {
+            const map = {
+                'INFO': 'success',
+                'WARNING': 'warning',
+                'ERROR': 'danger',
+                'DEBUG': 'info'
+            };
+            return `<span class="pill ${map[level] || 'info'}">${level || '--'}</span>`;
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => loadEstoque(), 500);
+        }
+
+        function getStorage(key, fallback) {
+            const value = localStorage.getItem(key);
+            return value == null ? fallback : value;
+        }
+
+        function setStorage(key, value) {
+            localStorage.setItem(key, value);
+        }
+
+        function loadUiSettings() {
+            const source = getStorage('fc_ui_stock_source', 'sankhya');
+            const autoCompare = getStorage('fc_ui_stock_auto_compare', 'false') === 'true';
+            document.getElementById('sourceSelect').value = source;
+            document.getElementById('autoCompareToggle').checked = autoCompare;
+        }
+
+        function updateSource() {
+            const source = document.getElementById('sourceSelect').value;
+            setStorage('fc_ui_stock_source', source);
+            loadEstoque();
+        }
+
+        function toggleAutoCompare() {
+            const enabled = document.getElementById('autoCompareToggle').checked;
+            setStorage('fc_ui_stock_auto_compare', enabled ? 'true' : 'false');
+            loadEstoque();
+        }
+
+        function buildFilters() {
+            return {
+                status: document.getElementById('filterStatus').value,
+                dataInicio: document.getElementById('filterDataInicio').value,
+                dataFim: document.getElementById('filterDataFim').value,
+                sku: document.getElementById('filterSku').value,
+                codProd: document.getElementById('filterCodProd').value,
+                codLocal: document.getElementById('filterCodLocal').value,
+                codEmp: document.getElementById('filterCodEmp').value,
+                page: currentPage,
+                pageSize: pageSize,
+                source: document.getElementById('sourceSelect').value
+            };
+        }
+
+        function makeKey(item) {
+            const raw = [item.sku || '', item.codProd || '', item.codLocal || '', item.codEmp || ''].join('_');
+            return raw.replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
+        async function loadEstoque() {
+            const tbody = document.getElementById('estoqueTable');
+            tbody.innerHTML = '<tr><td colspan="15" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+            selected = new Set();
+            document.getElementById('checkAll').checked = false;
+
+            try {
+                const data = await callService('FCEstoqueSP.list', buildFilters());
+
+                if (data.items && data.items.length > 0) {
+                    tbody.innerHTML = data.items.map(item => {
+                        const key = makeKey(item);
+                        const queueId = item.queueId ? item.queueId : '';
+                        return `
+                        <tr data-key="${key}" data-queue-id="${queueId}">
+                            <td><input type="checkbox" data-key="${key}" onchange="toggleSelection(this)"></td>
+                            <td><strong>${item.sku || '--'}</strong></td>
+                            <td>${item.codProd || '--'}</td>
+                            <td>${item.descricao || '--'}</td>
+                            <td>${item.codLocal || '--'}</td>
+                            <td>${item.codEmp || '--'}</td>
+                            <td>${item.storageId || '--'}</td>
+                            <td>${item.resellerId || '--'}</td>
+                            <td>${formatNumber(item.estoque)}</td>
+                            <td id="fc-${key}">--</td>
+                            <td id="delta-${key}">--</td>
+                            <td>${getStatusPill(item.queueStatus)}</td>
+                            <td>${formatDate(item.queueDate)}</td>
+                            <td>${getLogPill(item.logLevel)}</td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick='compararItem(${JSON.stringify(item)})'>Comparar</button>
+                                <button class="btn btn-secondary btn-sm" onclick='forcarSyncItem(${JSON.stringify(item)})'>Forcar</button>
+                                <button class="btn btn-secondary btn-sm" onclick='reprocessarItem(${JSON.stringify(item)})'>Reprocessar</button>
+                            </td>
+                        </tr>`;
+                    }).join('');
+
+                    totalPages = Math.ceil((data.total || 0) / pageSize) || 1;
+                    updatePagination(data.total || 0);
+                    if (document.getElementById('autoCompareToggle').checked) {
+                        await compareBatch(data.items);
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="15" class="empty-state">Nenhum registro encontrado</td></tr>';
+                    updatePagination(0);
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="15" class="empty-state">Erro: ${e.message}</td></tr>`;
+            }
+        }
+
+        function updatePagination(total) {
+            document.getElementById('paginationInfo').textContent =
+                `Mostrando ${total} de ${total}`;
+            document.getElementById('btnPrev').disabled = currentPage <= 1;
+            document.getElementById('btnNext').disabled = currentPage >= totalPages;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) { currentPage--; loadEstoque(); }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) { currentPage++; loadEstoque(); }
+        }
+
+        function toggleSelection(checkbox) {
+            const key = checkbox.getAttribute('data-key');
+            if (checkbox.checked) selected.add(key);
+            else selected.delete(key);
+        }
+
+        function toggleSelectAll() {
+            const checkAll = document.getElementById('checkAll').checked;
+            document.querySelectorAll('#estoqueTable input[type="checkbox"]').forEach(cb => {
+                cb.checked = checkAll;
+                const key = cb.getAttribute('data-key');
+                if (checkAll) selected.add(key);
+                else selected.delete(key);
+            });
+        }
+
+        function collectSelectedItems() {
+            const rows = document.querySelectorAll('#estoqueTable tr');
+            const items = [];
+            rows.forEach(row => {
+                const key = row.getAttribute('data-key');
+                if (selected.has(key)) {
+                    const cells = row.querySelectorAll('td');
+                    const sku = cells[1].textContent.trim();
+                    const codProd = cells[2].textContent.trim();
+                    const codLocal = cells[4].textContent.trim();
+                    const codEmp = cells[5].textContent.trim();
+                    items.push({
+                        sku: sku === '--' ? null : sku,
+                        codProd: codProd === '--' ? null : codProd,
+                        codLocal: codLocal === '--' ? null : codLocal,
+                        codEmp: codEmp === '--' ? null : codEmp
+                    });
+                }
+            });
+            return items;
+        }
+
+        async function forcarSyncSelecionados() {
+            const items = collectSelectedItems();
+            if (!items.length) return alert('Selecione ao menos um item');
+            const result = await callService('FCEstoqueSP.forcarSync', { items });
+            let msg = result.message || 'Processado';
+            if (Array.isArray(result.errorDetails) && result.errorDetails.length) {
+                msg += '\n\nDetalhes:\n- ' + result.errorDetails.join('\n- ');
+            }
+            alert(msg);
+            loadEstoque();
+        }
+
+        async function reprocessarSelecionados() {
+            const items = collectSelectedItems();
+            if (!items.length) return alert('Selecione ao menos um item');
+            const queueIds = [];
+            document.querySelectorAll('#estoqueTable tr').forEach(row => {
+                const key = row.getAttribute('data-key');
+                if (!selected.has(key)) return;
+                const queueId = row.getAttribute('data-queue-id');
+                if (queueId) queueIds.push(queueId);
+            });
+            const payload = queueIds.length ? { queueIds } : { items };
+            const result = await callService('FCEstoqueSP.reprocessar', payload);
+            alert(result.message || 'Processado');
+            loadEstoque();
+        }
+
+        async function compararSelecionados() {
+            const items = collectSelectedItems();
+            if (!items.length) return alert('Selecione ao menos um item');
+            await compareBatch(items);
+        }
+
+        async function compareBatch(items) {
+            const concurrency = 3;
+            let idx = 0;
+            async function worker() {
+                while (idx < items.length) {
+                    const item = items[idx++];
+                    await compareAndApply(item);
+                }
+            }
+            const workers = [];
+            for (let i = 0; i < concurrency; i++) workers.push(worker());
+            await Promise.all(workers);
+        }
+
+        async function compareAndApply(item) {
+            try {
+                const data = await callService('FCEstoqueSP.compararFC', {
+                    sku: item.sku,
+                    codProd: item.codProd,
+                    codLocal: item.codLocal,
+                    codEmp: item.codEmp
+                });
+                const key = makeKey(item);
+                const fcValue = data.estoqueFastchannel;
+                const localValue = data.estoqueSankhya;
+                const fcCell = document.getElementById(`fc-${key}`);
+                const deltaCell = document.getElementById(`delta-${key}`);
+                if (fcCell) fcCell.textContent = formatNumber(fcValue);
+                if (deltaCell) {
+                    const delta = (localValue != null && fcValue != null) ? (parseFloat(localValue) - parseFloat(fcValue)) : null;
+                    deltaCell.textContent = delta == null ? '--' : formatNumber(delta);
+                }
+            } catch (e) {
+                const key = makeKey(item);
+                const fcCell = document.getElementById(`fc-${key}`);
+                const deltaCell = document.getElementById(`delta-${key}`);
+                if (fcCell) fcCell.textContent = 'ERRO';
+                if (deltaCell) deltaCell.textContent = e && e.message ? e.message : 'Erro na comparacao';
+            }
+        }
+
+        function buildCompareBody(data) {
+            const delta = (data.estoqueSankhya != null && data.estoqueFastchannel != null)
+                ? (parseFloat(data.estoqueSankhya) - parseFloat(data.estoqueFastchannel))
+                : null;
+            return `
+                <div class="detail-row"><span class="detail-label">SKU</span><span class="detail-value">${data.sku || '--'}</span></div>
+                <div class="detail-row"><span class="detail-label">CODPROD</span><span class="detail-value">${data.codProd || '--'}</span></div>
+                <div class="detail-row"><span class="detail-label">Local/Empresa</span><span class="detail-value">${data.codLocal || '--'} / ${data.codEmp || '--'}</span></div>
+                <div class="detail-row"><span class="detail-label">StorageId / ResellerId</span><span class="detail-value">${data.storageId || '--'} / ${data.resellerId || '--'}</span></div>
+                <div class="detail-row"><span class="detail-label">Estoque Sankhya</span><span class="detail-value">${formatNumber(data.estoqueSankhya)}</span></div>
+                <div class="detail-row"><span class="detail-label">Estoque Fastchannel</span><span class="detail-value">${formatNumber(data.estoqueFastchannel)}</span></div>
+                <div class="detail-row"><span class="detail-label">Delta</span><span class="detail-value">${delta == null ? '--' : formatNumber(delta)}</span></div>
+                <div class="detail-row"><span class="detail-label">Storage ID (Fastchannel)</span><span class="detail-value">${data.fcStorageId || '--'}</span></div>
+                <div class="detail-row"><span class="detail-label">Ultima Atualizacao FC</span><span class="detail-value">${formatDate(data.fcLastUpdate)}</span></div>
+            `;
+        }
+
+        async function compararItem(item) {
+            try {
+                const data = await callService('FCEstoqueSP.compararFC', {
+                    sku: item.sku,
+                    codProd: item.codProd,
+                    codLocal: item.codLocal,
+                    codEmp: item.codEmp
+                });
+                lastCompareItem = item;
+                document.getElementById('compareBody').innerHTML = buildCompareBody(data);
+                document.getElementById('modalCompare').classList.add('show');
+            } catch (e) {
+                alert(e.message || 'Erro ao comparar');
+            }
+        }
+
+        async function forcarSyncItem(item) {
+            const result = await callService('FCEstoqueSP.forcarSync', item);
+            let msg = result.message || 'Processado';
+            if (Array.isArray(result.errorDetails) && result.errorDetails.length) {
+                msg += '\n\nDetalhes:\n- ' + result.errorDetails.join('\n- ');
+            }
+            alert(msg);
+            loadEstoque();
+        }
+
+        async function reprocessarItem(item) {
+            const result = await callService('FCEstoqueSP.reprocessar', item);
+            alert(result.message || 'Processado');
+            loadEstoque();
+        }
+
+        async function forcarSyncModal() {
+            if (!lastCompareItem) return;
+            await forcarSyncItem(lastCompareItem);
+            closeModal();
+        }
+
+        function closeModal() {
+            document.getElementById('modalCompare').classList.remove('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUiSettings();
+            loadEstoque();
+        });
+    </script>
+</body>
+</html>
+

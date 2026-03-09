@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V11: Otimizacoes para consulta/reprocessamento de pedidos e logs -->
+
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="IDX_FCPEDIDO_ORDER_STATUS" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX">
+        <oracle>
+            CREATE INDEX IDX_FCPEDIDO_ORDER_STATUS ON AD_FCPEDIDO (ORDER_ID, STATUS_IMPORT, NUNOTA)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCPEDIDO_ORDER_STATUS ON AD_FCPEDIDO (ORDER_ID, STATUS_IMPORT, NUNOTA)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="IDX_FCPEDIDO_IMPORT_DH" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX">
+        <oracle>
+            CREATE INDEX IDX_FCPEDIDO_IMPORT_DH ON AD_FCPEDIDO (STATUS_IMPORT, DH_IMPORTACAO)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCPEDIDO_IMPORT_DH ON AD_FCPEDIDO (STATUS_IMPORT, DH_IMPORTACAO)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCLOG" nomeObjeto="IDX_FCLOG_DH" ordem="3" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX">
+        <oracle>
+            CREATE INDEX IDX_FCLOG_DH ON AD_FCLOG (DH_LOG)
+        </oracle>
+        <mssql>
+            CREATE INDEX IDX_FCLOG_DH ON AD_FCLOG (DH_LOG)
+        </mssql>
+    </sql>
+</alteracoes>

@@ -148,8 +148,9 @@ public class LogService {
         }
 
         // Persistir na tabela
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("INSERT INTO AD_FCLOG ");
@@ -167,6 +168,8 @@ public class LogService {
         } catch (Exception e) {
             // N?o propagar erro de log
             log.log(Level.WARNING, "Erro ao persistir log: " + e.getMessage());
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -192,8 +195,9 @@ public class LogService {
      * Limpa logs antigos.
      */
     public int cleanupOldLogs(int daysToKeep) {
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("DELETE FROM AD_FCLOG ");
@@ -212,6 +216,24 @@ public class LogService {
         } catch (Exception e) {
             log.log(Level.WARNING, "Erro ao limpar logs antigos", e);
             return 0;
+        } finally {
+            closeJdbc(jdbc);
+        }
+    }
+
+    private JdbcWrapper openJdbc() throws Exception {
+        JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+        jdbc.openSession();
+        return jdbc;
+    }
+
+    private void closeJdbc(JdbcWrapper jdbc) {
+        if (jdbc != null) {
+            try {
+                jdbc.closeSession();
+            } catch (Exception e) {
+                log.log(Level.FINE, "Erro ao fechar JdbcWrapper", e);
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package br.com.bellube.fastchannel.service;
 
+import br.com.bellube.fastchannel.dto.OrderItemDTO;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
@@ -7,7 +8,9 @@ import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,6 +50,8 @@ public class DeparaService {
     // TTL do cache (10 minutos)
     private static final long CACHE_TTL_MS = 600_000;
     private long lastCacheLoad = 0;
+    private static volatile Boolean hasIntegraAutoColumn;
+    private volatile BigDecimal defaultOrderFallbackCodProd;
 
     private DeparaService() {
     }
@@ -163,24 +168,40 @@ public class DeparaService {
      * Cadastra ou atualiza mapeamento.
      */
     public void setMapping(String tipo, BigDecimal codSankhya, String codExterno) {
+        setMapping(tipo, codSankhya, codExterno, true);
+    }
+
+    /**
+     * Cadastra ou atualiza mapeamento com controle de integração automática.
+     */
+    public void setMapping(String tipo, BigDecimal codSankhya, String codExterno, boolean integraAuto) {
         if (codSankhya == null || codExterno == null || codExterno.isEmpty()) {
             return;
         }
 
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             // Verificar se j? existe
             BigDecimal existingId = getMappingId(jdbc, tipo, codSankhya);
+            boolean hasIntegraAuto = supportsIntegraAuto(jdbc);
 
             if (existingId != null) {
                 // Atualizar
                 NativeSql sql = new NativeSql(jdbc);
                 sql.appendSql("UPDATE AD_FCDEPARA SET ");
-                sql.appendSql("COD_EXTERNO = :codExterno, DH_ALTERACAO = CURRENT_TIMESTAMP ");
+                sql.appendSql("COD_EXTERNO = :codExterno, ");
+                if (hasIntegraAuto) {
+                    sql.appendSql("INTEGRA_AUTO = :integraAuto, ");
+                }
+                sql.appendSql("DH_ALTERACAO = CURRENT_TIMESTAMP ");
                 sql.appendSql("WHERE IDDEPARA = :id");
 
                 sql.setNamedParameter("codExterno", codExterno);
+                if (hasIntegraAuto) {
+                    sql.setNamedParameter("integraAuto", integraAuto ? "S" : "N");
+                }
                 sql.setNamedParameter("id", existingId);
                 sql.executeUpdate();
 
@@ -188,12 +209,23 @@ public class DeparaService {
                 // Inserir
                 NativeSql sql = new NativeSql(jdbc);
                 sql.appendSql("INSERT INTO AD_FCDEPARA ");
-                sql.appendSql("(TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO, DH_CRIACAO) ");
-                sql.appendSql("VALUES (:tipo, :codSankhya, :codExterno, CURRENT_TIMESTAMP)");
+                sql.appendSql("(TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO");
+                if (hasIntegraAuto) {
+                    sql.appendSql(", INTEGRA_AUTO");
+                }
+                sql.appendSql(", DH_CRIACAO) ");
+                sql.appendSql("VALUES (:tipo, :codSankhya, :codExterno");
+                if (hasIntegraAuto) {
+                    sql.appendSql(", :integraAuto");
+                }
+                sql.appendSql(", CURRENT_TIMESTAMP)");
 
                 sql.setNamedParameter("tipo", tipo);
                 sql.setNamedParameter("codSankhya", codSankhya);
                 sql.setNamedParameter("codExterno", codExterno);
+                if (hasIntegraAuto) {
+                    sql.setNamedParameter("integraAuto", integraAuto ? "S" : "N");
+                }
                 sql.executeUpdate();
             }
 
@@ -207,6 +239,9 @@ public class DeparaService {
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao registrar mapeamento", e);
+            throw new RuntimeException("Erro ao registrar mapeamento: " + e.getMessage(), e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -214,8 +249,9 @@ public class DeparaService {
      * Remove mapeamento.
      */
     public void removeMapping(String tipo, BigDecimal codSankhya) {
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             // Buscar c?digo externo para limpar cache
             String codExterno = getCodigoExterno(tipo, codSankhya);
@@ -241,6 +277,9 @@ public class DeparaService {
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao remover mapeamento", e);
+            throw new RuntimeException("Erro ao remover mapeamento: " + e.getMessage(), e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -248,31 +287,34 @@ public class DeparaService {
      * Busca SKU do produto usando TGFPRO.REFERENCIA como fallback.
      */
     public String getSkuWithFallback(BigDecimal codProd) {
+        String skuByRule = normalizeSku(getSkuForStock(codProd));
+        if (skuByRule != null && !skuByRule.isEmpty()) {
+            return skuByRule;
+        }
+
         // Primeiro tentar AD_FCDEPARA
-        String sku = getSku(codProd);
+        String sku = normalizeSku(getSku(codProd));
         if (sku != null) return sku;
 
         // Fallback: usar REFERENCIA do produto
-        return getReferenciaFromProduct(codProd);
+        return normalizeSku(getReferenciaFromProduct(codProd));
     }
 
     /**
-     * Busca SKU para estoque usando regra de marca (AD_FASTREF) com de-para como prioridade.
+     * Busca SKU para estoque/pricing priorizando regra da marca (AD_FASTREF).
      */
     public String getSkuForStock(BigDecimal codProd) {
         if (codProd == null) return null;
 
-        String sku = getSku(codProd);
-        if (sku != null) return sku;
-
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT M.AD_FASTREF, P.REFFORN, P.CODPROD ");
             sql.appendSql("FROM TGFPRO P ");
-            sql.appendSql("INNER JOIN TGFMAR M ON M.CODIGO = P.CODMARCA ");
+            sql.appendSql("LEFT JOIN TGFMAR M ON M.CODIGO = P.CODMARCA ");
             sql.appendSql("WHERE P.CODPROD = :codProd");
             sql.setNamedParameter("codProd", codProd);
 
@@ -281,22 +323,40 @@ public class DeparaService {
                 String adFastRef = rs.getString("AD_FASTREF");
                 String refForn = rs.getString("REFFORN");
                 BigDecimal cod = rs.getBigDecimal("CODPROD");
-                return computeSkuFromBrandRule(adFastRef, cod, refForn);
+                String skuByRule = normalizeSku(computeSkuFromBrandRule(adFastRef, cod, refForn));
+                if (skuByRule != null && !skuByRule.isEmpty()) {
+                    return skuByRule;
+                }
             }
         } catch (Exception e) {
             log.log(Level.FINE, "Erro ao buscar SKU por regra de marca", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
-        return null;
+
+        String sku = normalizeSku(getCodigoExternoAtivo(TIPO_PRODUTO, codProd));
+        if (sku == null) {
+            sku = normalizeSku(getSku(codProd));
+        }
+        return sku;
     }
 
     public static String computeSkuFromBrandRule(String adFastRef, BigDecimal codProd, String refForn) {
         if ("R".equalsIgnoreCase(adFastRef)) {
-            return refForn;
+            String normalizedRef = normalizeSku(refForn);
+            if (normalizedRef != null && !normalizedRef.isEmpty()) {
+                return normalizedRef;
+            }
         }
         if (codProd == null) return null;
         return codProd.toPlainString();
+    }
+
+    private static String normalizeSku(String sku) {
+        if (sku == null) return null;
+        String normalized = sku.trim();
+        return normalized.isEmpty() ? null : normalized;
     }
 
     /**
@@ -313,8 +373,79 @@ public class DeparaService {
         codProd = getCodProdByReferencia(skuOrEan);
         if (codProd != null) return codProd;
 
+        // Legado/fastchannel pode trafegar ProductId baseado em REFFORN (AD_FASTREF='R')
+        codProd = getCodProdByRefForn(skuOrEan);
+        if (codProd != null) return codProd;
+
         // Tentar por EAN
-        return getCodProdByEan(skuOrEan);
+        codProd = getCodProdByEan(skuOrEan);
+        if (codProd != null) return codProd;
+
+        // Fallback final: SKU numerico pode representar o proprio CODPROD
+        return getCodProdByCodigoInterno(skuOrEan);
+    }
+
+    /**
+     * Resolve CODPROD para item de pedido com fallback por nome do produto.
+     * Regras:
+     * - tenta SKU/EAN/externalProductId
+     * - tenta descricao exata
+     * - tenta LIKE somente se houver candidato unico
+     * Quando resolve por nome e SKU estiver presente, registra de-para automaticamente.
+     */
+    public BigDecimal resolveCodProdForOrderItem(OrderItemDTO item) {
+        if (item == null) {
+            return null;
+        }
+
+        Set<String> candidates = new LinkedHashSet<>();
+        if (item.getSku() != null) {
+            candidates.add(item.getSku().trim());
+        }
+        if (item.getEan() != null) {
+            candidates.add(item.getEan().trim());
+        }
+        if (item.getExternalProductId() != null) {
+            candidates.add(item.getExternalProductId().trim());
+        }
+
+        for (String code : candidates) {
+            if (code == null || code.isEmpty()) {
+                continue;
+            }
+            BigDecimal codProd = getCodProdBySkuOrEan(code);
+            if (codProd != null) {
+                return codProd;
+            }
+        }
+
+        String productName = item.getProductName() != null ? item.getProductName().trim() : null;
+        if (productName == null || productName.isEmpty()) {
+            BigDecimal fallbackNoName = getDefaultOrderFallbackCodProd();
+            if (fallbackNoName != null) {
+                log.warning("Item sem SKU/EAN/nome mapeavel. Aplicando CODPROD fallback="
+                        + fallbackNoName + " sku=" + item.getSku() + " externalProductId=" + item.getExternalProductId());
+            }
+            return fallbackNoName;
+        }
+
+        BigDecimal byExactName = getCodProdByDescricaoExata(productName);
+        if (byExactName != null) {
+            tryPersistProductMapping(item.getSku(), byExactName, "descricao exata");
+            return byExactName;
+        }
+
+        BigDecimal byLikeUnique = getCodProdByDescricaoLikeUnica(productName);
+        if (byLikeUnique != null) {
+            tryPersistProductMapping(item.getSku(), byLikeUnique, "descricao similar unica");
+            return byLikeUnique;
+        }
+        BigDecimal fallback = getDefaultOrderFallbackCodProd();
+        if (fallback != null) {
+            log.warning("SKU sem mapeamento no de-para para importacao de pedido. Aplicando CODPROD fallback="
+                    + fallback + " sku=" + item.getSku() + " produto=" + productName);
+        }
+        return fallback;
     }
 
     /**
@@ -336,8 +467,9 @@ public class DeparaService {
 
     private String fetchCodigoExterno(String tipo, BigDecimal codSankhya) {
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT COD_EXTERNO FROM AD_FCDEPARA ");
@@ -354,14 +486,87 @@ public class DeparaService {
             log.log(Level.WARNING, "Erro ao buscar c?digo externo", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
     }
 
+    /**
+     * Busca código externo somente quando integração automática está habilitada.
+     */
+    public String getCodigoExternoAtivo(String tipo, BigDecimal codSankhya) {
+        if (codSankhya == null) return null;
+
+        ResultSet rs = null;
+        JdbcWrapper jdbc = null;
+        try {
+            jdbc = openJdbc();
+
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT COD_EXTERNO FROM AD_FCDEPARA ");
+            sql.appendSql("WHERE TIPO_ENTIDADE = :tipo AND COD_SANKHYA = :codSankhya ");
+            if (supportsIntegraAuto(jdbc)) {
+                sql.appendSql("AND COALESCE(INTEGRA_AUTO, 'S') = 'S'");
+            }
+
+            sql.setNamedParameter("tipo", tipo);
+            sql.setNamedParameter("codSankhya", codSankhya);
+
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                return rs.getString("COD_EXTERNO");
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao buscar codigo externo ativo", e);
+        } finally {
+            closeQuietly(rs);
+            closeJdbc(jdbc);
+        }
+        return null;
+    }
+
+    /**
+     * Retorna true quando o registro está habilitado para integração automática.
+     * Se não houver registro no de-para, assume habilitado para manter compatibilidade.
+     */
+    public boolean isIntegracaoAutomaticaAtiva(String tipo, BigDecimal codSankhya) {
+        if (codSankhya == null) return true;
+
+        ResultSet rs = null;
+        JdbcWrapper jdbc = null;
+        try {
+            jdbc = openJdbc();
+            if (!supportsIntegraAuto(jdbc)) {
+                return true;
+            }
+
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT COALESCE(INTEGRA_AUTO, 'S') AS INTEGRA_AUTO ");
+            sql.appendSql("FROM AD_FCDEPARA ");
+            sql.appendSql("WHERE TIPO_ENTIDADE = :tipo AND COD_SANKHYA = :codSankhya");
+
+            sql.setNamedParameter("tipo", tipo);
+            sql.setNamedParameter("codSankhya", codSankhya);
+
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                return "S".equalsIgnoreCase(rs.getString("INTEGRA_AUTO"));
+            }
+            return true;
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao validar flag de integração automática", e);
+            return true;
+        } finally {
+            closeQuietly(rs);
+            closeJdbc(jdbc);
+        }
+    }
+
     private BigDecimal fetchCodigoSankhya(String tipo, String codExterno) {
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT COD_SANKHYA FROM AD_FCDEPARA ");
@@ -378,6 +583,7 @@ public class DeparaService {
             log.log(Level.WARNING, "Erro ao buscar c?digo Sankhya", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
     }
@@ -403,8 +609,9 @@ public class DeparaService {
 
     private String getReferenciaFromProduct(BigDecimal codProd) {
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT REFERENCIA FROM TGFPRO WHERE CODPROD = :codProd");
@@ -418,14 +625,41 @@ public class DeparaService {
             log.log(Level.FINE, "Erro ao buscar REFERENCIA", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
     }
 
-    private BigDecimal getCodProdByReferencia(String referencia) {
+    private boolean supportsIntegraAuto(JdbcWrapper jdbc) {
+        Boolean cached = hasIntegraAutoColumn;
+        if (cached != null) {
+            return cached;
+        }
+
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT COUNT(*) AS CNT ");
+            sql.appendSql("FROM INFORMATION_SCHEMA.COLUMNS ");
+            sql.appendSql("WHERE TABLE_NAME = 'AD_FCDEPARA' AND COLUMN_NAME = 'INTEGRA_AUTO'");
+            rs = sql.executeQuery();
+            boolean supported = rs.next() && rs.getInt("CNT") > 0;
+            hasIntegraAutoColumn = supported;
+            return supported;
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao validar coluna INTEGRA_AUTO em AD_FCDEPARA", e);
+            hasIntegraAutoColumn = false;
+            return false;
+        } finally {
+            closeQuietly(rs);
+        }
+    }
+
+    private BigDecimal getCodProdByReferencia(String referencia) {
+        ResultSet rs = null;
+        JdbcWrapper jdbc = null;
+        try {
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT CODPROD FROM TGFPRO WHERE REFERENCIA = :referencia AND ATIVO = 'S'");
@@ -439,14 +673,41 @@ public class DeparaService {
             log.log(Level.FINE, "Erro ao buscar por REFERENCIA", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
+        }
+        return null;
+    }
+
+    private BigDecimal getCodProdByRefForn(String refForn) {
+        ResultSet rs = null;
+        JdbcWrapper jdbc = null;
+        try {
+            jdbc = openJdbc();
+
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT CODPROD FROM TGFPRO ");
+            sql.appendSql("WHERE ATIVO = 'S' ");
+            sql.appendSql("AND LTRIM(RTRIM(REFFORN)) = LTRIM(RTRIM(:refForn))");
+            sql.setNamedParameter("refForn", refForn);
+
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("CODPROD");
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Erro ao buscar por REFFORN", e);
+        } finally {
+            closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
     }
 
     private BigDecimal getCodProdByEan(String ean) {
         ResultSet rs = null;
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT P.CODPROD FROM TGFPRO P ");
@@ -462,8 +723,187 @@ public class DeparaService {
             log.log(Level.FINE, "Erro ao buscar por EAN", e);
         } finally {
             closeQuietly(rs);
+            closeJdbc(jdbc);
         }
         return null;
+    }
+
+    private BigDecimal getCodProdByCodigoInterno(String rawCode) {
+        if (rawCode == null) return null;
+        String normalized = rawCode.trim();
+        if (normalized.isEmpty() || !normalized.matches("\\d+")) {
+            return null;
+        }
+
+        ResultSet rs = null;
+        JdbcWrapper jdbc = null;
+        try {
+            jdbc = openJdbc();
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT CODPROD FROM TGFPRO WHERE CODPROD = :codProd AND ATIVO = 'S'");
+            sql.setNamedParameter("codProd", new BigDecimal(normalized));
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("CODPROD");
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Erro ao buscar por CODPROD numerico", e);
+        } finally {
+            closeQuietly(rs);
+            closeJdbc(jdbc);
+        }
+        return null;
+    }
+
+    private BigDecimal getCodProdByDescricaoExata(String descricao) {
+        ResultSet rs = null;
+        JdbcWrapper jdbc = null;
+        try {
+            jdbc = openJdbc();
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT CODPROD ");
+            sql.appendSql("FROM TGFPRO ");
+            sql.appendSql("WHERE ATIVO = 'S' ");
+            sql.appendSql("AND UPPER(LTRIM(RTRIM(DESCRPROD))) = UPPER(LTRIM(RTRIM(:descr)))");
+            sql.setNamedParameter("descr", descricao);
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                BigDecimal codProd = rs.getBigDecimal("CODPROD");
+                if (!rs.next()) {
+                    return codProd;
+                }
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Erro ao buscar produto por descricao exata", e);
+        } finally {
+            closeQuietly(rs);
+            closeJdbc(jdbc);
+        }
+        return null;
+    }
+
+    private BigDecimal getCodProdByDescricaoLikeUnica(String descricao) {
+        if (descricao == null || descricao.trim().isEmpty()) {
+            return null;
+        }
+
+        String[] tokens = descricao.trim().split("\\s+");
+        NativeSql sql = null;
+        JdbcWrapper jdbc = null;
+        ResultSet rs = null;
+        try {
+            jdbc = openJdbc();
+            sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT TOP 2 CODPROD FROM TGFPRO WHERE ATIVO = 'S' ");
+            for (int i = 0; i < tokens.length; i++) {
+                String param = "token" + i;
+                sql.appendSql("AND UPPER(DESCRPROD) LIKE :" + param + " ");
+                sql.setNamedParameter(param, "%" + tokens[i].toUpperCase() + "%");
+            }
+            rs = sql.executeQuery();
+
+            if (rs.next()) {
+                BigDecimal codProd = rs.getBigDecimal("CODPROD");
+                if (!rs.next()) {
+                    return codProd;
+                }
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Erro ao buscar produto por descricao aproximada", e);
+        } finally {
+            closeQuietly(rs);
+            if (sql != null) {
+                try { sql.close(); } catch (Exception ignored) {}
+            }
+            closeJdbc(jdbc);
+        }
+        return null;
+    }
+
+    private BigDecimal getDefaultOrderFallbackCodProd() {
+        if (!isOrderFallbackEnabled()) {
+            return null;
+        }
+
+        BigDecimal cached = defaultOrderFallbackCodProd;
+        if (cached != null) {
+            return cached;
+        }
+
+        ResultSet rs = null;
+        JdbcWrapper jdbc = null;
+        try {
+            jdbc = openJdbc();
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT TOP 1 CODPROD FROM TGFPRO WHERE ATIVO = 'S' ORDER BY CODPROD ASC");
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                defaultOrderFallbackCodProd = rs.getBigDecimal("CODPROD");
+                return defaultOrderFallbackCodProd;
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao buscar CODPROD fallback para importacao de pedidos", e);
+        } finally {
+            closeQuietly(rs);
+            closeJdbc(jdbc);
+        }
+        return null;
+    }
+
+    private boolean isOrderFallbackEnabled() {
+        String configured = System.getProperty("fastchannel.order.fallback.enabled");
+        if (configured == null || configured.trim().isEmpty()) {
+            configured = System.getenv("FASTCHANNEL_ORDER_FALLBACK_ENABLED");
+        }
+        if (configured == null || configured.trim().isEmpty()) {
+            // Em producao, fallback implicito causa associacao indevida (ex.: CODPROD 1001).
+            // So habilitar com flag explicita quando necessario para contingencia.
+            return false;
+        }
+        return Boolean.parseBoolean(configured);
+    }
+
+    private void tryPersistProductMapping(String externalCode, BigDecimal codProd, String source) {
+        if (externalCode == null || externalCode.trim().isEmpty() || codProd == null) {
+            return;
+        }
+        String normalized = externalCode.trim();
+        try {
+            BigDecimal existingTarget = getCodProd(normalized);
+            if (existingTarget != null && existingTarget.compareTo(codProd) != 0) {
+                log.warning("De-para nao atualizado para codigo " + normalized +
+                        " (ja aponta para CODPROD " + existingTarget + ", candidato " + codProd + ")");
+                return;
+            }
+
+            String currentExternal = getSku(codProd);
+            if (currentExternal != null && !currentExternal.trim().isEmpty() && !normalized.equals(currentExternal.trim())) {
+                log.warning("De-para nao atualizado para CODPROD " + codProd +
+                        " (ja possui codigo externo " + currentExternal + ", candidato " + normalized + ")");
+                return;
+            }
+
+            setMapping(TIPO_PRODUTO, codProd, normalized, true);
+            log.info("De-para de produto criado automaticamente (" + source + "): " + normalized + " -> " + codProd);
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Falha ao persistir de-para automatico de produto", e);
+        }
+    }
+
+    private JdbcWrapper openJdbc() throws Exception {
+        JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+        jdbc.openSession();
+        return jdbc;
+    }
+
+    private void closeJdbc(JdbcWrapper jdbc) {
+        if (jdbc != null) {
+            try {
+                jdbc.closeSession();
+            } catch (Exception e) {
+                log.log(Level.FINE, "Erro ao fechar session do JdbcWrapper", e);
+            }
+        }
     }
 
     private void closeQuietly(ResultSet rs) {
@@ -472,4 +912,6 @@ public class DeparaService {
         }
     }
 }
+
+
 

@@ -43,6 +43,13 @@
                     <option value="N" description="Nao"/>
                 </options>
             </field>
+            <field name="DISABLE_DUPLICATE_CHECK" dataType="TEXTO" size="1" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Desabilitar verificacao de duplicidade de pedidos</description>
+                <options>
+                    <option value="S" description="Sim"/>
+                    <option value="N" description="Nao"/>
+                </options>
+            </field>
             <field name="SANKHYA_SERVER_URL" dataType="TEXTO" size="300" mandatory="N" allowSearch="N">
                 <description>URL do Servidor Sankhya (ex: http://localhost:8080)</description>
             </field>
@@ -85,11 +92,26 @@
             <field name="CODTIPOPER" dataType="PESQUISA" targetInstance="TipoOperacao" targetField="CODTIPOPER" targetType="INTEIRO" allowSearch="S" visibleOnSearch="S">
                 <description>Tipo de Operacao Pedidos</description>
             </field>
+            <field name="CODNAT" dataType="INTEIRO" size="10" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Natureza de Operacao Padrao</description>
+            </field>
+            <field name="CODCENCUS" dataType="INTEIRO" size="10" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Centro de Custo Padrao</description>
+            </field>
+            <field name="CODVEND_PADRAO" dataType="INTEIRO" size="10" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Vendedor Padrao (fallback)</description>
+            </field>
             <field name="CODLOCAL" dataType="PESQUISA" targetInstance="LocalFinanceiro" targetField="CODLOCAL" targetType="INTEIRO" allowSearch="S" visibleOnSearch="S">
                 <description>Local de Estoque</description>
             </field>
             <field name="NUTAB" dataType="PESQUISA" targetInstance="TabelaPreco" targetField="NUTAB" targetType="INTEIRO" allowSearch="S" visibleOnSearch="S">
                 <description>Tabela de Precos</description>
+            </field>
+            <field name="PRICE_TABLE_TIPOS" dataType="TEXTO" size="100" mandatory="N" allowSearch="N">
+                <description>Tipos de tabela Fastchannel (AD_TIPO_FAST) separados por virgula</description>
+            </field>
+            <field name="PRICE_TABLE_IDS" dataType="TEXTO" size="200" mandatory="N" allowSearch="N">
+                <description>NUTABs explicitos separados por virgula</description>
             </field>
             <field name="CODEMP" dataType="PESQUISA" targetInstance="Empresa" targetField="CODEMP" targetType="INTEIRO" allowSearch="S" visibleOnSearch="S">
                 <description>Empresa Padrao</description>
@@ -135,6 +157,23 @@
             </field>
             <field name="LAST_PRICE_SYNC" dataType="DATA_HORA" mandatory="N" allowSearch="N">
                 <description>Ultima Sync Precos</description>
+            </field>
+            <field name="UI_SOURCE_DEFAULT" dataType="INTEIRO" size="2" mandatory="N" allowSearch="N">
+                <description>Fonte padrao nas telas (1=Sankhya,2=API,3=Fila)</description>
+            </field>
+            <field name="UI_ENABLE_SOURCE_2" dataType="TEXTO" size="1" mandatory="N" allowSearch="N">
+                <description>Habilitar fonte 2 (API Fastchannel)</description>
+                <options>
+                    <option value="S" description="Sim"/>
+                    <option value="N" description="Nao"/>
+                </options>
+            </field>
+            <field name="UI_ENABLE_SOURCE_3" dataType="TEXTO" size="1" mandatory="N" allowSearch="N">
+                <description>Habilitar fonte 3 (Fila/Logs)</description>
+                <options>
+                    <option value="S" description="Sim"/>
+                    <option value="N" description="Nao"/>
+                </options>
             </field>
             <field name="DH_CRIACAO" dataType="DATA_HORA" mandatory="N" allowSearch="N">
                 <description>Data Criacao</description>

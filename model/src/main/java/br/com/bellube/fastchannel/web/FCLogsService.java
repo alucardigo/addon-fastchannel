@@ -74,7 +74,7 @@ public class FCLogsService {
             int total = rsCount.getInt("CNT");
 
             // Get page - SQL Server syntax
-            String sql = "SELECT IDLOG, DH_LOG, NIVEL, OPERACAO, REFERENCIA, MENSAGEM, STACKTRACE " +
+            String sql = "SELECT IDLOG, DH_LOG, NIVEL, OPERACAO, REFERENCIA, MENSAGEM, DETALHES " +
                     "FROM AD_FCLOG WHERE " + where +
                     " ORDER BY DH_LOG DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
@@ -93,7 +93,7 @@ public class FCLogsService {
                 logItem.put("operacao", rs.getString("OPERACAO"));
                 logItem.put("referencia", rs.getString("REFERENCIA"));
                 logItem.put("mensagem", rs.getString("MENSAGEM"));
-                logItem.put("stacktrace", rs.getString("STACKTRACE"));
+                logItem.put("stacktrace", rs.getString("DETALHES"));
                 logs.add(logItem);
             }
 

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V12: Compatibilidade de schema para regras de SKU e integração automática -->
+
+    <sql nomeTabela="TGFMAR" nomeObjeto="AD_FAST" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFMAR ADD AD_FAST CHAR(1) DEFAULT 'N'
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFMAR ADD AD_FAST CHAR(1) DEFAULT 'N'
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="TGFMAR" nomeObjeto="AD_FASTREF" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFMAR ADD AD_FASTREF CHAR(1) DEFAULT 'C'
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFMAR ADD AD_FASTREF CHAR(1) DEFAULT 'C'
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="TGFMAR" nomeObjeto="UPD_TGFMAR_FAST_DEFAULTS" ordem="3" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            UPDATE TGFMAR
+               SET AD_FAST = NVL(AD_FAST, 'N'),
+                   AD_FASTREF = NVL(AD_FASTREF, 'C')
+             WHERE AD_FAST IS NULL OR AD_FASTREF IS NULL
+        </oracle>
+        <mssql>
+            UPDATE TGFMAR
+               SET AD_FAST = ISNULL(AD_FAST, 'N'),
+                   AD_FASTREF = ISNULL(AD_FASTREF, 'C')
+             WHERE AD_FAST IS NULL OR AD_FASTREF IS NULL
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCDEPARA" nomeObjeto="UPD_AD_FCDEPARA_INTEGRA_AUTO_NULL" ordem="4" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            UPDATE AD_FCDEPARA
+               SET INTEGRA_AUTO = 'S'
+             WHERE INTEGRA_AUTO IS NULL
+        </oracle>
+        <mssql>
+            UPDATE AD_FCDEPARA
+               SET INTEGRA_AUTO = 'S'
+             WHERE INTEGRA_AUTO IS NULL
+        </mssql>
+    </sql>
+</alteracoes>

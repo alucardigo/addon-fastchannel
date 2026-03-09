@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V7: Ajustes de schema para pedidos e UI (fontes) -->
+
+    <!-- AD_FCPEDIDO: permitir NUNOTA nulo para registrar erros de importacao -->
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="NUNOTA" ordem="1" executar="SE_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCPEDIDO MODIFY (NUNOTA NUMBER NULL)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCPEDIDO ALTER COLUMN NUNOTA INT NULL
+        </mssql>
+    </sql>
+
+    <!-- AD_FCCONFIG: colunas de UI para habilitar fontes -->
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="UI_SOURCE_DEFAULT" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD UI_SOURCE_DEFAULT NUMBER(2)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD UI_SOURCE_DEFAULT SMALLINT
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="UI_ENABLE_SOURCE_2" ordem="3" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD UI_ENABLE_SOURCE_2 CHAR(1) DEFAULT 'N'
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD UI_ENABLE_SOURCE_2 CHAR(1) DEFAULT 'N'
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="UI_ENABLE_SOURCE_3" ordem="4" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD UI_ENABLE_SOURCE_3 CHAR(1) DEFAULT 'N'
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD UI_ENABLE_SOURCE_3 CHAR(1) DEFAULT 'N'
+        </mssql>
+    </sql>
+</alteracoes>

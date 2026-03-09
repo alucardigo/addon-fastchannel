@@ -66,6 +66,8 @@ public final class FastchannelConstants {
     public static final int DEFAULT_TIMEOUT_SECONDS = 30;
     public static final int DEFAULT_RATE_LIMIT_PER_MINUTE = 30;
     public static final int TOKEN_REFRESH_BUFFER_SECONDS = 300; // 5 minutos antes de expirar
+    public static final java.math.BigDecimal DEFAULT_CODVEND_PADRAO = new java.math.BigDecimal("167");
+    public static final java.math.BigDecimal DEFAULT_TOP_PEDIDO = new java.math.BigDecimal("403");
 
     // ==================== TIPOS DE ENTIDADE (FILA) ====================
 

@@ -39,10 +39,18 @@ logs/
 *.bak
 *.swp
 *~
+.tmp-*
 
 # Other
 gbi-app-integrador-main/
 WEB-INF/
+local.properties
+.run/
+reports/
+model/.ant/
+Wildfly_Cleanwildfly_producao/
+docs/plans/
+docs/validation/
 
 # Node
 node_modules/
