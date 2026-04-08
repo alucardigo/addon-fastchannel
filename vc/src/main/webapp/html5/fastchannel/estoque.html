@@ -356,27 +356,15 @@
                         <option value="sankhya">Sankhya</option>
                         <option value="queue">Fila (pendentes/erros)</option>
                     </select>
-                    <label class="filter-label">Comparar automatico</label>
-                    <label class="switch">
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;">
                         <input type="checkbox" id="autoCompareToggle" onchange="toggleAutoCompare()">
-                        <span class="switch-slider"></span>
+                        Auto comparar FC
                     </label>
                 </div>
             </div>
 
             <div class="filters">
-                <div class="filter-group">
-                    <span class="filter-label">Status Fila</span>
-                    <select id="filterStatus" class="form-input" onchange="loadEstoque()">
-                        <option value="">Todos</option>
-                        <option value="PENDENTE">Pendente</option>
-                        <option value="PROCESSANDO">Processando</option>
-                        <option value="ENVIADO">Enviado</option>
-                        <option value="ERRO">Erro</option>
-                        <option value="ERRO_FATAL">Erro Fatal</option>
-                    </select>
-                </div>
-                <!-- Data Inicio/Fim removidos -->
+                <!-- Status Fila e Data Inicio/Fim removidos -->
                 <div class="filter-group">
                     <span class="filter-label">SKU</span>
                     <input type="text" id="filterSku" class="form-input" placeholder="Buscar..."
@@ -392,11 +380,7 @@
                     <input type="number" id="filterCodLocal" class="form-input" placeholder="Local"
                            onkeyup="debounceSearch()">
                 </div>
-                <div class="filter-group">
-                    <span class="filter-label">Empresa</span>
-                    <input type="number" id="filterCodEmp" class="form-input" placeholder="Empresa"
-                           onkeyup="debounceSearch()">
-                </div>
+                <!-- Empresa removido -->
                 <div class="filter-group" style="justify-content: flex-end;">
                     <button class="btn btn-filter" onclick="loadEstoque()">
                         Filtrar
@@ -406,8 +390,7 @@
 
             <div class="card-header">
                 <div class="toggle-row">
-                    <button class="btn btn-primary" onclick="forcarSyncSelecionados()">Forcar Sync Selecionados</button>
-                    <button class="btn btn-secondary" onclick="reprocessarSelecionados()">Reprocessar Selecionados</button>
+                    <button class="btn btn-primary" onclick="forcarSyncSelecionados()">Sincronizar Selecionados</button>
                     <button class="btn btn-secondary" onclick="compararSelecionados()">Comparar Selecionados</button>
                 </div>
             </div>
@@ -424,13 +407,12 @@
                             <th class="sortable" data-col="estoque" onclick="sortBy('estoque','num')">Estoque</th>
                             <th>FC Estoque</th>
                             <th>Delta</th>
-                            <th class="sortable" data-col="queueStatus" onclick="sortBy('queueStatus')">Status Fila</th>
                             <th>Acoes</th>
                         </tr>
                     </thead>
                     <tbody id="estoqueTable">
                         <tr>
-                            <td colspan="10" class="empty-state">Carregando...</td>
+                            <td colspan="9" class="empty-state">Carregando...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -588,11 +570,9 @@
                     <td>${formatNumber(item.estoque)}</td>
                     <td id="fc-${key}">${formatNumber(item.estoqueFastchannel)}</td>
                     <td id="delta-${key}">${formatNumber(item.delta)}</td>
-                    <td>${getStatusPill(item.queueStatus)}</td>
                     <td>
                         <button class="btn btn-secondary btn-sm" onclick="compararItem(${idx})">Comparar</button>
-                        <button class="btn btn-secondary btn-sm" onclick="forcarSyncItem(${idx})">Forcar</button>
-                        <button class="btn btn-secondary btn-sm" onclick="reprocessarItem(${idx})">Reprocessar</button>
+                        <button class="btn btn-secondary btn-sm" onclick="forcarSyncItem(${idx})">Sincronizar</button>
                     </td>
                 </tr>`;
             }).join('');
@@ -735,12 +715,12 @@
         function buildFilters() {
             return {
                 includeFc: document.getElementById('autoCompareToggle').checked,
-                status: document.getElementById('filterStatus').value,
+                // status removido
                 // dataInicio/dataFim removidos
                 sku: document.getElementById('filterSku').value,
                 codProd: document.getElementById('filterCodProd').value,
                 codLocal: document.getElementById('filterCodLocal').value,
-                codEmp: document.getElementById('filterCodEmp').value,
+                // codEmp removido
                 page: currentPage,
                 pageSize: pageSize,
                 source: document.getElementById('sourceSelect').value
@@ -754,7 +734,7 @@
 
         async function loadEstoque() {
             const tbody = document.getElementById('estoqueTable');
-            tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
             selected = new Set();
             document.getElementById('checkAll').checked = false;
 
@@ -771,11 +751,11 @@
                         await compareBatch(data.items);
                     }
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">Nenhum registro encontrado</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">Nenhum registro encontrado</td></tr>';
                     updatePagination(0);
                 }
             } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="10" class="empty-state">Erro: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Erro: ${e.message}</td></tr>`;
             }
         }
 
