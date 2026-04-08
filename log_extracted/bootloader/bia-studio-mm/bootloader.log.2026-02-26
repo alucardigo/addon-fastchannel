@@ -1,0 +1,28 @@
+26/02/2026 06:08:46 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+26/02/2026 06:08:46 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+26/02/2026 06:08:47 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+26/02/2026 06:08:47 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'bia-studio-mm' no pacote 'br.com.sankhya.bia-studio-mm.model.scripts'.
+26/02/2026 06:08:47 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [bia-studio-mm] finalizando inicialização...
+26/02/2026 06:08:47 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [bia-studio-mm]...
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.BootModuleServletContextListener - java.lang.NullPointerException
+26/02/2026 07:44:19 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:47:48 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+26/02/2026 07:47:48 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+26/02/2026 07:47:48 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+26/02/2026 07:47:48 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'bia-studio-mm' no pacote 'br.com.sankhya.bia-studio-mm.model.scripts'.
+26/02/2026 07:47:48 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [bia-studio-mm] finalizando inicialização...
+26/02/2026 07:47:48 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+26/02/2026 10:20:43 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [bia-studio-mm]...
+26/02/2026 10:25:06 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+26/02/2026 10:25:06 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+26/02/2026 10:25:06 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+26/02/2026 10:25:06 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'bia-studio-mm' no pacote 'br.com.sankhya.bia-studio-mm.model.scripts'.
+26/02/2026 10:25:06 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [bia-studio-mm] finalizando inicialização...

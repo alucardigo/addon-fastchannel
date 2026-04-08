@@ -1,0 +1,16 @@
+03/03/2026 06:08:42 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+03/03/2026 06:08:42 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+03/03/2026 06:08:42 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+03/03/2026 06:08:42 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando importacao do dicionario de dados
+03/03/2026 06:08:42 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+03/03/2026 06:08:42 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+03/03/2026 06:08:42 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+03/03/2026 06:08:42 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+03/03/2026 19:08:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+03/03/2026 19:08:13 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+03/03/2026 19:08:13 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+03/03/2026 19:08:13 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando importacao do dicionario de dados
+03/03/2026 19:08:13 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+03/03/2026 19:08:13 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+03/03/2026 19:08:13 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+03/03/2026 19:08:13 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

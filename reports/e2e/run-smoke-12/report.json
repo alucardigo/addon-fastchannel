@@ -1,0 +1,50 @@
+{
+  "startedAt": "2026-02-23T20:03:52.929Z",
+  "status": "failed",
+  "config": {
+    "baseUrl": "http://100.72.97.11:8080/mge/",
+    "user": "sup",
+    "headless": true,
+    "slowMoMs": 0,
+    "actionTimeoutMs": 30000,
+    "longTimeoutMs": 360000,
+    "outDir": "reports/e2e/run-smoke-12"
+  },
+  "steps": [
+    {
+      "name": "login-mge",
+      "startedAt": "2026-02-23T20:03:53.152Z",
+      "status": "passed",
+      "data": {
+        "url": "http://100.72.97.11:8080/mge/system.jsp"
+      },
+      "finishedAt": "2026-02-23T20:04:10.285Z",
+      "durationMs": 17133,
+      "screenshot": "reports\\e2e\\run-smoke-12\\screenshots\\01-login-mge.png"
+    },
+    {
+      "name": "open-addon-through-menu-search",
+      "startedAt": "2026-02-23T20:04:10.412Z",
+      "status": "passed",
+      "data": {
+        "openedBy": "/Pedidos Addon-FastChannel/i",
+        "title": "Fastchannel - Pedidos"
+      },
+      "finishedAt": "2026-02-23T20:04:14.510Z",
+      "durationMs": 4098,
+      "screenshot": "reports\\e2e\\run-smoke-12\\screenshots\\02-open-addon-through-menu-search.png"
+    },
+    {
+      "name": "pedidos-importar",
+      "startedAt": "2026-02-23T20:04:15.043Z",
+      "status": "failed",
+      "error": "Frame do Addon Fastchannel nao encontrado",
+      "finishedAt": "2026-02-23T20:05:16.402Z",
+      "durationMs": 61359,
+      "screenshot": "reports\\e2e\\run-smoke-12\\screenshots\\03-pedidos-importar-failed.png"
+    }
+  ],
+  "dialogs": [],
+  "fatalError": "Frame do Addon Fastchannel nao encontrado",
+  "finishedAt": "2026-02-23T20:05:16.403Z"
+}

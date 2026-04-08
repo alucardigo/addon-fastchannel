@@ -1,0 +1,22 @@
+04/11/2025 06:08:35 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+04/11/2025 06:08:35 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Script TABLE TSSBNR.TSSBNR ignorado por condição de execução
+04/11/2025 06:08:35 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Script COLUMN TSSBNR.IS_SIGNED ignorado por condição de execução
+04/11/2025 06:08:35 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Fim do processamento dos scripts.....
+04/11/2025 06:08:35 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Iniciando importacao do dicionario de dados
+04/11/2025 06:08:36 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Não há hooks para serem registrados.
+04/11/2025 06:08:36 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.mm.place.listener.AddonValidatorBootModuleListener.
+04/11/2025 06:08:36 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.mm.place.listener.AddonValidatorBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/11/2025 06:08:36 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'placemm'...
+04/11/2025 06:08:36 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+04/11/2025 19:50:33 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [placemm]...
+04/11/2025 19:50:33 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+04/11/2025 19:55:43 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+04/11/2025 19:55:43 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Script TABLE TSSBNR.TSSBNR ignorado por condição de execução
+04/11/2025 19:55:43 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Script COLUMN TSSBNR.IS_SIGNED ignorado por condição de execução
+04/11/2025 19:55:43 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Fim do processamento dos scripts.....
+04/11/2025 19:55:43 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Iniciando importacao do dicionario de dados
+04/11/2025 19:55:43 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [placemm - ddmigration] - Não há hooks para serem registrados.
+04/11/2025 19:55:43 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.mm.place.listener.AddonValidatorBootModuleListener.
+04/11/2025 19:55:43 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.mm.place.listener.AddonValidatorBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/11/2025 19:55:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'placemm'...
+04/11/2025 19:55:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

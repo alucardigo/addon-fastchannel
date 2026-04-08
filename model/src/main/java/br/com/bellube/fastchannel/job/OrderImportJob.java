@@ -11,13 +11,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Job Agendado para Importação de Pedidos do Fastchannel.
+ * Job Agendado para Importacao de Pedidos do Fastchannel.
  *
- * Executa periodicamente (configurável) para buscar novos pedidos
- * da API Fastchannel e importá-los para o Sankhya.
+ * Executa periodicamente (configuravel) para buscar novos pedidos
+ * da API Fastchannel e importa-los para o Sankhya.
  *
- * Configuração no Sankhya:
- * - Eventos Programáveis > Agendamento
+ * Configuracao no Sankhya:
+ * - Eventos Programaveis > Agendamento
  * - Classe: br.com.bellube.fastchannel.job.OrderImportJob
  * - Intervalo recomendado: 5-10 minutos
  */
@@ -61,39 +61,38 @@ public class OrderImportJob implements EventoProgramavelJava {
     }
 
     public void executeScheduler() throws Exception {
-        log.info("=== Iniciando Job de Importação de Pedidos Fastchannel ===");
+        log.info("=== Iniciando Job de Importacao de Pedidos Fastchannel ===");
 
         LogService logService = LogService.getInstance();
         FastchannelConfig config = FastchannelConfig.getInstance();
 
         try {
-            // Verificar se integração está ativa
+            // Verificar se integracao esta ativa
             if (!config.isAtivo()) {
-                log.info("Integração Fastchannel desativada. Job ignorado.");
+                log.info("Integracao Fastchannel desativada. Job ignorado.");
                 return;
             }
 
-            // Validar configuração
+            // Validar configuracao
             if (config.getClientId() == null || config.getClientSecret() == null) {
-                log.warning("Configuração Fastchannel incompleta. Job ignorado.");
-                logService.warning(LogService.OP_ORDER_IMPORT, "Configuração incompleta");
+                log.warning("Configuracao Fastchannel incompleta. Job ignorado.");
+                logService.warning(LogService.OP_ORDER_IMPORT, "Configuracao incompleta");
                 return;
             }
 
-            // Executar importação
+            // Executar importacao
             OrderService orderService = new OrderService();
             int imported = orderService.importPendingOrders();
 
-            String message = "Job concluído. " + imported + " pedidos importados.";
+            String message = "Job concluido. " + imported + " pedidos importados.";
             log.info(message);
-            logService.info(LogService.OP_ORDER_IMPORT, message);
 
         } catch (Exception e) {
-            log.log(Level.SEVERE, "Erro no Job de Importação de Pedidos", e);
+            log.log(Level.SEVERE, "Erro no Job de Importacao de Pedidos", e);
             logService.error(LogService.OP_ORDER_IMPORT, "Erro no job", e);
             throw e;
         }
 
-        log.info("=== Job de Importação de Pedidos Finalizado ===");
+        log.info("=== Job de Importacao de Pedidos Finalizado ===");
     }
 }

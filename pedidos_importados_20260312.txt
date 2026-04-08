@@ -1,0 +1,1005 @@
+=== PEDIDOS IMPORTADOS VIA INTEGRAÇÃO FASTCHANNEL ===
+Fonte: server.log_20260312140951.zip
+Data de extração: 2026-03-12 15:40:09
+
+Total de pedidos únicos: 331
+Total de tentativas de importação: 509
+
+=== PEDIDOS ÚNICOS (ORDER_ID FastChannel) ===
+3961
+3963
+3964
+3968
+3970
+3971
+3974
+3975
+3979
+3980
+3984
+3988
+3989
+3990
+3991
+3992
+3993
+3994
+3995
+3999
+4000
+4002
+4005
+4007
+4008
+4011
+4012
+4013
+4014
+4016
+4017
+4021
+4023
+4024
+4026
+4029
+4031
+4032
+4034
+4035
+4037
+4038
+4039
+4040
+4042
+4043
+4044
+4048
+4049
+4050
+4051
+4052
+4055
+4056
+4057
+4058
+4059
+4061
+4062
+4063
+4064
+4065
+4066
+4067
+4068
+4069
+4070
+4071
+4072
+4074
+4075
+4076
+4081
+4083
+4084
+4091
+4092
+4093
+4094
+4097
+4104
+4106
+4107
+4108
+4109
+4110
+4111
+4112
+4117
+4120
+4122
+4124
+4125
+4126
+4129
+4131
+4132
+4133
+4134
+4136
+4137
+4138
+4139
+4141
+4142
+4143
+4144
+4145
+4146
+4147
+4149
+4150
+4151
+4153
+4155
+4158
+4161
+4163
+4164
+4165
+4166
+4168
+4170
+4171
+4173
+4174
+4178
+4179
+4180
+4181
+4183
+4184
+4187
+4189
+4190
+4193
+4194
+4195
+4196
+4197
+4198
+4199
+4200
+4202
+4203
+4205
+4206
+4207
+4210
+4215
+4218
+4220
+4221
+4224
+4227
+4228
+4230
+4231
+4232
+4233
+4234
+4235
+4236
+4237
+4240
+4241
+4244
+4245
+4246
+4247
+4248
+4249
+4250
+4252
+4254
+4256
+4258
+4259
+4260
+4261
+4262
+4263
+4264
+4265
+4266
+4268
+4269
+4271
+4272
+4273
+4275
+4276
+4277
+4278
+4279
+4280
+4281
+4283
+4284
+4286
+4288
+4289
+4290
+4291
+4292
+4294
+4295
+4296
+4298
+4299
+4300
+4301
+4303
+4304
+4305
+4308
+4309
+4310
+4311
+4312
+4314
+4315
+4316
+4318
+4320
+4322
+4323
+4324
+4325
+4326
+4327
+4328
+4330
+4331
+4332
+4333
+4334
+4335
+4336
+4338
+4339
+4342
+4343
+4344
+4345
+4348
+4349
+4351
+4352
+4353
+4354
+4356
+4357
+4358
+4359
+4361
+4362
+4363
+4364
+4365
+4366
+4367
+4368
+4369
+4371
+4372
+4373
+4375
+4376
+4377
+4378
+4380
+4381
+4382
+4384
+4385
+4386
+4389
+4390
+4392
+4393
+4394
+4395
+4396
+4397
+4398
+4399
+4400
+4401
+4404
+4405
+4406
+4410
+4411
+4412
+4415
+4416
+4419
+4421
+4422
+4423
+4424
+4425
+4426
+4427
+4428
+4429
+4430
+4431
+4432
+4433
+4434
+4435
+4436
+4437
+4445
+4446
+4447
+4448
+4464
+4490
+4491
+4492
+4495
+4496
+4498
+4499
+4500
+4503
+4504
+4505
+
+=== CONTAGEM DE TENTATIVAS POR PEDIDO (importações repetidas = BUG) ===
+     25 Importando pedido: 4504
+     25 Importando pedido: 4503
+     25 Importando pedido: 4500
+     25 Importando pedido: 4499
+     24 Importando pedido: 4498
+     13 Importando pedido: 4496
+     13 Importando pedido: 4495
+     13 Importando pedido: 4492
+     12 Importando pedido: 4491
+     12 Importando pedido: 4490
+      2 Importando pedido: 4083
+      1 Importando pedido: 4505
+      1 Importando pedido: 4464
+      1 Importando pedido: 4448
+      1 Importando pedido: 4447
+      1 Importando pedido: 4446
+      1 Importando pedido: 4445
+      1 Importando pedido: 4437
+      1 Importando pedido: 4436
+      1 Importando pedido: 4435
+      1 Importando pedido: 4434
+      1 Importando pedido: 4433
+      1 Importando pedido: 4432
+      1 Importando pedido: 4431
+      1 Importando pedido: 4430
+      1 Importando pedido: 4429
+      1 Importando pedido: 4428
+      1 Importando pedido: 4427
+      1 Importando pedido: 4426
+      1 Importando pedido: 4425
+      1 Importando pedido: 4424
+      1 Importando pedido: 4423
+      1 Importando pedido: 4422
+      1 Importando pedido: 4421
+      1 Importando pedido: 4419
+      1 Importando pedido: 4416
+      1 Importando pedido: 4415
+      1 Importando pedido: 4412
+      1 Importando pedido: 4411
+      1 Importando pedido: 4410
+      1 Importando pedido: 4406
+      1 Importando pedido: 4405
+      1 Importando pedido: 4404
+      1 Importando pedido: 4401
+      1 Importando pedido: 4400
+      1 Importando pedido: 4399
+      1 Importando pedido: 4398
+      1 Importando pedido: 4397
+      1 Importando pedido: 4396
+      1 Importando pedido: 4395
+      1 Importando pedido: 4394
+      1 Importando pedido: 4393
+      1 Importando pedido: 4392
+      1 Importando pedido: 4390
+      1 Importando pedido: 4389
+      1 Importando pedido: 4386
+      1 Importando pedido: 4385
+      1 Importando pedido: 4384
+      1 Importando pedido: 4382
+      1 Importando pedido: 4381
+      1 Importando pedido: 4380
+      1 Importando pedido: 4378
+      1 Importando pedido: 4377
+      1 Importando pedido: 4376
+      1 Importando pedido: 4375
+      1 Importando pedido: 4373
+      1 Importando pedido: 4372
+      1 Importando pedido: 4371
+      1 Importando pedido: 4369
+      1 Importando pedido: 4368
+      1 Importando pedido: 4367
+      1 Importando pedido: 4366
+      1 Importando pedido: 4365
+      1 Importando pedido: 4364
+      1 Importando pedido: 4363
+      1 Importando pedido: 4362
+      1 Importando pedido: 4361
+      1 Importando pedido: 4359
+      1 Importando pedido: 4358
+      1 Importando pedido: 4357
+      1 Importando pedido: 4356
+      1 Importando pedido: 4354
+      1 Importando pedido: 4353
+      1 Importando pedido: 4352
+      1 Importando pedido: 4351
+      1 Importando pedido: 4349
+      1 Importando pedido: 4348
+      1 Importando pedido: 4345
+      1 Importando pedido: 4344
+      1 Importando pedido: 4343
+      1 Importando pedido: 4342
+      1 Importando pedido: 4339
+      1 Importando pedido: 4338
+      1 Importando pedido: 4336
+      1 Importando pedido: 4335
+      1 Importando pedido: 4334
+      1 Importando pedido: 4333
+      1 Importando pedido: 4332
+      1 Importando pedido: 4331
+      1 Importando pedido: 4330
+      1 Importando pedido: 4328
+      1 Importando pedido: 4327
+      1 Importando pedido: 4326
+      1 Importando pedido: 4325
+      1 Importando pedido: 4324
+      1 Importando pedido: 4323
+      1 Importando pedido: 4322
+      1 Importando pedido: 4320
+      1 Importando pedido: 4318
+      1 Importando pedido: 4316
+      1 Importando pedido: 4315
+      1 Importando pedido: 4314
+      1 Importando pedido: 4312
+      1 Importando pedido: 4311
+      1 Importando pedido: 4310
+      1 Importando pedido: 4309
+      1 Importando pedido: 4308
+      1 Importando pedido: 4305
+      1 Importando pedido: 4304
+      1 Importando pedido: 4303
+      1 Importando pedido: 4301
+      1 Importando pedido: 4300
+      1 Importando pedido: 4299
+      1 Importando pedido: 4298
+      1 Importando pedido: 4296
+      1 Importando pedido: 4295
+      1 Importando pedido: 4294
+      1 Importando pedido: 4292
+      1 Importando pedido: 4291
+      1 Importando pedido: 4290
+      1 Importando pedido: 4289
+      1 Importando pedido: 4288
+      1 Importando pedido: 4286
+      1 Importando pedido: 4284
+      1 Importando pedido: 4283
+      1 Importando pedido: 4281
+      1 Importando pedido: 4280
+      1 Importando pedido: 4279
+      1 Importando pedido: 4278
+      1 Importando pedido: 4277
+      1 Importando pedido: 4276
+      1 Importando pedido: 4275
+      1 Importando pedido: 4273
+      1 Importando pedido: 4272
+      1 Importando pedido: 4271
+      1 Importando pedido: 4269
+      1 Importando pedido: 4268
+      1 Importando pedido: 4266
+      1 Importando pedido: 4265
+      1 Importando pedido: 4264
+      1 Importando pedido: 4263
+      1 Importando pedido: 4262
+      1 Importando pedido: 4261
+      1 Importando pedido: 4260
+      1 Importando pedido: 4259
+      1 Importando pedido: 4258
+      1 Importando pedido: 4256
+      1 Importando pedido: 4254
+      1 Importando pedido: 4252
+      1 Importando pedido: 4250
+      1 Importando pedido: 4249
+      1 Importando pedido: 4248
+      1 Importando pedido: 4247
+      1 Importando pedido: 4246
+      1 Importando pedido: 4245
+      1 Importando pedido: 4244
+      1 Importando pedido: 4241
+      1 Importando pedido: 4240
+      1 Importando pedido: 4237
+      1 Importando pedido: 4236
+      1 Importando pedido: 4235
+      1 Importando pedido: 4234
+      1 Importando pedido: 4233
+      1 Importando pedido: 4232
+      1 Importando pedido: 4231
+      1 Importando pedido: 4230
+      1 Importando pedido: 4228
+      1 Importando pedido: 4227
+      1 Importando pedido: 4224
+      1 Importando pedido: 4221
+      1 Importando pedido: 4220
+      1 Importando pedido: 4218
+      1 Importando pedido: 4215
+      1 Importando pedido: 4210
+      1 Importando pedido: 4207
+      1 Importando pedido: 4206
+      1 Importando pedido: 4205
+      1 Importando pedido: 4203
+      1 Importando pedido: 4202
+      1 Importando pedido: 4200
+      1 Importando pedido: 4199
+      1 Importando pedido: 4198
+      1 Importando pedido: 4197
+      1 Importando pedido: 4196
+      1 Importando pedido: 4195
+      1 Importando pedido: 4194
+      1 Importando pedido: 4193
+      1 Importando pedido: 4190
+      1 Importando pedido: 4189
+      1 Importando pedido: 4187
+      1 Importando pedido: 4184
+      1 Importando pedido: 4183
+      1 Importando pedido: 4181
+      1 Importando pedido: 4180
+      1 Importando pedido: 4179
+      1 Importando pedido: 4178
+      1 Importando pedido: 4174
+      1 Importando pedido: 4173
+      1 Importando pedido: 4171
+      1 Importando pedido: 4170
+      1 Importando pedido: 4168
+      1 Importando pedido: 4166
+      1 Importando pedido: 4165
+      1 Importando pedido: 4164
+      1 Importando pedido: 4163
+      1 Importando pedido: 4161
+      1 Importando pedido: 4158
+      1 Importando pedido: 4155
+      1 Importando pedido: 4153
+      1 Importando pedido: 4151
+      1 Importando pedido: 4150
+      1 Importando pedido: 4149
+      1 Importando pedido: 4147
+      1 Importando pedido: 4146
+      1 Importando pedido: 4145
+      1 Importando pedido: 4144
+      1 Importando pedido: 4143
+      1 Importando pedido: 4142
+      1 Importando pedido: 4141
+      1 Importando pedido: 4139
+      1 Importando pedido: 4138
+      1 Importando pedido: 4137
+      1 Importando pedido: 4136
+      1 Importando pedido: 4134
+      1 Importando pedido: 4133
+      1 Importando pedido: 4132
+      1 Importando pedido: 4131
+      1 Importando pedido: 4129
+      1 Importando pedido: 4126
+      1 Importando pedido: 4125
+      1 Importando pedido: 4124
+      1 Importando pedido: 4122
+      1 Importando pedido: 4120
+      1 Importando pedido: 4117
+      1 Importando pedido: 4112
+      1 Importando pedido: 4111
+      1 Importando pedido: 4110
+      1 Importando pedido: 4109
+      1 Importando pedido: 4108
+      1 Importando pedido: 4107
+      1 Importando pedido: 4106
+      1 Importando pedido: 4104
+      1 Importando pedido: 4097
+      1 Importando pedido: 4094
+      1 Importando pedido: 4093
+      1 Importando pedido: 4092
+      1 Importando pedido: 4091
+      1 Importando pedido: 4084
+      1 Importando pedido: 4081
+      1 Importando pedido: 4076
+      1 Importando pedido: 4075
+      1 Importando pedido: 4074
+      1 Importando pedido: 4072
+      1 Importando pedido: 4071
+      1 Importando pedido: 4070
+      1 Importando pedido: 4069
+      1 Importando pedido: 4068
+      1 Importando pedido: 4067
+      1 Importando pedido: 4066
+      1 Importando pedido: 4065
+      1 Importando pedido: 4064
+      1 Importando pedido: 4063
+      1 Importando pedido: 4062
+      1 Importando pedido: 4061
+      1 Importando pedido: 4059
+      1 Importando pedido: 4058
+      1 Importando pedido: 4057
+      1 Importando pedido: 4056
+      1 Importando pedido: 4055
+      1 Importando pedido: 4052
+      1 Importando pedido: 4051
+      1 Importando pedido: 4050
+      1 Importando pedido: 4049
+      1 Importando pedido: 4048
+      1 Importando pedido: 4044
+      1 Importando pedido: 4043
+      1 Importando pedido: 4042
+      1 Importando pedido: 4040
+      1 Importando pedido: 4039
+      1 Importando pedido: 4038
+      1 Importando pedido: 4037
+      1 Importando pedido: 4035
+      1 Importando pedido: 4034
+      1 Importando pedido: 4032
+      1 Importando pedido: 4031
+      1 Importando pedido: 4029
+      1 Importando pedido: 4026
+      1 Importando pedido: 4024
+      1 Importando pedido: 4023
+      1 Importando pedido: 4021
+      1 Importando pedido: 4017
+      1 Importando pedido: 4016
+      1 Importando pedido: 4014
+      1 Importando pedido: 4013
+      1 Importando pedido: 4012
+      1 Importando pedido: 4011
+      1 Importando pedido: 4008
+      1 Importando pedido: 4007
+      1 Importando pedido: 4005
+      1 Importando pedido: 4002
+      1 Importando pedido: 4000
+      1 Importando pedido: 3999
+      1 Importando pedido: 3995
+      1 Importando pedido: 3994
+      1 Importando pedido: 3993
+      1 Importando pedido: 3992
+      1 Importando pedido: 3991
+      1 Importando pedido: 3990
+      1 Importando pedido: 3989
+      1 Importando pedido: 3988
+      1 Importando pedido: 3984
+      1 Importando pedido: 3980
+      1 Importando pedido: 3979
+      1 Importando pedido: 3975
+      1 Importando pedido: 3974
+      1 Importando pedido: 3971
+      1 Importando pedido: 3970
+      1 Importando pedido: 3968
+      1 Importando pedido: 3964
+      1 Importando pedido: 3963
+      1 Importando pedido: 3961
+
+=== PRIMEIRA E ÚLTIMA TENTATIVA POR PEDIDO ===
+Pedido 3961 | Tentativas: 1 | Primeira: 2026-03-12 14:10:38 | Última: 2026-03-12 14:10:38
+Pedido 3963 | Tentativas: 1 | Primeira: 2026-03-12 14:10:15 | Última: 2026-03-12 14:10:15
+Pedido 3964 | Tentativas: 1 | Primeira: 2026-03-12 14:09:44 | Última: 2026-03-12 14:09:44
+Pedido 3968 | Tentativas: 1 | Primeira: 2026-03-12 14:09:20 | Última: 2026-03-12 14:09:20
+Pedido 3970 | Tentativas: 1 | Primeira: 2026-03-12 14:08:49 | Última: 2026-03-12 14:08:49
+Pedido 3971 | Tentativas: 1 | Primeira: 2026-03-12 14:08:26 | Última: 2026-03-12 14:08:26
+Pedido 3974 | Tentativas: 1 | Primeira: 2026-03-12 14:08:01 | Última: 2026-03-12 14:08:01
+Pedido 3975 | Tentativas: 1 | Primeira: 2026-03-12 14:07:39 | Última: 2026-03-12 14:07:39
+Pedido 3979 | Tentativas: 1 | Primeira: 2026-03-12 14:07:17 | Última: 2026-03-12 14:07:17
+Pedido 3980 | Tentativas: 1 | Primeira: 2026-03-12 14:06:54 | Última: 2026-03-12 14:06:54
+Pedido 3984 | Tentativas: 1 | Primeira: 2026-03-12 14:06:30 | Última: 2026-03-12 14:06:30
+Pedido 3988 | Tentativas: 1 | Primeira: 2026-03-12 14:06:08 | Última: 2026-03-12 14:06:08
+Pedido 3989 | Tentativas: 1 | Primeira: 2026-03-12 14:05:45 | Última: 2026-03-12 14:05:45
+Pedido 3990 | Tentativas: 1 | Primeira: 2026-03-12 14:05:22 | Última: 2026-03-12 14:05:22
+Pedido 3991 | Tentativas: 1 | Primeira: 2026-03-12 14:04:59 | Última: 2026-03-12 14:04:59
+Pedido 3992 | Tentativas: 1 | Primeira: 2026-03-12 14:04:36 | Última: 2026-03-12 14:04:36
+Pedido 3993 | Tentativas: 1 | Primeira: 2026-03-12 14:04:14 | Última: 2026-03-12 14:04:14
+Pedido 3994 | Tentativas: 1 | Primeira: 2026-03-12 14:03:48 | Última: 2026-03-12 14:03:48
+Pedido 3995 | Tentativas: 1 | Primeira: 2026-03-12 14:03:20 | Última: 2026-03-12 14:03:20
+Pedido 3999 | Tentativas: 1 | Primeira: 2026-03-12 14:02:55 | Última: 2026-03-12 14:02:55
+Pedido 4000 | Tentativas: 1 | Primeira: 2026-03-12 14:02:32 | Última: 2026-03-12 14:02:32
+Pedido 4002 | Tentativas: 1 | Primeira: 2026-03-12 14:02:08 | Última: 2026-03-12 14:02:08
+Pedido 4005 | Tentativas: 1 | Primeira: 2026-03-12 14:01:40 | Última: 2026-03-12 14:01:40
+Pedido 4007 | Tentativas: 1 | Primeira: 2026-03-12 14:01:16 | Última: 2026-03-12 14:01:16
+Pedido 4008 | Tentativas: 1 | Primeira: 2026-03-12 14:00:52 | Última: 2026-03-12 14:00:52
+Pedido 4011 | Tentativas: 1 | Primeira: 2026-03-12 13:59:53 | Última: 2026-03-12 13:59:53
+Pedido 4012 | Tentativas: 1 | Primeira: 2026-03-12 13:59:30 | Última: 2026-03-12 13:59:30
+Pedido 4013 | Tentativas: 1 | Primeira: 2026-03-12 13:59:07 | Última: 2026-03-12 13:59:07
+Pedido 4014 | Tentativas: 1 | Primeira: 2026-03-12 13:58:44 | Última: 2026-03-12 13:58:44
+Pedido 4016 | Tentativas: 1 | Primeira: 2026-03-12 13:58:22 | Última: 2026-03-12 13:58:22
+Pedido 4017 | Tentativas: 1 | Primeira: 2026-03-12 13:58:01 | Última: 2026-03-12 13:58:01
+Pedido 4021 | Tentativas: 1 | Primeira: 2026-03-12 13:57:40 | Última: 2026-03-12 13:57:40
+Pedido 4023 | Tentativas: 1 | Primeira: 2026-03-12 13:57:17 | Última: 2026-03-12 13:57:17
+Pedido 4024 | Tentativas: 1 | Primeira: 2026-03-12 13:56:56 | Última: 2026-03-12 13:56:56
+Pedido 4026 | Tentativas: 1 | Primeira: 2026-03-12 13:56:33 | Última: 2026-03-12 13:56:33
+Pedido 4029 | Tentativas: 1 | Primeira: 2026-03-12 13:56:09 | Última: 2026-03-12 13:56:09
+Pedido 4031 | Tentativas: 1 | Primeira: 2026-03-12 13:55:46 | Última: 2026-03-12 13:55:46
+Pedido 4032 | Tentativas: 1 | Primeira: 2026-03-12 13:55:25 | Última: 2026-03-12 13:55:25
+Pedido 4034 | Tentativas: 1 | Primeira: 2026-03-12 13:55:00 | Última: 2026-03-12 13:55:00
+Pedido 4035 | Tentativas: 1 | Primeira: 2026-03-12 13:54:38 | Última: 2026-03-12 13:54:38
+Pedido 4037 | Tentativas: 1 | Primeira: 2026-03-12 13:54:11 | Última: 2026-03-12 13:54:11
+Pedido 4038 | Tentativas: 1 | Primeira: 2026-03-12 13:53:49 | Última: 2026-03-12 13:53:49
+Pedido 4039 | Tentativas: 1 | Primeira: 2026-03-12 13:53:27 | Última: 2026-03-12 13:53:27
+Pedido 4040 | Tentativas: 1 | Primeira: 2026-03-12 13:53:05 | Última: 2026-03-12 13:53:05
+Pedido 4042 | Tentativas: 1 | Primeira: 2026-03-12 13:52:42 | Última: 2026-03-12 13:52:42
+Pedido 4043 | Tentativas: 1 | Primeira: 2026-03-12 13:52:19 | Última: 2026-03-12 13:52:19
+Pedido 4044 | Tentativas: 1 | Primeira: 2026-03-12 13:51:57 | Última: 2026-03-12 13:51:57
+Pedido 4048 | Tentativas: 1 | Primeira: 2026-03-12 13:51:33 | Última: 2026-03-12 13:51:33
+Pedido 4049 | Tentativas: 1 | Primeira: 2026-03-12 13:51:10 | Última: 2026-03-12 13:51:10
+Pedido 4050 | Tentativas: 1 | Primeira: 2026-03-12 13:50:48 | Última: 2026-03-12 13:50:48
+Pedido 4051 | Tentativas: 1 | Primeira: 2026-03-12 13:50:26 | Última: 2026-03-12 13:50:26
+Pedido 4052 | Tentativas: 1 | Primeira: 2026-03-12 13:50:04 | Última: 2026-03-12 13:50:04
+Pedido 4055 | Tentativas: 1 | Primeira: 2026-03-12 13:49:39 | Última: 2026-03-12 13:49:39
+Pedido 4056 | Tentativas: 1 | Primeira: 2026-03-12 13:49:16 | Última: 2026-03-12 13:49:16
+Pedido 4057 | Tentativas: 1 | Primeira: 2026-03-12 13:48:52 | Última: 2026-03-12 13:48:52
+Pedido 4058 | Tentativas: 1 | Primeira: 2026-03-12 13:48:31 | Última: 2026-03-12 13:48:31
+Pedido 4059 | Tentativas: 1 | Primeira: 2026-03-12 13:48:09 | Última: 2026-03-12 13:48:09
+Pedido 4061 | Tentativas: 1 | Primeira: 2026-03-12 13:47:46 | Última: 2026-03-12 13:47:46
+Pedido 4062 | Tentativas: 1 | Primeira: 2026-03-12 13:47:25 | Última: 2026-03-12 13:47:25
+Pedido 4063 | Tentativas: 1 | Primeira: 2026-03-12 13:47:02 | Última: 2026-03-12 13:47:02
+Pedido 4064 | Tentativas: 1 | Primeira: 2026-03-12 13:45:21 | Última: 2026-03-12 13:45:21
+Pedido 4065 | Tentativas: 1 | Primeira: 2026-03-12 13:44:59 | Última: 2026-03-12 13:44:59
+Pedido 4066 | Tentativas: 1 | Primeira: 2026-03-12 13:44:38 | Última: 2026-03-12 13:44:38
+Pedido 4067 | Tentativas: 1 | Primeira: 2026-03-12 13:44:16 | Última: 2026-03-12 13:44:16
+Pedido 4068 | Tentativas: 1 | Primeira: 2026-03-12 13:43:38 | Última: 2026-03-12 13:43:38
+Pedido 4069 | Tentativas: 1 | Primeira: 2026-03-12 13:43:01 | Última: 2026-03-12 13:43:01
+Pedido 4070 | Tentativas: 1 | Primeira: 2026-03-12 13:42:36 | Última: 2026-03-12 13:42:36
+Pedido 4071 | Tentativas: 1 | Primeira: 2026-03-12 13:42:04 | Última: 2026-03-12 13:42:04
+Pedido 4072 | Tentativas: 1 | Primeira: 2026-03-12 13:41:36 | Última: 2026-03-12 13:41:36
+Pedido 4074 | Tentativas: 1 | Primeira: 2026-03-12 13:41:08 | Última: 2026-03-12 13:41:08
+Pedido 4075 | Tentativas: 1 | Primeira: 2026-03-12 13:40:39 | Última: 2026-03-12 13:40:39
+Pedido 4076 | Tentativas: 1 | Primeira: 2026-03-12 13:40:04 | Última: 2026-03-12 13:40:04
+Pedido 4081 | Tentativas: 1 | Primeira: 2026-03-12 13:39:28 | Última: 2026-03-12 13:39:28
+Pedido 4083 | Tentativas: 2 | Primeira: 2026-03-12 13:39:00 | Última: 2026-03-12 13:39:28
+Pedido 4084 | Tentativas: 1 | Primeira: 2026-03-12 13:38:39 | Última: 2026-03-12 13:38:39
+Pedido 4091 | Tentativas: 1 | Primeira: 2026-03-12 13:38:04 | Última: 2026-03-12 13:38:04
+Pedido 4092 | Tentativas: 1 | Primeira: 2026-03-12 13:37:34 | Última: 2026-03-12 13:37:34
+Pedido 4093 | Tentativas: 1 | Primeira: 2026-03-12 13:36:54 | Última: 2026-03-12 13:36:54
+Pedido 4094 | Tentativas: 1 | Primeira: 2026-03-12 13:36:26 | Última: 2026-03-12 13:36:26
+Pedido 4097 | Tentativas: 1 | Primeira: 2026-03-12 13:35:49 | Última: 2026-03-12 13:35:49
+Pedido 4104 | Tentativas: 1 | Primeira: 2026-03-12 13:35:15 | Última: 2026-03-12 13:35:15
+Pedido 4106 | Tentativas: 1 | Primeira: 2026-03-12 13:33:13 | Última: 2026-03-12 13:33:13
+Pedido 4107 | Tentativas: 1 | Primeira: 2026-03-12 13:31:54 | Última: 2026-03-12 13:31:54
+Pedido 4108 | Tentativas: 1 | Primeira: 2026-03-12 13:31:17 | Última: 2026-03-12 13:31:17
+Pedido 4109 | Tentativas: 1 | Primeira: 2026-03-12 13:30:39 | Ultima: 2026-03-12 13:30:39
+Pedido 4110 | Tentativas: 1 | Primeira: 2026-03-12 13:29:48 | Ultima: 2026-03-12 13:29:48
+Pedido 4111 | Tentativas: 1 | Primeira: 2026-03-12 13:29:19 | Ultima: 2026-03-12 13:29:19
+Pedido 4112 | Tentativas: 1 | Primeira: 2026-03-12 13:28:44 | Ultima: 2026-03-12 13:28:44
+Pedido 4117 | Tentativas: 1 | Primeira: 2026-03-12 13:27:57 | Ultima: 2026-03-12 13:27:57
+Pedido 4120 | Tentativas: 1 | Primeira: 2026-03-12 13:27:31 | Ultima: 2026-03-12 13:27:31
+Pedido 4122 | Tentativas: 1 | Primeira: 2026-03-12 13:26:59 | Ultima: 2026-03-12 13:26:59
+Pedido 4124 | Tentativas: 1 | Primeira: 2026-03-12 13:26:35 | Ultima: 2026-03-12 13:26:35
+Pedido 4125 | Tentativas: 1 | Primeira: 2026-03-12 13:26:13 | Ultima: 2026-03-12 13:26:13
+Pedido 4126 | Tentativas: 1 | Primeira: 2026-03-12 13:25:51 | Ultima: 2026-03-12 13:25:51
+Pedido 4129 | Tentativas: 1 | Primeira: 2026-03-12 13:25:28 | Ultima: 2026-03-12 13:25:28
+Pedido 4131 | Tentativas: 1 | Primeira: 2026-03-12 13:25:07 | Ultima: 2026-03-12 13:25:07
+Pedido 4132 | Tentativas: 1 | Primeira: 2026-03-12 13:24:42 | Ultima: 2026-03-12 13:24:42
+Pedido 4133 | Tentativas: 1 | Primeira: 2026-03-12 13:24:19 | Ultima: 2026-03-12 13:24:19
+Pedido 4134 | Tentativas: 1 | Primeira: 2026-03-12 13:23:56 | Ultima: 2026-03-12 13:23:56
+Pedido 4136 | Tentativas: 1 | Primeira: 2026-03-12 13:23:30 | Ultima: 2026-03-12 13:23:30
+Pedido 4137 | Tentativas: 1 | Primeira: 2026-03-12 13:23:04 | Ultima: 2026-03-12 13:23:04
+Pedido 4138 | Tentativas: 1 | Primeira: 2026-03-12 13:22:41 | Ultima: 2026-03-12 13:22:41
+Pedido 4139 | Tentativas: 1 | Primeira: 2026-03-12 13:22:13 | Ultima: 2026-03-12 13:22:13
+Pedido 4141 | Tentativas: 1 | Primeira: 2026-03-12 13:21:48 | Ultima: 2026-03-12 13:21:48
+Pedido 4142 | Tentativas: 1 | Primeira: 2026-03-12 13:21:16 | Ultima: 2026-03-12 13:21:16
+Pedido 4143 | Tentativas: 1 | Primeira: 2026-03-12 13:20:53 | Ultima: 2026-03-12 13:20:53
+Pedido 4144 | Tentativas: 1 | Primeira: 2026-03-12 13:20:32 | Ultima: 2026-03-12 13:20:32
+Pedido 4145 | Tentativas: 1 | Primeira: 2026-03-12 13:20:09 | Ultima: 2026-03-12 13:20:09
+Pedido 4146 | Tentativas: 1 | Primeira: 2026-03-12 13:19:22 | Ultima: 2026-03-12 13:19:22
+Pedido 4147 | Tentativas: 1 | Primeira: 2026-03-12 13:18:58 | Ultima: 2026-03-12 13:18:58
+Pedido 4149 | Tentativas: 1 | Primeira: 2026-03-12 13:18:32 | Ultima: 2026-03-12 13:18:32
+Pedido 4150 | Tentativas: 1 | Primeira: 2026-03-12 13:18:11 | Ultima: 2026-03-12 13:18:11
+Pedido 4151 | Tentativas: 1 | Primeira: 2026-03-12 13:17:49 | Ultima: 2026-03-12 13:17:49
+Pedido 4153 | Tentativas: 1 | Primeira: 2026-03-12 13:17:27 | Ultima: 2026-03-12 13:17:27
+Pedido 4155 | Tentativas: 1 | Primeira: 2026-03-12 13:17:04 | Ultima: 2026-03-12 13:17:04
+Pedido 4158 | Tentativas: 1 | Primeira: 2026-03-12 13:16:42 | Ultima: 2026-03-12 13:16:42
+Pedido 4161 | Tentativas: 1 | Primeira: 2026-03-12 13:16:21 | Ultima: 2026-03-12 13:16:21
+Pedido 4163 | Tentativas: 1 | Primeira: 2026-03-12 13:15:58 | Ultima: 2026-03-12 13:15:58
+Pedido 4164 | Tentativas: 1 | Primeira: 2026-03-12 13:15:36 | Ultima: 2026-03-12 13:15:36
+Pedido 4165 | Tentativas: 1 | Primeira: 2026-03-12 13:15:14 | Ultima: 2026-03-12 13:15:14
+Pedido 4166 | Tentativas: 1 | Primeira: 2026-03-12 13:14:52 | Ultima: 2026-03-12 13:14:52
+Pedido 4168 | Tentativas: 1 | Primeira: 2026-03-12 13:14:27 | Ultima: 2026-03-12 13:14:27
+Pedido 4170 | Tentativas: 1 | Primeira: 2026-03-12 13:13:59 | Ultima: 2026-03-12 13:13:59
+Pedido 4171 | Tentativas: 1 | Primeira: 2026-03-12 13:13:09 | Ultima: 2026-03-12 13:13:09
+Pedido 4173 | Tentativas: 1 | Primeira: 2026-03-12 13:12:44 | Ultima: 2026-03-12 13:12:44
+Pedido 4174 | Tentativas: 1 | Primeira: 2026-03-12 13:12:21 | Ultima: 2026-03-12 13:12:21
+Pedido 4178 | Tentativas: 1 | Primeira: 2026-03-12 13:11:58 | Ultima: 2026-03-12 13:11:58
+Pedido 4179 | Tentativas: 1 | Primeira: 2026-03-12 13:11:36 | Ultima: 2026-03-12 13:11:36
+Pedido 4180 | Tentativas: 1 | Primeira: 2026-03-12 13:10:55 | Ultima: 2026-03-12 13:10:55
+Pedido 4181 | Tentativas: 1 | Primeira: 2026-03-12 13:10:33 | Ultima: 2026-03-12 13:10:33
+Pedido 4183 | Tentativas: 1 | Primeira: 2026-03-12 13:10:09 | Ultima: 2026-03-12 13:10:09
+Pedido 4184 | Tentativas: 1 | Primeira: 2026-03-12 13:09:47 | Ultima: 2026-03-12 13:09:47
+Pedido 4187 | Tentativas: 1 | Primeira: 2026-03-12 13:09:24 | Ultima: 2026-03-12 13:09:24
+Pedido 4189 | Tentativas: 1 | Primeira: 2026-03-12 13:08:38 | Ultima: 2026-03-12 13:08:38
+Pedido 4190 | Tentativas: 1 | Primeira: 2026-03-12 13:08:15 | Ultima: 2026-03-12 13:08:15
+Pedido 4193 | Tentativas: 1 | Primeira: 2026-03-12 13:07:49 | Ultima: 2026-03-12 13:07:49
+Pedido 4194 | Tentativas: 1 | Primeira: 2026-03-12 13:07:26 | Ultima: 2026-03-12 13:07:26
+Pedido 4195 | Tentativas: 1 | Primeira: 2026-03-12 13:07:05 | Ultima: 2026-03-12 13:07:05
+Pedido 4196 | Tentativas: 1 | Primeira: 2026-03-12 13:06:43 | Ultima: 2026-03-12 13:06:43
+Pedido 4197 | Tentativas: 1 | Primeira: 2026-03-12 13:06:20 | Ultima: 2026-03-12 13:06:20
+Pedido 4198 | Tentativas: 1 | Primeira: 2026-03-12 13:05:57 | Ultima: 2026-03-12 13:05:57
+Pedido 4199 | Tentativas: 1 | Primeira: 2026-03-12 13:05:34 | Ultima: 2026-03-12 13:05:34
+Pedido 4200 | Tentativas: 1 | Primeira: 2026-03-12 13:05:11 | Ultima: 2026-03-12 13:05:11
+Pedido 4202 | Tentativas: 1 | Primeira: 2026-03-12 13:04:48 | Ultima: 2026-03-12 13:04:48
+Pedido 4203 | Tentativas: 1 | Primeira: 2026-03-12 13:04:26 | Ultima: 2026-03-12 13:04:26
+Pedido 4205 | Tentativas: 1 | Primeira: 2026-03-12 13:04:04 | Ultima: 2026-03-12 13:04:04
+Pedido 4206 | Tentativas: 1 | Primeira: 2026-03-12 13:03:41 | Ultima: 2026-03-12 13:03:41
+Pedido 4207 | Tentativas: 1 | Primeira: 2026-03-12 13:03:20 | Ultima: 2026-03-12 13:03:20
+Pedido 4210 | Tentativas: 1 | Primeira: 2026-03-12 13:02:56 | Ultima: 2026-03-12 13:02:56
+Pedido 4215 | Tentativas: 1 | Primeira: 2026-03-12 13:02:34 | Ultima: 2026-03-12 13:02:34
+Pedido 4218 | Tentativas: 1 | Primeira: 2026-03-12 13:02:13 | Ultima: 2026-03-12 13:02:13
+Pedido 4220 | Tentativas: 1 | Primeira: 2026-03-12 13:01:51 | Ultima: 2026-03-12 13:01:51
+Pedido 4221 | Tentativas: 1 | Primeira: 2026-03-12 13:01:24 | Ultima: 2026-03-12 13:01:24
+Pedido 4224 | Tentativas: 1 | Primeira: 2026-03-12 13:00:59 | Ultima: 2026-03-12 13:00:59
+Pedido 4227 | Tentativas: 1 | Primeira: 2026-03-12 13:00:37 | Ultima: 2026-03-12 13:00:37
+Pedido 4228 | Tentativas: 1 | Primeira: 2026-03-12 13:00:11 | Ultima: 2026-03-12 13:00:11
+Pedido 4230 | Tentativas: 1 | Primeira: 2026-03-12 12:59:48 | Ultima: 2026-03-12 12:59:48
+Pedido 4231 | Tentativas: 1 | Primeira: 2026-03-12 12:59:27 | Ultima: 2026-03-12 12:59:27
+Pedido 4232 | Tentativas: 1 | Primeira: 2026-03-12 12:59:05 | Ultima: 2026-03-12 12:59:05
+Pedido 4233 | Tentativas: 1 | Primeira: 2026-03-12 12:58:43 | Ultima: 2026-03-12 12:58:43
+Pedido 4234 | Tentativas: 1 | Primeira: 2026-03-12 12:58:21 | Ultima: 2026-03-12 12:58:21
+Pedido 4235 | Tentativas: 1 | Primeira: 2026-03-12 12:57:59 | Ultima: 2026-03-12 12:57:59
+Pedido 4236 | Tentativas: 1 | Primeira: 2026-03-12 12:57:36 | Ultima: 2026-03-12 12:57:36
+Pedido 4237 | Tentativas: 1 | Primeira: 2026-03-12 12:57:09 | Ultima: 2026-03-12 12:57:09
+Pedido 4240 | Tentativas: 1 | Primeira: 2026-03-12 12:56:45 | Ultima: 2026-03-12 12:56:45
+Pedido 4241 | Tentativas: 1 | Primeira: 2026-03-12 12:56:23 | Ultima: 2026-03-12 12:56:23
+Pedido 4244 | Tentativas: 1 | Primeira: 2026-03-12 12:55:59 | Ultima: 2026-03-12 12:55:59
+Pedido 4245 | Tentativas: 1 | Primeira: 2026-03-12 12:55:36 | Ultima: 2026-03-12 12:55:36
+Pedido 4246 | Tentativas: 1 | Primeira: 2026-03-12 12:55:13 | Ultima: 2026-03-12 12:55:13
+Pedido 4247 | Tentativas: 1 | Primeira: 2026-03-12 12:54:51 | Ultima: 2026-03-12 12:54:51
+Pedido 4248 | Tentativas: 1 | Primeira: 2026-03-12 12:54:29 | Ultima: 2026-03-12 12:54:29
+Pedido 4249 | Tentativas: 1 | Primeira: 2026-03-12 12:54:09 | Ultima: 2026-03-12 12:54:09
+Pedido 4250 | Tentativas: 1 | Primeira: 2026-03-12 12:53:47 | Ultima: 2026-03-12 12:53:47
+Pedido 4252 | Tentativas: 1 | Primeira: 2026-03-12 12:53:24 | Ultima: 2026-03-12 12:53:24
+Pedido 4254 | Tentativas: 1 | Primeira: 2026-03-12 12:53:02 | Ultima: 2026-03-12 12:53:02
+Pedido 4256 | Tentativas: 1 | Primeira: 2026-03-12 12:52:40 | Ultima: 2026-03-12 12:52:40
+Pedido 4258 | Tentativas: 1 | Primeira: 2026-03-12 12:52:18 | Ultima: 2026-03-12 12:52:18
+Pedido 4259 | Tentativas: 1 | Primeira: 2026-03-12 12:51:56 | Ultima: 2026-03-12 12:51:56
+Pedido 4260 | Tentativas: 1 | Primeira: 2026-03-12 12:51:33 | Ultima: 2026-03-12 12:51:33
+Pedido 4261 | Tentativas: 1 | Primeira: 2026-03-12 12:51:10 | Ultima: 2026-03-12 12:51:10
+Pedido 4262 | Tentativas: 1 | Primeira: 2026-03-12 12:50:45 | Ultima: 2026-03-12 12:50:45
+Pedido 4263 | Tentativas: 1 | Primeira: 2026-03-12 12:50:24 | Ultima: 2026-03-12 12:50:24
+Pedido 4264 | Tentativas: 1 | Primeira: 2026-03-12 12:50:01 | Ultima: 2026-03-12 12:50:01
+Pedido 4265 | Tentativas: 1 | Primeira: 2026-03-12 12:49:39 | Ultima: 2026-03-12 12:49:39
+Pedido 4266 | Tentativas: 1 | Primeira: 2026-03-12 12:49:16 | Ultima: 2026-03-12 12:49:16
+Pedido 4268 | Tentativas: 1 | Primeira: 2026-03-12 12:48:53 | Ultima: 2026-03-12 12:48:53
+Pedido 4269 | Tentativas: 1 | Primeira: 2026-03-12 12:48:32 | Ultima: 2026-03-12 12:48:32
+Pedido 4271 | Tentativas: 1 | Primeira: 2026-03-12 12:48:11 | Ultima: 2026-03-12 12:48:11
+Pedido 4272 | Tentativas: 1 | Primeira: 2026-03-12 12:47:50 | Ultima: 2026-03-12 12:47:50
+Pedido 4273 | Tentativas: 1 | Primeira: 2026-03-12 12:47:28 | Ultima: 2026-03-12 12:47:28
+Pedido 4275 | Tentativas: 1 | Primeira: 2026-03-12 12:47:06 | Ultima: 2026-03-12 12:47:06
+Pedido 4276 | Tentativas: 1 | Primeira: 2026-03-12 12:46:45 | Ultima: 2026-03-12 12:46:45
+Pedido 4277 | Tentativas: 1 | Primeira: 2026-03-12 12:46:21 | Ultima: 2026-03-12 12:46:21
+Pedido 4278 | Tentativas: 1 | Primeira: 2026-03-12 12:45:59 | Ultima: 2026-03-12 12:45:59
+Pedido 4279 | Tentativas: 1 | Primeira: 2026-03-12 12:45:37 | Ultima: 2026-03-12 12:45:37
+Pedido 4280 | Tentativas: 1 | Primeira: 2026-03-12 12:45:15 | Ultima: 2026-03-12 12:45:15
+Pedido 4281 | Tentativas: 1 | Primeira: 2026-03-12 12:44:54 | Ultima: 2026-03-12 12:44:54
+Pedido 4283 | Tentativas: 1 | Primeira: 2026-03-12 12:44:32 | Ultima: 2026-03-12 12:44:32
+Pedido 4284 | Tentativas: 1 | Primeira: 2026-03-12 12:44:11 | Ultima: 2026-03-12 12:44:11
+Pedido 4286 | Tentativas: 1 | Primeira: 2026-03-12 12:43:50 | Ultima: 2026-03-12 12:43:50
+Pedido 4288 | Tentativas: 1 | Primeira: 2026-03-12 12:43:28 | Ultima: 2026-03-12 12:43:28
+Pedido 4289 | Tentativas: 1 | Primeira: 2026-03-12 12:43:06 | Ultima: 2026-03-12 12:43:06
+Pedido 4290 | Tentativas: 1 | Primeira: 2026-03-12 12:42:45 | Ultima: 2026-03-12 12:42:45
+Pedido 4291 | Tentativas: 1 | Primeira: 2026-03-12 12:42:23 | Ultima: 2026-03-12 12:42:23
+Pedido 4292 | Tentativas: 1 | Primeira: 2026-03-12 12:42:01 | Ultima: 2026-03-12 12:42:01
+Pedido 4294 | Tentativas: 1 | Primeira: 2026-03-12 12:41:39 | Ultima: 2026-03-12 12:41:39
+Pedido 4295 | Tentativas: 1 | Primeira: 2026-03-12 12:41:17 | Ultima: 2026-03-12 12:41:17
+Pedido 4296 | Tentativas: 1 | Primeira: 2026-03-12 12:40:56 | Ultima: 2026-03-12 12:40:56
+Pedido 4298 | Tentativas: 1 | Primeira: 2026-03-12 12:40:34 | Ultima: 2026-03-12 12:40:34
+Pedido 4299 | Tentativas: 1 | Primeira: 2026-03-12 12:40:12 | Ultima: 2026-03-12 12:40:12
+Pedido 4300 | Tentativas: 1 | Primeira: 2026-03-12 12:39:51 | Ultima: 2026-03-12 12:39:51
+Pedido 4301 | Tentativas: 1 | Primeira: 2026-03-12 12:39:29 | Ultima: 2026-03-12 12:39:29
+Pedido 4303 | Tentativas: 1 | Primeira: 2026-03-12 12:39:08 | Ultima: 2026-03-12 12:39:08
+Pedido 4304 | Tentativas: 1 | Primeira: 2026-03-12 12:38:46 | Ultima: 2026-03-12 12:38:46
+Pedido 4305 | Tentativas: 1 | Primeira: 2026-03-12 12:38:25 | Ultima: 2026-03-12 12:38:25
+Pedido 4308 | Tentativas: 1 | Primeira: 2026-03-12 12:38:03 | Ultima: 2026-03-12 12:38:03
+Pedido 4309 | Tentativas: 1 | Primeira: 2026-03-12 12:37:41 | Ultima: 2026-03-12 12:37:41
+Pedido 4310 | Tentativas: 1 | Primeira: 2026-03-12 12:37:20 | Ultima: 2026-03-12 12:37:20
+Pedido 4311 | Tentativas: 1 | Primeira: 2026-03-12 12:36:58 | Ultima: 2026-03-12 12:36:58
+Pedido 4312 | Tentativas: 1 | Primeira: 2026-03-12 12:36:36 | Ultima: 2026-03-12 12:36:36
+Pedido 4314 | Tentativas: 1 | Primeira: 2026-03-12 12:36:15 | Ultima: 2026-03-12 12:36:15
+Pedido 4315 | Tentativas: 1 | Primeira: 2026-03-12 12:35:53 | Ultima: 2026-03-12 12:35:53
+Pedido 4316 | Tentativas: 1 | Primeira: 2026-03-12 12:35:31 | Ultima: 2026-03-12 12:35:31
+Pedido 4318 | Tentativas: 1 | Primeira: 2026-03-12 12:35:08 | Ultima: 2026-03-12 12:35:08
+Pedido 4320 | Tentativas: 1 | Primeira: 2026-03-12 12:34:46 | Ultima: 2026-03-12 12:34:46
+Pedido 4322 | Tentativas: 1 | Primeira: 2026-03-12 12:34:23 | Ultima: 2026-03-12 12:34:23
+Pedido 4323 | Tentativas: 1 | Primeira: 2026-03-12 12:34:02 | Ultima: 2026-03-12 12:34:02
+Pedido 4324 | Tentativas: 1 | Primeira: 2026-03-12 12:33:25 | Ultima: 2026-03-12 12:33:25
+Pedido 4325 | Tentativas: 1 | Primeira: 2026-03-12 12:33:02 | Ultima: 2026-03-12 12:33:02
+Pedido 4326 | Tentativas: 1 | Primeira: 2026-03-12 12:32:40 | Ultima: 2026-03-12 12:32:40
+Pedido 4327 | Tentativas: 1 | Primeira: 2026-03-12 12:32:16 | Ultima: 2026-03-12 12:32:16
+Pedido 4328 | Tentativas: 1 | Primeira: 2026-03-12 12:31:48 | Ultima: 2026-03-12 12:31:48
+Pedido 4330 | Tentativas: 1 | Primeira: 2026-03-12 12:31:23 | Ultima: 2026-03-12 12:31:23
+Pedido 4331 | Tentativas: 1 | Primeira: 2026-03-12 12:30:55 | Ultima: 2026-03-12 12:30:55
+Pedido 4332 | Tentativas: 1 | Primeira: 2026-03-12 12:30:33 | Ultima: 2026-03-12 12:30:33
+Pedido 4333 | Tentativas: 1 | Primeira: 2026-03-12 12:30:10 | Ultima: 2026-03-12 12:30:10
+Pedido 4334 | Tentativas: 1 | Primeira: 2026-03-12 12:29:48 | Ultima: 2026-03-12 12:29:48
+Pedido 4335 | Tentativas: 1 | Primeira: 2026-03-12 12:29:26 | Ultima: 2026-03-12 12:29:26
+Pedido 4336 | Tentativas: 1 | Primeira: 2026-03-12 12:29:04 | Ultima: 2026-03-12 12:29:04
+Pedido 4338 | Tentativas: 1 | Primeira: 2026-03-12 12:28:41 | Ultima: 2026-03-12 12:28:41
+Pedido 4339 | Tentativas: 1 | Primeira: 2026-03-12 12:28:19 | Ultima: 2026-03-12 12:28:19
+Pedido 4342 | Tentativas: 1 | Primeira: 2026-03-12 12:27:57 | Ultima: 2026-03-12 12:27:57
+Pedido 4343 | Tentativas: 1 | Primeira: 2026-03-12 12:27:35 | Ultima: 2026-03-12 12:27:35
+Pedido 4344 | Tentativas: 1 | Primeira: 2026-03-12 12:27:12 | Ultima: 2026-03-12 12:27:12
+Pedido 4345 | Tentativas: 1 | Primeira: 2026-03-12 12:26:49 | Ultima: 2026-03-12 12:26:49
+Pedido 4348 | Tentativas: 1 | Primeira: 2026-03-12 12:26:25 | Ultima: 2026-03-12 12:26:25
+Pedido 4349 | Tentativas: 1 | Primeira: 2026-03-12 12:25:35 | Ultima: 2026-03-12 12:25:35
+Pedido 4351 | Tentativas: 1 | Primeira: 2026-03-12 12:25:05 | Ultima: 2026-03-12 12:25:05
+Pedido 4352 | Tentativas: 1 | Primeira: 2026-03-12 12:24:42 | Ultima: 2026-03-12 12:24:42
+Pedido 4353 | Tentativas: 1 | Primeira: 2026-03-12 12:24:20 | Ultima: 2026-03-12 12:24:20
+Pedido 4354 | Tentativas: 1 | Primeira: 2026-03-12 12:23:57 | Ultima: 2026-03-12 12:23:57
+Pedido 4356 | Tentativas: 1 | Primeira: 2026-03-12 12:23:36 | Ultima: 2026-03-12 12:23:36
+Pedido 4357 | Tentativas: 1 | Primeira: 2026-03-12 12:23:13 | Ultima: 2026-03-12 12:23:13
+Pedido 4358 | Tentativas: 1 | Primeira: 2026-03-12 12:22:49 | Ultima: 2026-03-12 12:22:49
+Pedido 4359 | Tentativas: 1 | Primeira: 2026-03-12 12:22:27 | Ultima: 2026-03-12 12:22:27
+Pedido 4361 | Tentativas: 1 | Primeira: 2026-03-12 12:22:04 | Ultima: 2026-03-12 12:22:04
+Pedido 4362 | Tentativas: 1 | Primeira: 2026-03-12 12:21:42 | Ultima: 2026-03-12 12:21:42
+Pedido 4363 | Tentativas: 1 | Primeira: 2026-03-12 12:21:20 | Ultima: 2026-03-12 12:21:20
+Pedido 4364 | Tentativas: 1 | Primeira: 2026-03-12 12:20:55 | Ultima: 2026-03-12 12:20:55
+Pedido 4365 | Tentativas: 1 | Primeira: 2026-03-12 12:20:34 | Ultima: 2026-03-12 12:20:34
+Pedido 4366 | Tentativas: 1 | Primeira: 2026-03-12 12:20:08 | Ultima: 2026-03-12 12:20:08
+Pedido 4367 | Tentativas: 1 | Primeira: 2026-03-12 12:19:46 | Ultima: 2026-03-12 12:19:46
+Pedido 4368 | Tentativas: 1 | Primeira: 2026-03-12 12:19:23 | Ultima: 2026-03-12 12:19:23
+Pedido 4369 | Tentativas: 1 | Primeira: 2026-03-12 12:18:57 | Ultima: 2026-03-12 12:18:57
+Pedido 4371 | Tentativas: 1 | Primeira: 2026-03-12 12:18:35 | Ultima: 2026-03-12 12:18:35
+Pedido 4372 | Tentativas: 1 | Primeira: 2026-03-12 12:18:13 | Ultima: 2026-03-12 12:18:13
+Pedido 4373 | Tentativas: 1 | Primeira: 2026-03-12 12:17:50 | Ultima: 2026-03-12 12:17:50
+Pedido 4375 | Tentativas: 1 | Primeira: 2026-03-12 12:17:29 | Ultima: 2026-03-12 12:17:29
+Pedido 4376 | Tentativas: 1 | Primeira: 2026-03-12 12:17:06 | Ultima: 2026-03-12 12:17:06
+Pedido 4377 | Tentativas: 1 | Primeira: 2026-03-12 12:16:42 | Ultima: 2026-03-12 12:16:42
+Pedido 4378 | Tentativas: 1 | Primeira: 2026-03-12 12:16:10 | Ultima: 2026-03-12 12:16:10
+Pedido 4380 | Tentativas: 1 | Primeira: 2026-03-12 12:15:28 | Ultima: 2026-03-12 12:15:28
+Pedido 4381 | Tentativas: 1 | Primeira: 2026-03-12 12:14:58 | Ultima: 2026-03-12 12:14:58
+Pedido 4382 | Tentativas: 1 | Primeira: 2026-03-12 12:14:36 | Ultima: 2026-03-12 12:14:36
+Pedido 4384 | Tentativas: 1 | Primeira: 2026-03-12 12:14:13 | Ultima: 2026-03-12 12:14:13
+Pedido 4385 | Tentativas: 1 | Primeira: 2026-03-12 12:13:52 | Ultima: 2026-03-12 12:13:52
+Pedido 4386 | Tentativas: 1 | Primeira: 2026-03-12 12:13:30 | Ultima: 2026-03-12 12:13:30
+Pedido 4389 | Tentativas: 1 | Primeira: 2026-03-12 12:13:08 | Ultima: 2026-03-12 12:13:08
+Pedido 4390 | Tentativas: 1 | Primeira: 2026-03-12 12:12:46 | Ultima: 2026-03-12 12:12:46
+Pedido 4392 | Tentativas: 1 | Primeira: 2026-03-12 12:12:25 | Ultima: 2026-03-12 12:12:25
+Pedido 4393 | Tentativas: 1 | Primeira: 2026-03-12 12:11:56 | Ultima: 2026-03-12 12:11:56
+Pedido 4394 | Tentativas: 1 | Primeira: 2026-03-12 12:11:34 | Ultima: 2026-03-12 12:11:34
+Pedido 4395 | Tentativas: 1 | Primeira: 2026-03-12 12:11:09 | Ultima: 2026-03-12 12:11:09
+Pedido 4396 | Tentativas: 1 | Primeira: 2026-03-12 12:10:44 | Ultima: 2026-03-12 12:10:44
+Pedido 4397 | Tentativas: 1 | Primeira: 2026-03-12 12:10:22 | Ultima: 2026-03-12 12:10:22
+Pedido 4398 | Tentativas: 1 | Primeira: 2026-03-12 12:09:59 | Ultima: 2026-03-12 12:09:59
+Pedido 4399 | Tentativas: 1 | Primeira: 2026-03-12 12:09:36 | Ultima: 2026-03-12 12:09:36
+Pedido 4400 | Tentativas: 1 | Primeira: 2026-03-12 12:09:09 | Ultima: 2026-03-12 12:09:09
+Pedido 4401 | Tentativas: 1 | Primeira: 2026-03-12 12:08:46 | Ultima: 2026-03-12 12:08:46
+Pedido 4404 | Tentativas: 1 | Primeira: 2026-03-12 12:08:23 | Ultima: 2026-03-12 12:08:23
+Pedido 4405 | Tentativas: 1 | Primeira: 2026-03-12 12:07:59 | Ultima: 2026-03-12 12:07:59
+Pedido 4406 | Tentativas: 1 | Primeira: 2026-03-12 12:07:36 | Ultima: 2026-03-12 12:07:36
+Pedido 4410 | Tentativas: 1 | Primeira: 2026-03-12 12:07:13 | Ultima: 2026-03-12 12:07:13
+Pedido 4411 | Tentativas: 1 | Primeira: 2026-03-12 12:06:49 | Ultima: 2026-03-12 12:06:49
+Pedido 4412 | Tentativas: 1 | Primeira: 2026-03-12 12:06:25 | Ultima: 2026-03-12 12:06:25
+Pedido 4415 | Tentativas: 1 | Primeira: 2026-03-12 12:06:02 | Ultima: 2026-03-12 12:06:02
+Pedido 4416 | Tentativas: 1 | Primeira: 2026-03-12 12:05:40 | Ultima: 2026-03-12 12:05:40
+Pedido 4419 | Tentativas: 1 | Primeira: 2026-03-12 12:05:16 | Ultima: 2026-03-12 12:05:16
+Pedido 4421 | Tentativas: 1 | Primeira: 2026-03-12 12:04:52 | Ultima: 2026-03-12 12:04:52
+Pedido 4422 | Tentativas: 1 | Primeira: 2026-03-12 12:04:30 | Ultima: 2026-03-12 12:04:30
+Pedido 4423 | Tentativas: 1 | Primeira: 2026-03-12 12:04:06 | Ultima: 2026-03-12 12:04:06
+Pedido 4424 | Tentativas: 1 | Primeira: 2026-03-12 12:04:06 | Ultima: 2026-03-12 12:04:06
+Pedido 4425 | Tentativas: 1 | Primeira: 2026-03-12 12:04:06 | Ultima: 2026-03-12 12:04:06
+Pedido 4426 | Tentativas: 1 | Primeira: 2026-03-12 12:04:06 | Ultima: 2026-03-12 12:04:06
+Pedido 4427 | Tentativas: 1 | Primeira: 2026-03-12 12:04:05 | Ultima: 2026-03-12 12:04:05
+Pedido 4428 | Tentativas: 1 | Primeira: 2026-03-12 12:04:05 | Ultima: 2026-03-12 12:04:05
+Pedido 4429 | Tentativas: 1 | Primeira: 2026-03-12 12:04:05 | Ultima: 2026-03-12 12:04:05
+Pedido 4430 | Tentativas: 1 | Primeira: 2026-03-12 12:04:05 | Ultima: 2026-03-12 12:04:05
+Pedido 4431 | Tentativas: 1 | Primeira: 2026-03-12 12:04:04 | Ultima: 2026-03-12 12:04:04
+Pedido 4432 | Tentativas: 1 | Primeira: 2026-03-12 12:04:04 | Ultima: 2026-03-12 12:04:04
+Pedido 4433 | Tentativas: 1 | Primeira: 2026-03-12 12:04:04 | Ultima: 2026-03-12 12:04:04
+Pedido 4434 | Tentativas: 1 | Primeira: 2026-03-12 12:04:04 | Ultima: 2026-03-12 12:04:04
+Pedido 4435 | Tentativas: 1 | Primeira: 2026-03-12 12:04:03 | Ultima: 2026-03-12 12:04:03
+Pedido 4436 | Tentativas: 1 | Primeira: 2026-03-12 12:04:03 | Ultima: 2026-03-12 12:04:03
+Pedido 4437 | Tentativas: 1 | Primeira: 2026-03-12 12:04:03 | Ultima: 2026-03-12 12:04:03
+Pedido 4445 | Tentativas: 1 | Primeira: 2026-03-12 12:04:02 | Ultima: 2026-03-12 12:04:02
+Pedido 4446 | Tentativas: 1 | Primeira: 2026-03-12 12:04:02 | Ultima: 2026-03-12 12:04:02
+Pedido 4447 | Tentativas: 1 | Primeira: 2026-03-12 12:04:02 | Ultima: 2026-03-12 12:04:02
+Pedido 4448 | Tentativas: 1 | Primeira: 2026-03-12 12:04:02 | Ultima: 2026-03-12 12:04:02
+Pedido 4464 | Tentativas: 1 | Primeira: 2026-03-12 12:04:01 | Ultima: 2026-03-12 12:04:01
+Pedido 4490 | Tentativas: 12 | Primeira: 2026-03-12 00:02:25 | Ultima: 2026-03-12 00:28:31
+Pedido 4491 | Tentativas: 12 | Primeira: 2026-03-12 00:02:25 | Ultima: 2026-03-12 00:28:31
+Pedido 4492 | Tentativas: 13 | Primeira: 2026-03-12 00:02:25 | Ultima: 2026-03-12 12:03:38
+Pedido 4495 | Tentativas: 13 | Primeira: 2026-03-12 00:02:24 | Ultima: 2026-03-12 12:03:13
+Pedido 4496 | Tentativas: 13 | Primeira: 2026-03-12 00:02:24 | Ultima: 2026-03-12 12:02:50
+Pedido 4498 | Tentativas: 24 | Primeira: 2026-03-12 00:02:24 | Ultima: 2026-03-12 00:28:33
+Pedido 4499 | Tentativas: 25 | Primeira: 2026-03-12 00:02:24 | Ultima: 2026-03-12 12:02:49
+Pedido 4500 | Tentativas: 25 | Primeira: 2026-03-12 00:02:23 | Ultima: 2026-03-12 12:02:24
+Pedido 4503 | Tentativas: 25 | Primeira: 2026-03-12 00:02:23 | Ultima: 2026-03-12 12:01:59
+Pedido 4504 | Tentativas: 25 | Primeira: 2026-03-12 00:02:23 | Ultima: 2026-03-12 12:01:34
+Pedido 4505 | Tentativas: 1 | Primeira: 2026-03-12 12:01:02 | Ultima: 2026-03-12 12:01:02

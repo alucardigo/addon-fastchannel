@@ -50,6 +50,7 @@ public class OrderCreationOrchestrator {
         log.info("=== Iniciando criacao de pedido " + order.getOrderId() + " com fallback automatico ===");
 
         List<String> failedStrategies = new ArrayList<>();
+        Exception rootException = null;
         Exception lastException = null;
 
         for (OrderCreationStrategy strategy : strategies) {
@@ -71,6 +72,9 @@ public class OrderCreationOrchestrator {
 
             } catch (Exception e) {
                 lastException = e;
+                if (rootException == null) {
+                    rootException = e;
+                }
                 String errorMsg = "Estrategia " + strategy.getStrategyName() + " falhou: " + e.getMessage();
                 log.log(Level.WARNING, errorMsg, e);
                 failedStrategies.add(strategy.getStrategyName() + " (erro: " + e.getMessage() + ")");
@@ -85,8 +89,10 @@ public class OrderCreationOrchestrator {
 
         throw new Exception(
             "TODAS as estrategias falharam para pedido " + order.getOrderId() + ". " +
-            "Ultimos erro: " + (lastException != null ? lastException.getMessage() : "desconhecido"),
-            lastException
+            "Detalhes: " + String.join(" | ", failedStrategies) + ". " +
+            "Erro raiz: " + (rootException != null ? rootException.getMessage() : "desconhecido") +
+            ". Ultimo erro: " + (lastException != null ? lastException.getMessage() : "desconhecido"),
+            rootException != null ? rootException : lastException
         );
     }
 
@@ -138,4 +144,5 @@ public class OrderCreationOrchestrator {
         result.append("===============================================");
         return result.toString();
     }
+
 }

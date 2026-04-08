@@ -1,0 +1,498 @@
+openapi: 3.0.1
+info:
+  title: API de Estoque
+  description: API para gestão dos estoques dos produtos das lojas virtuais B2B da plataforma Fast Channel.
+  version: v1
+servers:
+  - url: https://api.commerce.fastchannel.com/stock-management/v1
+paths:
+  /stock:
+    get:
+      summary: ListProductStock
+      description: "Retorna lista (array) de posições de estoque de todos os produtos cadastrados na sua Conta Fastchannel.\n\n**IMPORTANTE!** Por motivos de desempenho, essa consulta possui um limite máximo de quantidade de registros que poderão ser retornados de uma só vez. Caso sua consulta exceda o limite máximo de 1500 registros por resultado, ajuste os parâmetros utilizados para consulta a fim de reduzir a quantidade de registros retornados."
+      operationId: listproductstock
+      parameters:
+        - name: StorageId
+          in: query
+          description: Identificador único (ID) do CD (Loja/Depósito/Filial) para ser utilizado como filtro dos registros que deverão ser retornados.
+          schema:
+            enum:
+              - '1'
+              - '2'
+              - '3'
+            type: Number
+        - name: StorageIds
+          in: query
+          description: Lista de identificadores únicos de CD's (Lojas/Depósitos/Filiais) para ser utilizada como filtro dos registros que deverão ser retornados.
+          schema:
+            enum:
+              - '1,2,3,4'
+            type: 'Array[number]'
+        - name: ProductId
+          in: query
+          description: Identificador único (SKU) do produto que deverá ser utilizado como filtro dos resultados.
+          schema:
+            enum:
+              - XYZ123
+            type: String
+        - name: ProductIds
+          in: query
+          description: Lista de identificadores únicos (SKU's) dos produtos que deverão ser utilizados como filtro dos resultados.
+          schema:
+            enum:
+              - 'XYZ123,ABC456,RST890'
+            type: 'Array[string]'
+        - name: SearchText
+          in: query
+          description: Termo de pesquisa textual para ser utilizado como filtro dos produtos que serão utilizados como filtro dos resultados.
+          schema:
+            enum:
+              - Lorem Ipsum
+            type: String
+        - name: PageNumber
+          in: query
+          description: 'Permite a aplicação de paginação nos resultados que deverão ser retornados, definindo o número da página de resultados desejada (deve ser utilizado em conjunto com o parâmetro ''PageSize'').'
+          schema:
+            enum:
+              - '1'
+              - '2'
+              - '3'
+            type: Number
+        - name: PageSize
+          in: query
+          description: 'Permite a aplicação de paginação nos resultados que deverão ser retornados, definindo o limite máximo de registros por página a serem retornados (deve ser utilizado em conjunto com o parâmetro ''PageNumber'').'
+          schema:
+            enum:
+              - '100'
+              - '200'
+              - '500'
+            type: Number
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          schema:
+            enum:
+              - application/json
+            type: string
+            default: application/json
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              example:
+                HttpStatusCode: 200
+                Success: true
+                TotalRecords: 5
+                TotalPages: 1
+                RequestParams:
+                  StorageId: 2
+                Payload:
+                  - StorageId: 2
+                    StorageFederalRegistry: '57343950000136'
+                    StorageName: Moda CD 2
+                    ResellerId: 1
+                    ResellerName: Revendedor padrão
+                    ProductId: '3093308'
+                    ProductName: Bolsa com Patch Sabrina Sato Bege
+                    Quantity: 100
+                    MinimumQuantity: 0
+                    HandlingTime: 0
+                    IsExternalStockEnabled: false
+                    ExternalStockHandlingTime: 0
+                  - StorageId: 2
+                    StorageFederalRegistry: '57343950000136'
+                    StorageName: Moda CD 2
+                    ResellerId: 1
+                    ResellerName: Revendedor padrão
+                    ProductId: '3093359'
+                    ProductName: Bolsa com Patch Sabrina Sato Caramelo
+                    Quantity: 100
+                    MinimumQuantity: 0
+                    HandlingTime: 0
+                    IsExternalStockEnabled: false
+                    ExternalStockHandlingTime: 0
+                  - StorageId: 2
+                    StorageFederalRegistry: '57343950000136'
+                    StorageName: Moda CD 2
+                    ResellerId: 1
+                    ResellerName: Revendedor padrão
+                    ProductId: b123456
+                    ProductName: teste wdf
+                    Quantity: 1
+                    MinimumQuantity: 0
+                    HandlingTime: 0
+                    IsExternalStockEnabled: false
+                    ExternalStockHandlingTime: 0
+                  - StorageId: 2
+                    StorageFederalRegistry: '57343950000136'
+                    StorageName: Moda CD 2
+                    ResellerId: 1
+                    ResellerName: Revendedor padrão
+                    ProductId: DC125BRANCO
+                    ProductName: Camisa Chef Dish Washer
+                    Quantity: 0
+                    MinimumQuantity: 0
+                    HandlingTime: 0
+                    IsExternalStockEnabled: false
+                    ExternalStockHandlingTime: 0
+                  - StorageId: 2
+                    StorageFederalRegistry: '57343950000136'
+                    StorageName: Moda CD 2
+                    ResellerId: 1
+                    ResellerName: Revendedor padrão
+                    ProductId: DC125BRANCO_G_220
+                    ProductName: Camisa Chef Dish Washer - BRANCO - G -220
+                    Quantity: 30
+                    MinimumQuantity: 0
+                    HandlingTime: 0
+                    IsExternalStockEnabled: false
+                    ExternalStockHandlingTime: 0
+  '/stock/{ProductId}':
+    get:
+      summary: GetProductStock
+      description: 'Retorna a posição de estoque de um determinado produto cadastrado na loja virtual, de acordo com o SKU informado na requisição.'
+      operationId: getproductstock
+      parameters:
+        - name: ProductId
+          in: path
+          description: Identificação única (SKU) do produto a ser utilizado como filtro da posição de estoque desejada.
+          required: true
+          schema:
+            type: string
+        - name: StorageId
+          in: query
+          description: Identificador único do Centro de Distribuição da posição de estoque desejada
+          schema:
+            type: int
+      responses:
+        '200':
+          description: Posição de estoque de um determinado produto.
+          content:
+            application/json:
+              example:
+                HttpStatusCode: 200
+                Success: true
+                RequestParams:
+                  StorageId: 1
+                  ProductId: DC125BRANCO_G_220
+                Payload:
+                  StorageId: 1
+                  StorageFederalRegistry: '18615342000181'
+                  StorageName: Moda CD 1
+                  ResellerId: 1
+                  ResellerName: Revendedor padrão
+                  ProductId: DC125BRANCO_G_220
+                  ProductName: Camisa Chef Dish Washer - BRANCO - G -220
+                  Quantity: 30
+                  MinimumQuantity: 0
+                  HandlingTime: 0
+                  IsExternalStockEnabled: false
+                  ExternalStockHandlingTime: 0
+    put:
+      summary: SetProductStock
+      description: Redefine a posição de estoque atual de um determinado produto da loja virtual.
+      operationId: setproductstock
+      parameters:
+        - name: ProductId
+          in: path
+          description: Identificação única (SKU) do produto a ser utilizado como filtro da posição de estoque desejada.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: "**Campos Obrigatórios:**\n * StorageId : valor numérico inteiro maior do que zero, o qual pode ser obtido através das consultas de estoque de um produto/SKU qualquer.\n\nApenas o campo **StorageId** é de preenchimento obrigatório. Todos os demais campos são opcionais e devem ser preenchidos de acordo com a necessidade de atualização.\n\nEnvie na sua requisição apenas os campos que deseja atualizar. As informações que não estiverem presentes na requisição de atualização serão mantidas sem alterações no banco de dados."
+        content:
+          application/json:
+            example:
+              StorageId: 1
+              Quantity: 19
+              MinimumQuantity: 0
+              HandlingTime: 0
+              IsExternalStockEnabled: false
+              ExternalStockHandlingTime: 0
+      responses:
+        '200':
+          description: Posição de estoque atualizada para o produto da loja virtual.
+          content:
+            application/json:
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  StorageId: 10
+                  ProductId: DC125PR_P
+                  Quantity: 19
+                Payload:
+                  IsAvailable: true
+                  StorageId: 10
+                  StorageFederalRegistry: '25481094000199'
+                  StorageName: WW Uniformes Profissionais Ltda
+                  ResellerId: 9
+                  ResellerName: WW Uniformes Profissionais Ltda
+                  ProductId: DC125PR_P
+                  ProductDefinitionId: 1
+                  ProductName: Camisa Casual Botão Pressão Preta - P
+                  Quantity: 19
+                  MinimumQuantity: 0
+                  HandlingTime: 0
+                  IsExternalStockEnabled: false
+                  ExternalStockHandlingTime: 0
+components:
+  schemas:
+    GetProductStock_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            StorageId:
+              type: integer
+            ProductId:
+              type: string
+        Payload:
+          type: object
+          properties:
+            IsAvailable:
+              type: boolean
+            StorageId:
+              type: integer
+            StorageFederalRegistry:
+              type: string
+            StorageName:
+              type: string
+            ResellerId:
+              type: integer
+            ResellerName:
+              type: string
+            ProductId:
+              type: string
+            ProductDefinitionId:
+              type: integer
+            ProductName:
+              type: string
+            Quantity:
+              type: integer
+            MinimumQuantity:
+              type: integer
+            HandlingTime:
+              type: integer
+            IsExternalStockEnabled:
+              type: boolean
+            ExternalStockHandlingTime:
+              type: integer
+      x-apim-schema-name: GetProductStock Success
+    IncrementProductStock_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            StorageId:
+              type: integer
+            ProductId:
+              type: string
+        Payload:
+          type: object
+          properties:
+            Before:
+              type: object
+              properties:
+                IsAvailable:
+                  type: boolean
+                StorageId:
+                  type: integer
+                StorageFederalRegistry:
+                  type: string
+                StorageName:
+                  type: string
+                ResellerId:
+                  type: integer
+                ResellerName:
+                  type: string
+                ProductId:
+                  type: string
+                ProductDefinitionId:
+                  type: integer
+                ProductName:
+                  type: string
+                Quantity:
+                  type: integer
+                MinimumQuantity:
+                  type: integer
+                HandlingTime:
+                  type: integer
+                IsExternalStockEnabled:
+                  type: boolean
+                ExternalStockHandlingTime:
+                  type: integer
+      x-apim-schema-name: IncrementProductStock Success
+    ListProductStock_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        TotalRecords:
+          type: integer
+        TotalPages:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            ProductId:
+              type: string
+        Payload:
+          type: array
+          items:
+            required:
+              - IsAvailable
+              - StorageId
+              - StorageFederalRegistry
+              - StorageName
+              - ResellerId
+              - ResellerName
+              - ProductId
+              - ProductDefinitionId
+              - ProductName
+              - Quantity
+              - MinimumQuantity
+              - HandlingTime
+              - IsExternalStockEnabled
+              - ExternalStockHandlingTime
+            type: object
+            properties:
+              IsAvailable:
+                type: boolean
+              StorageId:
+                type: integer
+              StorageFederalRegistry:
+                type: string
+              StorageName:
+                type: string
+              ResellerId:
+                type: integer
+              ResellerName:
+                type: string
+              ProductId:
+                type: string
+              ProductDefinitionId:
+                type: integer
+              ProductName:
+                type: string
+              Quantity:
+                type: integer
+              MinimumQuantity:
+                type: integer
+              HandlingTime:
+                type: integer
+              IsExternalStockEnabled:
+                type: boolean
+              ExternalStockHandlingTime:
+                type: integer
+      x-apim-schema-name: ListProductStock Success
+    SetProductStock_Request:
+      type: object
+      properties:
+        StorageId:
+          type: integer
+        StorageCustomId:
+          type: string
+        StorageFederalRegistry:
+          type: string
+        ProductId:
+          type: string
+        ProductDefinitionId:
+          type: integer
+        Quantity:
+          type: integer
+        MinimumQuantity:
+          type: integer
+        HandlingTime:
+          type: integer
+        IsExternalStockEnabled:
+          type: boolean
+        ExternalStockHandlingTime:
+          type: integer
+      x-apim-schema-name: SetProductStock Request
+    SetProductStock_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            StorageId:
+              type: integer
+            ProductId:
+              type: string
+        Payload:
+          type: object
+          properties:
+            IsAvailable:
+              type: boolean
+            StorageId:
+              type: integer
+            StorageFederalRegistry:
+              type: string
+            StorageName:
+              type: string
+            ResellerId:
+              type: integer
+            ResellerName:
+              type: string
+            ProductId:
+              type: string
+            ProductDefinitionId:
+              type: integer
+            ProductName:
+              type: string
+            Quantity:
+              type: integer
+            MinimumQuantity:
+              type: integer
+            HandlingTime:
+              type: integer
+            IsExternalStockEnabled:
+              type: boolean
+            ExternalStockHandlingTime:
+              type: integer
+      x-apim-schema-name: SetProductStock Success
+    IncrementProductStock_Request:
+      type: object
+      properties:
+        StorageId:
+          type: integer
+        StorageCustomId:
+          type: string
+        StorageFederalRegistry:
+          type: string
+        ProductId:
+          type: string
+        Quantity:
+          type: integer
+      x-apim-schema-name: IncrementProductStock Request
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      name: Subscription-Key
+      in: header
+    apiKeyQuery:
+      type: apiKey
+      name: subscription-key
+      in: query
+security:
+  - apiKeyHeader: [ ]
+  - apiKeyQuery: [ ]

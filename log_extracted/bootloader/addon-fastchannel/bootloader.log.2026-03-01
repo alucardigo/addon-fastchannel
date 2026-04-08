@@ -1,0 +1,84 @@
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script TABLE AD_FCCONFIG.AD_FCCONFIG ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script TABLE AD_FCQUEUE.AD_FCQUEUE ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCQUEUE.IDX_FCQUEUE_STATUS ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script TABLE AD_FCDEPARA.AD_FCDEPARA ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCDEPARA.IDX_FCDEPARA_EXT ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script TABLE AD_FCPEDIDO.AD_FCPEDIDO ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCPEDIDO.IDX_FCPEDIDO_NUNOTA ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script TABLE AD_FCLOG.AD_FCLOG ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCLOG.IDX_FCLOG_DH ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN TGFCAB.AD_FASTCHANNEL_ID ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX TGFCAB.IDX_TGFCAB_FCID ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script PARAMETRO AD_FCQUEUE.SEQ_AD_FCQUEUE...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script PARAMETRO AD_FCQUEUE.SEQ_AD_FCQUEUE executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script PARAMETRO AD_FCDEPARA.SEQ_AD_FCDEPARA...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script PARAMETRO AD_FCDEPARA.SEQ_AD_FCDEPARA executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script PARAMETRO AD_FCPEDIDO.SEQ_AD_FCPEDIDO...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script PARAMETRO AD_FCPEDIDO.SEQ_AD_FCPEDIDO executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script PARAMETRO AD_FCLOG.SEQ_AD_FCLOG...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script PARAMETRO AD_FCLOG.SEQ_AD_FCLOG executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script TRIGGER AD_FCQUEUE.TRG_AD_FCQUEUE_BI...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script TRIGGER AD_FCQUEUE.TRG_AD_FCQUEUE_BI executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script TRIGGER AD_FCDEPARA.TRG_AD_FCDEPARA_BI...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script TRIGGER AD_FCDEPARA.TRG_AD_FCDEPARA_BI executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script TRIGGER AD_FCPEDIDO.TRG_AD_FCPEDIDO_BI...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script TRIGGER AD_FCPEDIDO.TRG_AD_FCPEDIDO_BI executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script TRIGGER AD_FCLOG.TRG_AD_FCLOG_BI...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script TRIGGER AD_FCLOG.TRG_AD_FCLOG_BI executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script PARAMETRO AD_FCCONFIG.SEQ_AD_FCCONFIG...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script PARAMETRO AD_FCCONFIG.SEQ_AD_FCCONFIG executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script TRIGGER AD_FCCONFIG.TRG_AD_FCCONFIG_BI...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script TRIGGER AD_FCCONFIG.TRG_AD_FCCONFIG_BI executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.STATUS_IMPORT ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.VALOR_TOTAL ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.DH_PEDIDO ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.NOME_CLIENTE ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.CPF_CNPJ ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.VALOR_FRETE ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.ERRO_MSG ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCLOG.DH_LOG ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCLOG.IDX_FCLOG_DH_LOG ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCCONFIG.SYNC_STATUS_ENABLED ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCCONFIG.SANKHYA_SERVER_URL ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCCONFIG.SANKHYA_USER ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCCONFIG.SANKHYA_PASSWORD ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.STATUS_IMPORT ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.VALOR_TOTAL ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.DH_PEDIDO ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.NOME_CLIENTE ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.CPF_CNPJ ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.VALOR_FRETE ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.ERRO_MSG ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCLOG.DH_LOG ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCLOG.IDX_FCLOG_DH ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCCONFIG.CODNAT ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCCONFIG.CODCENCUS ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCCONFIG.CODVEND_PADRAO ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script COLUMN AD_FCPEDIDO.NUNOTA...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCPEDIDO.NUNOTA executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCCONFIG.UI_SOURCE_DEFAULT ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCCONFIG.UI_ENABLE_SOURCE_2 ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCCONFIG.UI_ENABLE_SOURCE_3 ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN AD_FCDEPARA.INTEGRA_AUTO ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCQUEUE.IDX_FCQUEUE_ENTITYKEY_DH ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCQUEUE.IDX_FCQUEUE_ETYPE_STATUS_DH ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCLOG.IDX_FCLOG_OP_REF_DHREG ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCLOG.IDX_FCLOG_OP_DHLOG ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX TGFEXC.IDX_TGFEXC_CODPROD_NUTAB ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX TGFPRO.IDX_TGFPRO_REFERENCIA_CODPROD ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCPEDIDO.IDX_FCPEDIDO_ORDER_STATUS ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCPEDIDO.IDX_FCPEDIDO_IMPORT_DH ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script INDEX AD_FCLOG.IDX_FCLOG_DH ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN TGFMAR.AD_FAST ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script COLUMN TGFMAR.AD_FASTREF ignorado por condição de execução
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script DEFAULT TGFMAR.UPD_TGFMAR_FAST_DEFAULTS...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script DEFAULT TGFMAR.UPD_TGFMAR_FAST_DEFAULTS executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Processando script DEFAULT AD_FCDEPARA.UPD_AD_FCDEPARA_INTEGRA_AUTO_NULL...
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Script DEFAULT AD_FCDEPARA.UPD_AD_FCDEPARA_INTEGRA_AUTO_NULL executado com sucesso!
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Fim do processamento dos scripts.....
+01/03/2026 10:17:23 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Iniciando importacao do dicionario de dados
+01/03/2026 10:17:24 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [addon-fastchannel - ddmigration] - Não há hooks para serem registrados.
+01/03/2026 10:17:24 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'addon-fastchannel'...
+01/03/2026 10:17:24 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+01/03/2026 10:17:30 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] Iniciando módulo [mitra]...

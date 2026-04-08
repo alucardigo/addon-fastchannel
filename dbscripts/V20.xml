@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!--
+        V20: Reset pedidos travados em PROCESSANDO (v1.2.59 bug fix)
+
+        O upsertOrderMapping lancava RuntimeException quando falhava,
+        causando cascata: upsert(SUCESSO) falha -> catch tenta upsert(ERRO) que tambem falha.
+        Resultado: pedidos criados no Sankhya (com NUNOTA) ficavam eternamente em PROCESSANDO.
+
+        V1.2.60 corrige: upsertOrderMapping agora usa forceStatusUpdate (JDBC direto) como
+        backup quando o NativeSql falha, nunca lancando excecao.
+
+        Este migration reseta pedidos presos para PENDENTE (reprocessamento).
+    -->
+
+    <!-- Pedidos PROCESSANDO sem NUNOTA: reprocessar -->
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="V20_RESET_PROCESSANDO_SEM_NUNOTA" ordem="1" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            UPDATE AD_FCPEDIDO
+               SET STATUS_IMPORT = 'PENDENTE',
+                   ERRO_MSG = 'V20: reset PROCESSANDO sem NUNOTA (bug upsertOrderMapping corrigido em v1.2.60)',
+                   DH_IMPORTACAO = CURRENT_TIMESTAMP
+             WHERE STATUS_IMPORT = 'PROCESSANDO'
+               AND NUNOTA IS NULL
+        </oracle>
+        <mssql>
+            UPDATE AD_FCPEDIDO
+               SET STATUS_IMPORT = 'PENDENTE',
+                   ERRO_MSG = 'V20: reset PROCESSANDO sem NUNOTA (bug upsertOrderMapping corrigido em v1.2.60)',
+                   DH_IMPORTACAO = CURRENT_TIMESTAMP
+             WHERE STATUS_IMPORT = 'PROCESSANDO'
+               AND NUNOTA IS NULL
+        </mssql>
+    </sql>
+
+    <!-- Pedidos PROCESSANDO COM NUNOTA: ja foram criados, marcar SUCESSO -->
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="V20_FIX_PROCESSANDO_COM_NUNOTA" ordem="2" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            UPDATE AD_FCPEDIDO
+               SET STATUS_IMPORT = 'SUCESSO',
+                   ERRO_MSG = 'V20: corrigido de PROCESSANDO para SUCESSO (NUNOTA existente, bug upsertOrderMapping)',
+                   DH_IMPORTACAO = CURRENT_TIMESTAMP
+             WHERE STATUS_IMPORT = 'PROCESSANDO'
+               AND NUNOTA IS NOT NULL
+        </oracle>
+        <mssql>
+            UPDATE AD_FCPEDIDO
+               SET STATUS_IMPORT = 'SUCESSO',
+                   ERRO_MSG = 'V20: corrigido de PROCESSANDO para SUCESSO (NUNOTA existente, bug upsertOrderMapping)',
+                   DH_IMPORTACAO = CURRENT_TIMESTAMP
+             WHERE STATUS_IMPORT = 'PROCESSANDO'
+               AND NUNOTA IS NOT NULL
+        </mssql>
+    </sql>
+
+</alteracoes>

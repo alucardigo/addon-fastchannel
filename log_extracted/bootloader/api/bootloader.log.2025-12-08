@@ -1,0 +1,14 @@
+08/12/2025 06:09:15 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+08/12/2025 06:09:15 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+08/12/2025 06:09:15 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+08/12/2025 06:09:15 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando importacao do dicionario de dados
+08/12/2025 06:09:15 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+08/12/2025 06:09:15 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+08/12/2025 06:09:15 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+08/12/2025 06:09:15 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+08/12/2025 06:09:17 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+08/12/2025 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+08/12/2025 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Scripts não encontrados.
+08/12/2025 06:09:17 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Scripts ignorados, pois já foram processados
+08/12/2025 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando importacao do dicionario de dados
+08/12/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Não há hooks para serem registrados.

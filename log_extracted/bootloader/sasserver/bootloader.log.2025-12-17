@@ -1,0 +1,5 @@
+17/12/2025 06:08:21 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContext sasserver
+17/12/2025 06:08:22 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.sas.servlet.SasBootModuleListener.
+17/12/2025 06:08:22 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.sas.servlet.SasBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+17/12/2025 06:08:22 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'sasserver'...
+17/12/2025 06:08:22 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

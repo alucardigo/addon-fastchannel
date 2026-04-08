@@ -1,0 +1,14 @@
+24/12/2025 06:09:11 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+24/12/2025 06:09:11 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Script TABLE TFTPIX.TFTPIX ignorado por condição de execução
+24/12/2025 06:09:11 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Fim do processamento dos scripts.....
+24/12/2025 06:09:11 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando importacao do dicionario de dados
+24/12/2025 06:09:11 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Não há hooks para serem registrados.
+24/12/2025 06:09:11 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.fintech.servlet.BootModuleListenerImpl.
+24/12/2025 06:09:11 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.fintech.servlet.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+24/12/2025 06:09:11 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'fintech'...
+24/12/2025 06:09:11 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+24/12/2025 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+24/12/2025 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Scripts não encontrados.
+24/12/2025 06:09:12 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Scripts ignorados, pois já foram processados
+24/12/2025 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando importacao do dicionario de dados
+24/12/2025 06:09:13 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Não há hooks para serem registrados.

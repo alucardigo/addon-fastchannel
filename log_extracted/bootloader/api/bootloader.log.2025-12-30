@@ -1,0 +1,20 @@
+30/12/2025 06:08:33 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+30/12/2025 06:08:33 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+30/12/2025 06:08:33 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+30/12/2025 06:08:33 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando importacao do dicionario de dados
+30/12/2025 06:08:34 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+30/12/2025 06:08:34 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+30/12/2025 06:08:34 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+30/12/2025 06:08:34 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+30/12/2025 06:08:36 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+30/12/2025 06:08:36 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+30/12/2025 06:08:36 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Scripts não encontrados.
+30/12/2025 06:08:36 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Scripts ignorados, pois já foram processados
+30/12/2025 06:08:36 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Diretório de metadados não encontrado.
+30/12/2025 06:08:36 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+30/12/2025 06:08:36 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Não há hooks para serem registrados.
+30/12/2025 06:08:38 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+30/12/2025 06:08:38 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Scripts não encontrados.
+30/12/2025 06:08:38 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Scripts ignorados, pois já foram processados
+30/12/2025 06:08:38 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando importacao do dicionario de dados
+30/12/2025 06:08:38 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Não há hooks para serem registrados.

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - Logs</title>
+    <link rel="stylesheet" href="fc-design-system.css">
+    <style>
+        /* Page-specific styles only */
+        .log-message {
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+        .log-message.expanded {
+            white-space: normal;
+            word-break: break-word;
+        }
+        .log-detail-block {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-primary);
+            font-size: 13px;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: var(--text-tertiary); font-weight: 500; }
+        .detail-value { font-weight: 600; color: var(--text-primary); }
+        .detail-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-tertiary);
+            margin: 20px 0 8px;
+        }
+        .fc-modal { position: relative; max-width: 800px; }
+        .fc-modal-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .fc-modal-close-btn:hover {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            border-color: var(--danger);
+        }
+        .fc-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        @media (max-width: 768px) {
+            .log-message { max-width: 200px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="fc-page">
+        <header class="fc-header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="fc-header-logo">
+            <span class="fc-header-title">Fastchannel</span>
+            <span class="fc-header-subtitle">Logs de Integracao</span>
+            <div class="fc-theme-toggle" onclick="toggleTheme()">
+                <span class="fc-theme-label">Tema</span>
+                <div class="fc-theme-toggle-track"></div>
+            </div>
+        </header>
+
+        <nav class="fc-nav">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="config.html">Configuracao</a>
+            <a href="depara.html">De-Para</a>
+            <a href="pedidos.html">Pedidos</a>
+            <a href="estoque.html">Estoque</a>
+            <a href="precos.html">Precos</a>
+            <a href="fila.html">Fila de Sincronizacao</a>
+            <a href="logs.html" class="active">Logs</a>
+        </nav>
+
+        <div class="fc-card">
+            <div class="fc-card-header">
+                <span class="fc-card-title">Logs de Integracao</span>
+                <button class="fc-btn fc-btn-danger fc-btn-sm" onclick="limparLogs()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Limpar Logs Antigos
+                </button>
+            </div>
+
+            <div class="fc-filters" style="margin-bottom: 20px;">
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Nivel</span>
+                    <select id="filterNivel" class="fc-filter-input fc-filter-select" onchange="loadLogs(true)">
+                        <option value="">Todos</option>
+                        <option value="ERROR">Error</option>
+                        <option value="WARNING">Warning</option>
+                        <option value="INFO">Info</option>
+                        <option value="DEBUG">Debug</option>
+                    </select>
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Operacao</span>
+                    <select id="filterOperacao" class="fc-filter-input fc-filter-select" onchange="loadLogs(true)">
+                        <option value="">Todas</option>
+                        <option value="ORDER_IMPORT">Importacao Pedidos</option>
+                        <option value="STOCK_SYNC">Sinc. Estoque</option>
+                        <option value="PRICE_SYNC">Sinc. Precos</option>
+                        <option value="PRODUCT_SYNC">Sinc. Produtos</option>
+                        <option value="AUTH">Autenticacao</option>
+                        <option value="QUEUE_PROCESS">Processamento Fila</option>
+                    </select>
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Data Inicio</span>
+                    <input type="date" id="filterDataInicio" class="fc-filter-input" onchange="loadLogs(true)">
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Data Fim</span>
+                    <input type="date" id="filterDataFim" class="fc-filter-input" onchange="loadLogs(true)">
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Buscar</span>
+                    <input type="text" id="filterBusca" class="fc-filter-input" placeholder="Mensagem...">
+                </div>
+                <div class="fc-filter-group" style="justify-content: flex-end;">
+                    <button class="fc-btn fc-btn-primary" onclick="loadLogs(true)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+
+            <div class="fc-table-container">
+                <table class="fc-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-col="timestamp" onclick="sortBy('timestamp','date')">Data/Hora <span class="sort-icon">&#8597;</span></th>
+                            <th class="sortable" data-col="nivel" onclick="sortBy('nivel')">Nivel <span class="sort-icon">&#8597;</span></th>
+                            <th class="sortable" data-col="operacao" onclick="sortBy('operacao')">Operacao <span class="sort-icon">&#8597;</span></th>
+                            <th class="sortable" data-col="referencia" onclick="sortBy('referencia')">Referencia <span class="sort-icon">&#8597;</span></th>
+                            <th>Mensagem</th>
+                            <th class="text-center">Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTable">
+                        <tr><td colspan="6" class="fc-empty">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="fc-pagination">
+                <span class="fc-pagination-info" id="paginationInfo">Mostrando 0 de 0</span>
+                <div class="fc-pagination-pages">
+                    <button class="fc-pagination-btn" id="btnPrev" onclick="prevPage()" disabled>&laquo; Anterior</button>
+                    <button class="fc-pagination-btn" id="btnNext" onclick="nextPage()" disabled>Proximo &raquo;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes -->
+    <div id="modalDetails" class="fc-modal-overlay">
+        <div class="fc-modal">
+            <button class="fc-modal-close-btn" onclick="closeModal()">&times;</button>
+            <div class="fc-modal-title">Detalhes do Log</div>
+            <div id="modalBody"></div>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <button class="fc-btn fc-btn-ghost" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* === Theme Toggle === */
+        (function initTheme() {
+            var saved = localStorage.getItem('fc-theme');
+            if (!saved) saved = 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+        })();
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('fc-theme', next);
+        }
+
+        /* === Addon Context Resolution === */
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
+                }
+                return null;
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
+
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        console.log('[Fastchannel] contexts', addonContexts);
+        let currentPage = 1;
+        let totalPages = 1;
+        let pageSize = 50;
+        let currentItems = [];
+        let sortCol = null;
+        let sortDir = 'asc';
+
+        function sortBy(col, type) {
+            type = type || 'str';
+            if (sortCol === col) {
+                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortCol = col;
+                sortDir = 'asc';
+            }
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('sorted');
+                if (th.dataset.col === col) th.classList.add('sorted');
+            });
+            if (!currentItems.length) return;
+            currentItems.sort((a, b) => {
+                let va = a[col], vb = b[col];
+                if (va == null) va = '';
+                if (vb == null) vb = '';
+                if (type === 'num') {
+                    va = parseFloat(va) || 0;
+                    vb = parseFloat(vb) || 0;
+                } else if (type === 'date') {
+                    va = va ? new Date(va).getTime() : 0;
+                    vb = vb ? new Date(vb).getTime() : 0;
+                } else {
+                    va = String(va).toLowerCase();
+                    vb = String(vb).toLowerCase();
+                }
+                if (va < vb) return sortDir === 'asc' ? -1 : 1;
+                if (va > vb) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
+            renderLogItems(currentItems);
+        }
+
+        function escapeHtml(text) {
+            return (text || '')
+                .toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderLogItems(items) {
+            const tbody = document.getElementById('logsTable');
+            tbody.innerHTML = items.map((log, idx) => `
+                <tr>
+                    <td class="text-mono">${formatDate(log.dhLog)}</td>
+                    <td>${getNivelBadge(log.nivel)}</td>
+                    <td>${getOperacaoBadge(log.operacao)}</td>
+                    <td>${escapeHtml(log.referencia || '--')}</td>
+                    <td class="log-message" title="${escapeHtml(log.mensagem || '')}">${escapeHtml(log.mensagem || '--')}</td>
+                    <td class="text-center">
+                        <button class="fc-btn fc-btn-ghost fc-btn-sm" onclick="showDetails(${idx})">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Ver
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+                    if (resp.ok) return await resp.json();
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    lastErr = errMsg;
+                } catch (e) { lastErr = e.message; }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        function parseBackendDate(dateStr) {
+            if (!dateStr) return null;
+            const match = typeof dateStr === 'string'
+                ? dateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/)
+                : null;
+            if (match) {
+                return new Date(
+                    Number(match[1]),
+                    Number(match[2]) - 1,
+                    Number(match[3]),
+                    Number(match[4]),
+                    Number(match[5]),
+                    Number(match[6])
+                );
+            }
+            const parsed = new Date(dateStr);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function formatDate(dateStr) {
+            const parsed = parseBackendDate(dateStr);
+            return parsed ? parsed.toLocaleString('pt-BR') : (dateStr || '--');
+        }
+
+        function getNivelBadge(nivel) {
+            const map = {
+                'ERROR': 'fc-badge-danger',
+                'SEVERE': 'fc-badge-danger',
+                'ERRO': 'fc-badge-danger',
+                'WARNING': 'fc-badge-warning',
+                'AVISO': 'fc-badge-warning',
+                'INFO': 'fc-badge-info',
+                'DEBUG': 'fc-badge-neutral'
+            };
+            const cls = map[nivel] || 'fc-badge-info';
+            return `<span class="fc-badge ${cls}">${nivel || '--'}</span>`;
+        }
+
+        function getOperacaoBadge(op) {
+            const labels = {
+                'ORDER_IMPORT': 'Import Pedidos',
+                'STOCK_SYNC': 'Sinc Estoque',
+                'PRICE_SYNC': 'Sinc Precos',
+                'PRODUCT_SYNC': 'Sinc Produtos',
+                'AUTH': 'Autenticacao',
+                'QUEUE_PROCESS': 'Fila'
+            };
+            return `<span class="fc-badge fc-badge-info">${labels[op] || op || '--'}</span>`;
+        }
+
+        async function loadLogs(resetPage) {
+            if (resetPage) currentPage = 1;
+            const tbody = document.getElementById('logsTable');
+            tbody.innerHTML = '<tr><td colspan="6" class="fc-empty"><div class="fc-spinner" style="margin: 0 auto;"></div></td></tr>';
+
+            try {
+                const filters = {
+                    nivel: document.getElementById('filterNivel').value,
+                    operacao: document.getElementById('filterOperacao').value,
+                    dataInicio: document.getElementById('filterDataInicio').value,
+                    dataFim: document.getElementById('filterDataFim').value,
+                    busca: document.getElementById('filterBusca').value,
+                    page: currentPage,
+                    pageSize: pageSize
+                };
+
+                const data = await callService('FCLogsSP.list', filters);
+
+                if (data.items && data.items.length > 0) {
+                    currentItems = data.items;
+                    renderLogItems(currentItems);
+
+                    totalPages = Math.ceil((data.total || 0) / pageSize);
+                    updatePagination(data.total || 0);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="fc-empty">Nenhum log encontrado</td></tr>';
+                    updatePagination(0);
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" class="fc-empty" style="color: var(--danger);">Erro: ${e.message}</td></tr>`;
+            }
+        }
+
+        function updatePagination(total) {
+            const start = total === 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+            const end = total === 0 ? 0 : Math.min(currentPage * pageSize, total);
+            document.getElementById('paginationInfo').textContent =
+                total === 0 ? 'Mostrando 0 de 0' : `Mostrando ${start}-${end} de ${total}`;
+            document.getElementById('btnPrev').disabled = currentPage <= 1;
+            document.getElementById('btnNext').disabled = currentPage >= totalPages;
+        }
+
+        function prevPage() { if (currentPage > 1) { currentPage--; loadLogs(); } }
+        function nextPage() { if (currentPage < totalPages) { currentPage++; loadLogs(); } }
+
+        function showDetails(idx) {
+            const log = currentItems[idx];
+            if (!log) return;
+            const modal = document.getElementById('modalDetails');
+            const body = document.getElementById('modalBody');
+
+            body.innerHTML = `
+                <div class="detail-row"><span class="detail-label">Data/Hora</span><span class="detail-value">${formatDate(log.dhLog)}</span></div>
+                <div class="detail-row"><span class="detail-label">Nivel</span><span class="detail-value">${getNivelBadge(log.nivel)}</span></div>
+                <div class="detail-row"><span class="detail-label">Operacao</span><span class="detail-value">${getOperacaoBadge(log.operacao)}</span></div>
+                <div class="detail-row"><span class="detail-label">Referencia</span><span class="detail-value">${escapeHtml(log.referencia || '--')}</span></div>
+                <div class="detail-section-title">Mensagem</div>
+                <div class="log-detail-block">${escapeHtml(log.mensagem || '--')}</div>
+                ${log.stacktrace ? `
+                    <div class="detail-section-title">Stack Trace</div>
+                    <div class="log-detail-block">${escapeHtml(log.stacktrace)}</div>
+                ` : ''}
+            `;
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalDetails').classList.remove('active');
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        document.getElementById('modalDetails').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        function setButtonLoading(btn, loading) {
+            if (!btn) return;
+            if (loading) {
+                btn.disabled = true;
+                btn._origHTML = btn.innerHTML;
+                btn.innerHTML = '<span class="fc-spinner"></span> Aguarde...';
+            } else {
+                btn.disabled = false;
+                if (btn._origHTML) btn.innerHTML = btn._origHTML;
+            }
+        }
+
+        async function limparLogs() {
+            if (!confirm('Limpar logs com mais de 30 dias?')) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
+            try {
+                const result = await callService('FCLogsSP.limpar', { dias: 30 });
+                alert(result.message || 'Logs limpos');
+                loadLogs();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadLogs);
+    </script>
+</body>
+</html>

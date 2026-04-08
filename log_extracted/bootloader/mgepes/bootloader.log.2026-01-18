@@ -1,0 +1,28 @@
+18/01/2026 15:57:09 INFO  br.com.sankhya.module.scriptmigration.ScriptMigration - [mgepes - scriptmigration] - Iniciando processo de script de migração do módulo...
+18/01/2026 15:57:09 INFO  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Iniciando processamento dos scripts de migração...
+18/01/2026 15:57:09 INFO  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Iniciando a preparação dos scripts de migração do módulo 'mgepes'.
+18/01/2026 15:57:09 INFO  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Buscando scripts embarcados no módulo...
+18/01/2026 15:57:09 INFO  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Iniciando processamento dos scripts de migração...
+18/01/2026 15:57:09 WARN  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Não há scripts de banco de dados!
+18/01/2026 15:57:09 INFO  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Fim do processamento dos scripts...
+18/01/2026 15:57:09 INFO  br.com.sankhya.skw.environment.upd.dd.MetadataProcessor - [mgepes - ddmigration] - [OwnerMigration] Não será necessário importar o dicionário de dados do módulo 'mgepes'.
+18/01/2026 15:57:09 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.mge.pessoal.servlet.PessoalBootModuleListener.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'mgepes'...
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 9.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaEventosPIS' será executado: false.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaCodigosMovimentosRescisao' será executado: false.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaTabelasDeFaixa' será executado: false.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.LimpaBackupDadosPadrao' será executado: false.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaEmailTFPFUN' será executado: false.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaHistoricoRegistroFiscal' será executado: false.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaParametrosCalculoRescisao' será executado: false.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaCamposSSTRetroativo' será executado: false.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AjustaEventosRETTransferencia' não será executando, pois não cumpre condição de condição de execução.
+18/01/2026 15:57:16 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [mgepes] finalizando inicialização...
+18/01/2026 15:57:24 ERROR br.com.sankhya.module.event.EventDrivenBootLoader - br.com.sankhya.module.exception.WPMEventMessageException: java.net.SocketTimeoutException: Read timed out
+18/01/2026 15:57:25 ERROR br.com.sankhya.module.event.EventDrivenBootLoader - br.com.sankhya.module.exception.WPMEventMessageException: java.lang.RuntimeException: Failed to execute HTTP request
+18/01/2026 15:57:26 ERROR br.com.sankhya.module.event.EventDrivenBootLoader - br.com.sankhya.module.exception.WPMEventMessageException: java.lang.RuntimeException: Failed to execute HTTP request
+18/01/2026 15:57:28 ERROR br.com.sankhya.module.event.EventDrivenBootLoader - br.com.sankhya.module.exception.WPMEventMessageException: java.lang.RuntimeException: Failed to execute HTTP request
+18/01/2026 15:57:29 ERROR br.com.sankhya.module.event.EventDrivenBootLoader - br.com.sankhya.module.exception.WPMEventMessageException: java.net.SocketTimeoutException: Read timed out
+18/01/2026 15:57:30 ERROR br.com.sankhya.module.event.EventDrivenBootLoader - br.com.sankhya.module.exception.WPMEventMessageException: java.lang.RuntimeException: Failed to execute HTTP request
+18/01/2026 15:57:41 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] Iniciando módulo [mitra]...

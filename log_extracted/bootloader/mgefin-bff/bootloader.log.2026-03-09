@@ -1,0 +1,9 @@
+09/03/2026 06:08:50 INFO  br.com.sankhya.module.scriptmigration.ScriptMigration - [mgefin-bff - scriptmigration] - Iniciando processo de script de migração do módulo...
+09/03/2026 06:08:50 INFO  br.com.sankhya.module.scriptmigration.ScriptMigration - [mgefin-bff - scriptmigration] - Script de migração não localizado, path: WEB-INF/db-migration/script/script-migration.json.
+09/03/2026 06:08:50 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Diretorio de metadadados não encontrado.
+09/03/2026 06:08:50 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bff.mgefin.BootModuleListenerImpl.
+09/03/2026 06:08:50 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bff.mgefin.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+09/03/2026 06:08:50 WARN  br.com.sankhya.module.bootloader.ObjectRegistryManager - Nenhum pacote informado para registrar os ObjectRegistryEntrySupplier do módulo mgefin-bff
+09/03/2026 06:08:50 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'mgefin-bff'...
+09/03/2026 06:08:50 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'mgefin-bff' no pacote 'br.com.sankhya.mgefin-bff.model.scripts'.
+09/03/2026 06:08:50 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [mgefin-bff] finalizando inicialização...

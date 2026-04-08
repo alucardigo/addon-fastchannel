@@ -1,0 +1,20 @@
+16/02/2026 06:09:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+16/02/2026 06:09:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Script TABLE TFTPIX.TFTPIX ignorado por condição de execução
+16/02/2026 06:09:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Fim do processamento dos scripts.....
+16/02/2026 06:09:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando importacao do dicionario de dados
+16/02/2026 06:09:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Não há hooks para serem registrados.
+16/02/2026 06:09:09 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.fintech.servlet.BootModuleListenerImpl.
+16/02/2026 06:09:09 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.fintech.servlet.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+16/02/2026 06:09:10 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'fintech'...
+16/02/2026 06:09:10 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+16/02/2026 06:09:11 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+16/02/2026 06:09:11 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Scripts não encontrados.
+16/02/2026 06:09:11 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Scripts ignorados, pois já foram processados
+16/02/2026 06:09:11 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Iniciando importacao do dicionario de dados
+16/02/2026 06:09:11 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Não há hooks para serem registrados.
+16/02/2026 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+16/02/2026 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Scripts não encontrados.
+16/02/2026 06:09:12 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Scripts ignorados, pois já foram processados
+16/02/2026 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Diretório de metadados não encontrado.
+16/02/2026 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+16/02/2026 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Não há hooks para serem registrados.

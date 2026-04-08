@@ -1,0 +1,9 @@
+14/01/2026 06:08:27 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContext telemetriafiscal
+14/01/2026 06:08:27 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'telemetriafiscal'...
+14/01/2026 06:08:27 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContextDestroyed telemetriafiscal
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.BootModuleServletContextListener - Não encontramos AsyncTask pendentes no contexto 'telemetriafiscal'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mge-bff'.
+14/01/2026 23:06:36 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContext telemetriafiscal
+14/01/2026 23:06:36 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'telemetriafiscal'...
+14/01/2026 23:06:36 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

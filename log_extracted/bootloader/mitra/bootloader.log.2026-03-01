@@ -1,0 +1,19 @@
+01/03/2026 10:16:03 INFO  br.com.sankhya.addonmodule.utils.ModuleUtils - mitra - IS Vazia no war.
+01/03/2026 10:16:09 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+01/03/2026 10:16:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+01/03/2026 10:16:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Scripts não encontrados.
+01/03/2026 10:16:09 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Scripts ignorados, pois já foram processados
+01/03/2026 10:16:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Diretório de metadados não encontrado.
+01/03/2026 10:16:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+01/03/2026 10:16:10 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Não há hooks para serem registrados.
+01/03/2026 10:17:30 INFO  br.com.sankhya.addonmodule.utils.ModuleUtils - mitra - IS Vazia no war.
+01/03/2026 10:17:32 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+01/03/2026 10:17:32 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Script TABLE TGMTASK.TGMTASK ignorado por condição de execução
+01/03/2026 10:17:32 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Script COLUMN TGMTASK.TENANTID ignorado por condição de execução
+01/03/2026 10:17:32 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Script TABLE TGMTOKEN.TGMTOKEN ignorado por condição de execução
+01/03/2026 10:17:32 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Fim do processamento dos scripts.....
+01/03/2026 10:17:32 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Iniciando importacao do dicionario de dados
+01/03/2026 10:17:32 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Não há hooks para serem registrados.
+01/03/2026 10:17:32 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'mitra'...
+01/03/2026 10:17:32 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+01/03/2026 10:17:38 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] Iniciando módulo [bellube-iconic-addon-dev]...

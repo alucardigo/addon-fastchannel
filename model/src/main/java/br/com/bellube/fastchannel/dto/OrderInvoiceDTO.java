@@ -18,7 +18,7 @@ public class OrderInvoiceDTO {
     private String invoiceUrl;
     private String xmlUrl;
 
-    // Campos Sankhya (transient - não serializado)
+    // Campos Sankhya (transient - nao serializado)
     private transient BigDecimal nuNota;
     private transient BigDecimal codEmp;
 

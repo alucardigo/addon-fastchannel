@@ -1,0 +1,79 @@
+26/02/2026 06:08:50 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+26/02/2026 06:08:50 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Script TABLE TFTPIX.TFTPIX ignorado por condição de execução
+26/02/2026 06:08:50 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Fim do processamento dos scripts.....
+26/02/2026 06:08:50 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando importacao do dicionario de dados
+26/02/2026 06:08:51 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Não há hooks para serem registrados.
+26/02/2026 06:08:51 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.fintech.servlet.BootModuleListenerImpl.
+26/02/2026 06:08:51 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.fintech.servlet.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+26/02/2026 06:08:51 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'fintech'...
+26/02/2026 06:08:51 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+26/02/2026 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+26/02/2026 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Scripts não encontrados.
+26/02/2026 06:08:52 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Scripts ignorados, pois já foram processados
+26/02/2026 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Diretório de metadados não encontrado.
+26/02/2026 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+26/02/2026 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Não há hooks para serem registrados.
+26/02/2026 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+26/02/2026 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Script TABLE TEMP_TGLATS_V2.TEMP_TGLATS_V2 ignorado por condição de execução
+26/02/2026 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Fim do processamento dos scripts.....
+26/02/2026 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Iniciando importacao do dicionario de dados
+26/02/2026 06:08:53 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Não há hooks para serem registrados.
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [fintech]...
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgefin-bff'.
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgecom-bff'.
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apiservicostomados'.
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'telemetrymm'.
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgewms'.
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mon-api'.
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'api'.
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgeprod'.
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.BootModuleServletContextListener - Não encontramos AsyncTask pendentes no contexto 'turnkey'.
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+26/02/2026 07:44:20 INFO  br.com.sankhya.module.BootModuleServletContextListener - Não encontramos AsyncTask pendentes no contexto 'secmm'.
+26/02/2026 07:47:46 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+26/02/2026 07:47:46 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Script TABLE TFTPIX.TFTPIX ignorado por condição de execução
+26/02/2026 07:47:46 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Fim do processamento dos scripts.....
+26/02/2026 07:47:46 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando importacao do dicionario de dados
+26/02/2026 07:47:47 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Não há hooks para serem registrados.
+26/02/2026 07:47:47 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.fintech.servlet.BootModuleListenerImpl.
+26/02/2026 07:47:47 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.fintech.servlet.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+26/02/2026 07:47:47 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'fintech'...
+26/02/2026 07:47:47 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+26/02/2026 07:47:47 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+26/02/2026 07:47:47 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+26/02/2026 07:47:47 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Scripts não encontrados.
+26/02/2026 07:47:47 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Scripts ignorados, pois já foram processados
+26/02/2026 07:47:47 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Diretório de metadados não encontrado.
+26/02/2026 07:47:47 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+26/02/2026 07:47:47 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Não há hooks para serem registrados.
+26/02/2026 07:47:47 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+26/02/2026 07:47:47 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Scripts não encontrados.
+26/02/2026 07:47:47 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Scripts ignorados, pois já foram processados
+26/02/2026 07:47:47 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Iniciando importacao do dicionario de dados
+26/02/2026 07:47:48 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Não há hooks para serem registrados.
+26/02/2026 07:47:48 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+26/02/2026 07:47:48 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Scripts não encontrados.
+26/02/2026 07:47:48 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Scripts ignorados, pois já foram processados
+26/02/2026 07:47:48 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Diretório de metadados não encontrado.
+26/02/2026 07:47:48 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+26/02/2026 07:47:48 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Não há hooks para serem registrados.
+26/02/2026 10:20:42 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'placemm'.
+26/02/2026 10:20:42 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'instance-logs-mm'.
+26/02/2026 10:20:42 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apivenda'.
+26/02/2026 10:25:24 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+26/02/2026 10:25:24 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Script TABLE TFTPIX.TFTPIX ignorado por condição de execução
+26/02/2026 10:25:24 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Fim do processamento dos scripts.....
+26/02/2026 10:25:24 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando importacao do dicionario de dados
+26/02/2026 10:25:24 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Não há hooks para serem registrados.
+26/02/2026 10:25:24 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.fintech.servlet.BootModuleListenerImpl.
+26/02/2026 10:25:24 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.fintech.servlet.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+26/02/2026 10:25:24 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'fintech'...
+26/02/2026 10:25:24 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

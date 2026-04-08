@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DTO para operações de preço em lote (batch) com a API Fastchannel.
+ * DTO para operacoes de preco em lote (batch) com a API Fastchannel.
  *
- * Permite enviar múltiplos preços em uma única requisição,
- * otimizando a comunicação com a API.
+ * Permite enviar multiplos precos em uma unica requisicao,
+ * otimizando a comunicacao com a API.
  */
 public class PriceBatchDTO {
 

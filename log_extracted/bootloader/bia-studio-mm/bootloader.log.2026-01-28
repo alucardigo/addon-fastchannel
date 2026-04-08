@@ -1,0 +1,6 @@
+28/01/2026 06:08:59 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+28/01/2026 06:08:59 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+28/01/2026 06:08:59 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+28/01/2026 06:08:59 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'bia-studio-mm' no pacote 'br.com.sankhya.bia-studio-mm.model.scripts'.
+28/01/2026 06:08:59 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [bia-studio-mm] finalizando inicialização...
+28/01/2026 06:08:59 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

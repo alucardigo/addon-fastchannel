@@ -1,0 +1,5 @@
+11/02/2026 07:20:38 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContext turnkey
+11/02/2026 07:20:42 INFO  br.com.sankhya.module.BootModuleServletContextListener - Carregando jobs do BootModuleListener: br.com.sankhya.bff.turnkey.BootModuleListenerImpl.
+11/02/2026 07:20:42 INFO  br.com.sankhya.module.BootModuleServletContextListener - Classe br.com.sankhya.bff.turnkey.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+11/02/2026 07:20:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'turnkey'...
+11/02/2026 07:20:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

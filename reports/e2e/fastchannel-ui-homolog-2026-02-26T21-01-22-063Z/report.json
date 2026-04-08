@@ -1,0 +1,50 @@
+{
+  "startedAt": "2026-02-26T21:01:22.708Z",
+  "status": "failed",
+  "config": {
+    "baseUrl": "https://skw.bellube.com.br/mge/",
+    "user": "rodrigo_f",
+    "headless": true,
+    "slowMoMs": 0,
+    "actionTimeoutMs": 30000,
+    "longTimeoutMs": 360000,
+    "outDir": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\fastchannel-ui-homolog-2026-02-26T21-01-22-063Z"
+  },
+  "steps": [
+    {
+      "name": "login-mge",
+      "startedAt": "2026-02-26T21:01:22.967Z",
+      "status": "passed",
+      "data": {
+        "url": "https://skw.bellube.com.br/mge/system.jsp"
+      },
+      "finishedAt": "2026-02-26T21:01:46.282Z",
+      "durationMs": 23315,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\fastchannel-ui-homolog-2026-02-26T21-01-22-063Z\\screenshots\\01-login-mge.png"
+    },
+    {
+      "name": "open-addon-through-menu-search",
+      "startedAt": "2026-02-26T21:01:46.548Z",
+      "status": "passed",
+      "data": {
+        "openedBy": "/Pedidos Addon-FastChannel/i",
+        "title": "Fastchannel - Pedidos"
+      },
+      "finishedAt": "2026-02-26T21:01:53.645Z",
+      "durationMs": 7097,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\fastchannel-ui-homolog-2026-02-26T21-01-22-063Z\\screenshots\\02-open-addon-through-menu-search.png"
+    },
+    {
+      "name": "pedidos-importar",
+      "startedAt": "2026-02-26T21:01:54.087Z",
+      "status": "failed",
+      "error": "Frame do Addon Fastchannel nao encontrado",
+      "finishedAt": "2026-02-26T21:02:55.693Z",
+      "durationMs": 61606,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\fastchannel-ui-homolog-2026-02-26T21-01-22-063Z\\screenshots\\03-pedidos-importar-failed.png"
+    }
+  ],
+  "dialogs": [],
+  "fatalError": "Frame do Addon Fastchannel nao encontrado",
+  "finishedAt": "2026-02-26T21:02:55.693Z"
+}

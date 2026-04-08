@@ -1,0 +1,9 @@
+30/12/2025 19:08:59 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.servlet.MMBootModuleListener.
+30/12/2025 19:08:59 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+30/12/2025 19:08:59 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'app-builder-api'...
+30/12/2025 19:08:59 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'app-builder-api' no pacote 'br.com.sankhya.app-builder-api.model.scripts'.
+30/12/2025 19:08:59 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [app-builder-api] finalizando inicialização...
+30/12/2025 20:13:59 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+30/12/2025 20:15:37 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+30/12/2025 20:15:49 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+30/12/2025 22:11:45 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

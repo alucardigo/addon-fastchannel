@@ -224,6 +224,25 @@ public class FCPedidosService {
                 result.put("createdAt", order.getCreatedAt());
                 result.put("paymentMethod", order.getPaymentMethod());
 
+                // Descontos detalhados
+                result.put("discount", order.getDiscount());
+                result.put("productDiscount", order.getProductDiscount());
+                result.put("productDiscountQuota", order.getProductDiscountQuota());
+                result.put("productDiscountCoupon", order.getProductDiscountCoupon());
+                result.put("productDiscountPayment", order.getProductDiscountPayment());
+                result.put("shippingDiscount", order.getShippingDiscount());
+                result.put("shippingDiscountCoupon", order.getShippingDiscountCoupon());
+                result.put("shippingDiscountAmount", order.getShippingDiscountAmount());
+
+                // Frete efetivo (shippingCost - shippingDiscount)
+                java.math.BigDecimal freteOriginal = order.getShippingCost() != null ? order.getShippingCost() : java.math.BigDecimal.ZERO;
+                java.math.BigDecimal descontoFrete = java.math.BigDecimal.ZERO;
+                if (order.getShippingDiscount() != null) descontoFrete = descontoFrete.add(order.getShippingDiscount());
+                if (order.getShippingDiscountCoupon() != null) descontoFrete = descontoFrete.add(order.getShippingDiscountCoupon());
+                if (order.getShippingDiscountAmount() != null) descontoFrete = descontoFrete.add(order.getShippingDiscountAmount());
+                result.put("freteEfetivo", freteOriginal.subtract(descontoFrete));
+                result.put("descontoFreteTotal", descontoFrete);
+
                 if (order.getCustomer() != null) {
                     result.put("customerName", order.getCustomer().getName());
                     result.put("customerDocument", order.getCustomer().getCpfCnpj());

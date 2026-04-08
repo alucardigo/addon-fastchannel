@@ -1,0 +1,20 @@
+12/02/2026 06:47:08 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+12/02/2026 06:47:08 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Script TABLE TFTPIX.TFTPIX ignorado por condição de execução
+12/02/2026 06:47:08 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Fim do processamento dos scripts.....
+12/02/2026 06:47:08 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando importacao do dicionario de dados
+12/02/2026 06:47:08 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Não há hooks para serem registrados.
+12/02/2026 06:47:08 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.fintech.servlet.BootModuleListenerImpl.
+12/02/2026 06:47:08 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.fintech.servlet.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+12/02/2026 06:47:09 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'fintech'...
+12/02/2026 06:47:09 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+12/02/2026 06:47:09 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+12/02/2026 06:47:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+12/02/2026 06:47:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Script TABLE TEMP_TGLATS_V2.TEMP_TGLATS_V2 ignorado por condição de execução
+12/02/2026 06:47:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Fim do processamento dos scripts.....
+12/02/2026 06:47:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Iniciando importacao do dicionario de dados
+12/02/2026 06:47:09 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Não há hooks para serem registrados.
+12/02/2026 06:47:10 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+12/02/2026 06:47:10 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Scripts não encontrados.
+12/02/2026 06:47:10 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Scripts ignorados, pois já foram processados
+12/02/2026 06:47:10 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Iniciando importacao do dicionario de dados
+12/02/2026 06:47:10 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Não há hooks para serem registrados.

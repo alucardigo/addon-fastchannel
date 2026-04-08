@@ -22,6 +22,11 @@
                 CODTIPOPER NUMBER(10),
                 CODLOCAL NUMBER(10),
                 NUTAB NUMBER(10),
+                CODNAT NUMBER(10),
+                CODCENCUS NUMBER(10),
+                CODVEND_PADRAO NUMBER(10),
+                PRICE_TABLE_TIPOS VARCHAR2(100),
+                PRICE_TABLE_IDS VARCHAR2(200),
                 CODEMP NUMBER(5),
                 RESELLER_ID VARCHAR2(100),
                 STORAGE_ID VARCHAR2(100),
@@ -40,6 +45,9 @@
                 LAST_PRODUCT_SYNC TIMESTAMP,
                 LAST_STOCK_SYNC TIMESTAMP,
                 LAST_PRICE_SYNC TIMESTAMP,
+                UI_SOURCE_DEFAULT NUMBER(2),
+                UI_ENABLE_SOURCE_2 CHAR(1) DEFAULT 'N',
+                UI_ENABLE_SOURCE_3 CHAR(1) DEFAULT 'N',
                 DH_CRIACAO TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 DH_ALTERACAO TIMESTAMP,
                 CONSTRAINT PK_AD_FCCONFIG PRIMARY KEY (CODCONFIG)
@@ -59,6 +67,11 @@
                 CODTIPOPER INT,
                 CODLOCAL INT,
                 NUTAB INT,
+                CODNAT INT,
+                CODCENCUS INT,
+                CODVEND_PADRAO INT,
+                PRICE_TABLE_TIPOS VARCHAR(100),
+                PRICE_TABLE_IDS VARCHAR(200),
                 CODEMP SMALLINT,
                 RESELLER_ID VARCHAR(100),
                 STORAGE_ID VARCHAR(100),
@@ -77,6 +90,9 @@
                 LAST_PRODUCT_SYNC DATETIME2,
                 LAST_STOCK_SYNC DATETIME2,
                 LAST_PRICE_SYNC DATETIME2,
+                UI_SOURCE_DEFAULT SMALLINT,
+                UI_ENABLE_SOURCE_2 CHAR(1) DEFAULT 'N',
+                UI_ENABLE_SOURCE_3 CHAR(1) DEFAULT 'N',
                 DH_CRIACAO DATETIME2 DEFAULT CURRENT_TIMESTAMP,
                 DH_ALTERACAO DATETIME2,
                 CONSTRAINT PK_AD_FCCONFIG PRIMARY KEY (CODCONFIG)
@@ -182,6 +198,13 @@
                 CODPARC NUMBER,
                 STATUS_FC NUMBER(5),
                 STATUS_SKW VARCHAR2(5),
+                STATUS_IMPORT VARCHAR2(20),
+                VALOR_TOTAL NUMBER(18,2),
+                DH_PEDIDO TIMESTAMP,
+                NOME_CLIENTE VARCHAR2(200),
+                CPF_CNPJ VARCHAR2(20),
+                VALOR_FRETE NUMBER(18,2),
+                ERRO_MSG VARCHAR2(1000),
                 DH_IMPORTACAO TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 DH_FATURAMENTO TIMESTAMP,
                 DH_ENTREGA TIMESTAMP,
@@ -202,6 +225,13 @@
                 CODPARC INT,
                 STATUS_FC SMALLINT,
                 STATUS_SKW VARCHAR(5),
+                STATUS_IMPORT VARCHAR(20),
+                VALOR_TOTAL DECIMAL(18,2),
+                DH_PEDIDO DATETIME2,
+                NOME_CLIENTE VARCHAR(200),
+                CPF_CNPJ VARCHAR(20),
+                VALOR_FRETE DECIMAL(18,2),
+                ERRO_MSG VARCHAR(1000),
                 DH_IMPORTACAO DATETIME2 DEFAULT CURRENT_TIMESTAMP,
                 DH_FATURAMENTO DATETIME2,
                 DH_ENTREGA DATETIME2,
@@ -237,6 +267,7 @@
                 REFERENCIA VARCHAR2(100),
                 DETALHES CLOB,
                 DH_REGISTRO TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                DH_LOG TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 CONSTRAINT PK_AD_FCLOG PRIMARY KEY (IDLOG)
             )
         </oracle>
@@ -249,6 +280,7 @@
                 REFERENCIA VARCHAR(100),
                 DETALHES NVARCHAR(MAX),
                 DH_REGISTRO DATETIME2 DEFAULT CURRENT_TIMESTAMP,
+                DH_LOG DATETIME2 DEFAULT CURRENT_TIMESTAMP,
                 CONSTRAINT PK_AD_FCLOG PRIMARY KEY (IDLOG)
             )
         </mssql>
@@ -257,10 +289,10 @@
     <!-- Indice para AD_FCLOG -->
     <sql nomeTabela="AD_FCLOG" ordem="9" executar="SE_NAO_EXISTIR" tipoObjeto="INDEX" nomeObjeto="IDX_FCLOG_DH">
         <oracle>
-            CREATE INDEX IDX_FCLOG_DH ON AD_FCLOG (DH_REGISTRO DESC)
+            CREATE INDEX IDX_FCLOG_DH ON AD_FCLOG (DH_LOG DESC)
         </oracle>
         <mssql>
-            CREATE INDEX IDX_FCLOG_DH ON AD_FCLOG (DH_REGISTRO DESC)
+            CREATE INDEX IDX_FCLOG_DH ON AD_FCLOG (DH_LOG DESC)
         </mssql>
     </sql>
 

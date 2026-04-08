@@ -1,0 +1,42 @@
+14/12/2025 10:05:47 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+14/12/2025 10:05:47 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+14/12/2025 10:05:47 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+14/12/2025 10:05:47 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'bia-studio-mm' no pacote 'br.com.sankhya.bia-studio-mm.model.scripts'.
+14/12/2025 10:05:47 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [bia-studio-mm] finalizando inicialização...
+14/12/2025 10:05:47 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+14/12/2025 10:17:49 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [bia-studio-mm]...
+14/12/2025 10:17:49 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgeliv'.
+14/12/2025 10:17:49 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'instance-logs-mm'.
+14/12/2025 10:17:49 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered
+14/12/2025 10:17:49 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered
+14/12/2025 10:17:49 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered
+14/12/2025 10:17:49 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+14/12/2025 10:17:49 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'placemm'.
+14/12/2025 10:17:49 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'bia-studio-mm'.
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgebase have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/12/2025 10:17:51 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/12/2025 10:20:25 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+14/12/2025 10:20:25 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+14/12/2025 10:20:25 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+14/12/2025 10:20:25 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'bia-studio-mm' no pacote 'br.com.sankhya.bia-studio-mm.model.scripts'.
+14/12/2025 10:20:25 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [bia-studio-mm] finalizando inicialização...
+14/12/2025 10:20:25 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

@@ -1,0 +1,15 @@
+27/02/2026 06:09:40 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContext turnkey
+27/02/2026 06:09:44 INFO  br.com.sankhya.module.BootModuleServletContextListener - Carregando jobs do BootModuleListener: br.com.sankhya.bff.turnkey.BootModuleListenerImpl.
+27/02/2026 06:09:44 INFO  br.com.sankhya.module.BootModuleServletContextListener - Classe br.com.sankhya.bff.turnkey.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+27/02/2026 06:09:44 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'turnkey'...
+27/02/2026 06:09:44 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+27/02/2026 06:09:56 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContextDestroyed turnkey
+27/02/2026 06:09:56 ERROR br.com.sankhya.module.BootModuleServletContextListener - java.lang.NullPointerException
+27/02/2026 06:09:57 INFO  br.com.sankhya.module.BootModuleServletContextListener - Não encontramos AsyncTask pendentes no contexto 'turnkey'.
+27/02/2026 06:10:02 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+27/02/2026 06:10:02 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContext turnkey
+27/02/2026 06:10:04 INFO  br.com.sankhya.module.BootModuleServletContextListener - Carregando jobs do BootModuleListener: br.com.sankhya.bff.turnkey.BootModuleListenerImpl.
+27/02/2026 06:10:04 INFO  br.com.sankhya.module.BootModuleServletContextListener - Classe br.com.sankhya.bff.turnkey.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+27/02/2026 06:10:04 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'turnkey'...
+27/02/2026 06:10:04 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+27/02/2026 06:10:10 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] Iniciando módulo [addon-fastchannel]...

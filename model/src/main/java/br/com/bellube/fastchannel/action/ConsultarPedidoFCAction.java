@@ -1,6 +1,5 @@
 package br.com.bellube.fastchannel.action;
 
-import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.http.FastchannelOrdersClient;
 import br.com.bellube.fastchannel.dto.OrderDTO;
 import br.com.sankhya.extensions.actionbutton.AcaoRotinaJava;
@@ -11,8 +10,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Ação para consultar detalhes do pedido no Fastchannel.
- * Exibe informações atuais do pedido na API.
+ * Acao para consultar detalhes do pedido no Fastchannel.
+ * Exibe informacoes atuais do pedido na API.
  */
 public class ConsultarPedidoFCAction implements AcaoRotinaJava {
 
@@ -23,13 +22,7 @@ public class ConsultarPedidoFCAction implements AcaoRotinaJava {
         StringBuilder resultado = new StringBuilder();
 
         try {
-            // Verificar se integração está ativa
-            FastchannelConfig config = FastchannelConfig.getInstance();
-            if (!config.isAtivo()) {
-                resultado.append("[ERRO] Integração não está ativa!");
-                contexto.setMensagemRetorno(resultado.toString());
-                return;
-            }
+            // A consulta a API nao depende da integracao estar ativa
 
             // Obter registros selecionados
             Registro[] registros = contexto.getLinhas();
@@ -41,7 +34,7 @@ public class ConsultarPedidoFCAction implements AcaoRotinaJava {
             }
 
             if (registros.length > 5) {
-                resultado.append("[AVISO] Selecione no máximo 5 pedidos para consulta detalhada.\n");
+                resultado.append("[AVISO] Selecione no maximo 5 pedidos para consulta detalhada.\n");
                 resultado.append("Mostrando apenas os 5 primeiros.\n\n");
             }
 
@@ -62,7 +55,7 @@ public class ConsultarPedidoFCAction implements AcaoRotinaJava {
                     if (order != null) {
                         resultado.append("Status FC: ").append(order.getStatus()).append("\n");
                         resultado.append("Status Desc: ").append(order.getStatusDescription()).append("\n");
-                        resultado.append("Data Criação: ").append(order.getCreatedAt()).append("\n");
+                        resultado.append("Data Criacao: ").append(order.getCreatedAt()).append("\n");
 
                         if (order.getCustomer() != null) {
                             resultado.append("Cliente: ").append(order.getCustomer().getName()).append("\n");
@@ -87,7 +80,7 @@ public class ConsultarPedidoFCAction implements AcaoRotinaJava {
                         resultado.append("[OK] Consulta realizada com sucesso\n");
 
                     } else {
-                        resultado.append("[AVISO] Pedido não encontrado no Fastchannel\n");
+                        resultado.append("[AVISO] Pedido nao encontrado no Fastchannel\n");
                     }
 
                 } catch (Exception e) {

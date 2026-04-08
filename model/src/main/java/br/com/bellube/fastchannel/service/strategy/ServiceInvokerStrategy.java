@@ -1,25 +1,31 @@
 package br.com.bellube.fastchannel.service.strategy;
 
+import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.dto.OrderDTO;
 import br.com.bellube.fastchannel.service.OrderXmlBuilder;
-import br.com.sankhya.extensions.actionbutton.utils.ServiceInvoker;
+import br.com.bellube.fastchannel.service.nativeapi.SankhyaNativeServiceCaller;
 
 import java.math.BigDecimal;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Estrategia FALLBACK 1: Usa ServiceInvoker do Sankhya.
- * Funciona bem em contextos com sessao ativa (eventos, acoes).
+ * Estrategia FALLBACK 1: usa invocacao nativa de servicos Sankhya
+ * (ServiceInvoker legado ou modelcore ServiceCaller oficial).
  */
 public class ServiceInvokerStrategy implements OrderCreationStrategy {
 
     private static final Logger log = Logger.getLogger(ServiceInvokerStrategy.class.getName());
+    private static final String SERVICE_NAME = "CACSP.incluirNota";
 
     private final OrderXmlBuilder xmlBuilder;
+    private final SankhyaNativeServiceCaller nativeCaller;
+    private final FastchannelConfig config;
 
     public ServiceInvokerStrategy() {
         this.xmlBuilder = new OrderXmlBuilder();
+        this.nativeCaller = new SankhyaNativeServiceCaller();
+        this.config = FastchannelConfig.getInstance();
     }
 
     @Override
@@ -29,14 +35,7 @@ public class ServiceInvokerStrategy implements OrderCreationStrategy {
 
     @Override
     public boolean isAvailable() {
-        try {
-            // Verificar se ServiceInvoker esta disponivel
-            Class.forName("br.com.sankhya.extensions.actionbutton.utils.ServiceInvoker");
-            return true;
-        } catch (ClassNotFoundException e) {
-            log.log(Level.WARNING, "ServiceInvoker nao disponivel", e);
-            return false;
-        }
+        return nativeCaller.isAvailable();
     }
 
     @Override
@@ -44,28 +43,19 @@ public class ServiceInvokerStrategy implements OrderCreationStrategy {
                                   BigDecimal codTipVenda, BigDecimal codVend,
                                   BigDecimal codNat, BigDecimal codCenCus) throws Exception {
 
-        log.info("[ServiceInvoker] Criando pedido " + order.getOrderId() + " usando ServiceInvoker");
+        log.info("[ServiceInvoker] Criando pedido " + order.getOrderId() + " via bridge nativo Sankhya");
 
         try {
-            // Construir XML
             String requestXml = xmlBuilder.buildIncluirNotaXml(order, codParc, codTipVenda, codVend, codNat, codCenCus);
-
-            log.fine("[ServiceInvoker] XML: " + requestXml);
-
-            // Invocar servico
-            ServiceInvoker invoker = new ServiceInvoker("CACSP.incluirNota", requestXml);
-            String responseXml = invoker.invoke();
-
-            log.fine("[ServiceInvoker] Resposta: " + responseXml);
+            String responseXml = nativeCaller.invoke(SERVICE_NAME, requestXml, config.getSankhyaUser(), config.getSankhyaPassword());
 
             if (responseXml == null || responseXml.trim().isEmpty()) {
-                throw new Exception("Resposta vazia do ServiceInvoker");
+                throw new Exception("Resposta vazia ao invocar " + SERVICE_NAME);
             }
 
-            // Extrair NUNOTA
             BigDecimal nuNota = parseNuNotaFromResponse(responseXml);
             if (nuNota == null) {
-                throw new Exception("NUNOTA nao encontrado na resposta");
+                throw new Exception("NUNOTA nao encontrado na resposta do servico");
             }
 
             log.info("[ServiceInvoker] Pedido " + order.getOrderId() + " criado como NUNOTA " + nuNota);
@@ -79,7 +69,6 @@ public class ServiceInvokerStrategy implements OrderCreationStrategy {
 
     private BigDecimal parseNuNotaFromResponse(String responseXml) {
         try {
-            // Formato: <NUNOTA>12345</NUNOTA>
             java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<NUNOTA>(\\d+)</NUNOTA>");
             java.util.regex.Matcher matcher = pattern.matcher(responseXml);
             if (matcher.find()) {
@@ -91,3 +80,4 @@ public class ServiceInvokerStrategy implements OrderCreationStrategy {
         return null;
     }
 }
+

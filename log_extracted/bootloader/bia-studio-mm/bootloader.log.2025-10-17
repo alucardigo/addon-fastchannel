@@ -1,0 +1,5 @@
+17/10/2025 06:08:08 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+17/10/2025 06:08:08 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+17/10/2025 06:08:08 WARN  br.com.sankhya.module.connect.impl.internal.ServiceDiscoveryImpl - No class with @ServiceUnit found for path br.com.sankhya.bia-studio-mm.model.services
+17/10/2025 06:08:08 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+17/10/2025 06:08:08 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

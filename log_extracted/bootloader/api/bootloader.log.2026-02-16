@@ -1,0 +1,293 @@
+16/02/2026 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+16/02/2026 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+16/02/2026 06:09:12 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+16/02/2026 06:09:12 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando importacao do dicionario de dados
+16/02/2026 06:09:12 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+16/02/2026 06:09:12 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+16/02/2026 06:09:12 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+16/02/2026 06:09:12 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+16/02/2026 06:09:13 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+16/02/2026 06:09:13 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apilogistica - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+16/02/2026 06:09:13 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apilogistica - ddmigration] - Scripts não encontrados.
+16/02/2026 06:09:13 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apilogistica - ddmigration] - Scripts ignorados, pois já foram processados
+16/02/2026 06:09:13 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apilogistica - ddmigration] - Diretório de metadados não encontrado.
+16/02/2026 06:09:13 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apilogistica - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+16/02/2026 06:09:14 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apilogistica - ddmigration] - Não há hooks para serem registrados.
+16/02/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+16/02/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Scripts não encontrados.
+16/02/2026 06:09:16 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Scripts ignorados, pois já foram processados
+16/02/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Iniciando importacao do dicionario de dados
+16/02/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Não há hooks para serem registrados.
+16/02/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+16/02/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Scripts não encontrados.
+16/02/2026 06:09:16 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Scripts ignorados, pois já foram processados
+16/02/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Diretório de metadados não encontrado.
+16/02/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Não há hooks para serem registrados.
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script TABLE ASTREQ.ASTREQ ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script TABLE ASTINC.ASTINC ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script TABLE ASTAJU.ASTAJU ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script TABLE ASTINC.ASTINC ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script TABLE ASTAJU.ASTAJU ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.CODEMP ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Processando script CONSTRAINT ASTREQ.FK_ASTREQ_TSIEMP...
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - INICIO - Scripts executados.
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - 
+
+ALTER TABLE ASTREQ ADD CONSTRAINT FK_ASTREQ_TSIEMP FOREIGN KEY (CODEMP) REFERENCES TSIEMP(CODEMP);
+
+
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - FIM - Scripts executados.
+16/02/2026 06:09:17 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Erro na execuÃ§Ã£o do script.
+Nro: null
+Objeto: FK_ASTREQ_TSIEMP
+com.microsoft.sqlserver.jdbc.SQLServerException: Já existe um objeto com nome 'FK_ASTREQ_TSIEMP' no banco de dados.
+	at com.microsoft.sqlserver.jdbc.SQLServerException.makeFromDatabaseError(SQLServerException.java:216)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.getNextResult(SQLServerStatement.java:1522)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.doExecuteStatement(SQLServerStatement.java:799)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement$StmtExecCmd.doExecute(SQLServerStatement.java:696)
+	at com.microsoft.sqlserver.jdbc.TDSCommand.execute(IOBuffer.java:5696)
+	at com.microsoft.sqlserver.jdbc.SQLServerConnection.executeCommand(SQLServerConnection.java:1716)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeCommand(SQLServerStatement.java:180)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeStatement(SQLServerStatement.java:155)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.execute(SQLServerStatement.java:669)
+	at org.jboss.jca.adapters.jdbc.WrappedStatement.execute(WrappedStatement.java:198)
+	at br.com.sankhya.skw.environment.upd.db.ScriptRunner.executeDBScripts(ScriptRunner.java:429)
+	at br.com.sankhya.addonmodule.AddonModuleServletContextListener.executeScriptAddon(r:215)
+	at br.com.sankhya.addonmodule.MicroModuleServletContextListener.runMigrations(j:40)
+	at br.com.sankhya.module.BootModuleServletContextListener.contextInitialized(BootModuleServletContextListener.java:86)
+	at io.undertow.servlet.core.ApplicationListeners.contextInitialized(ApplicationListeners.java:187)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:219)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:187)
+	at io.undertow.servlet.core.ServletRequestContextThreadSetupAction$1.call(ServletRequestContextThreadSetupAction.java:42)
+	at io.undertow.servlet.core.ContextClassLoaderSetupAction$1.call(ContextClassLoaderSetupAction.java:43)
+	at org.wildfly.extension.undertow.security.SecurityContextThreadSetupAction.lambda$create$0(SecurityContextThreadSetupAction.java:105)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at io.undertow.servlet.core.DeploymentManagerImpl.deploy(DeploymentManagerImpl.java:255)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService.startContext(UndertowDeploymentService.java:96)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService$1.run(UndertowDeploymentService.java:78)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at org.jboss.threads.ContextClassLoaderSavingRunnable.run(ContextClassLoaderSavingRunnable.java:35)
+	at org.jboss.threads.EnhancedQueueExecutor.safeRun(EnhancedQueueExecutor.java:1990)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.doRunTask(EnhancedQueueExecutor.java:1486)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1377)
+	at java.lang.Thread.run(Thread.java:748)
+	at org.jboss.threads.JBossThread.run(JBossThread.java:513)
+
+16/02/2026 06:09:17 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script AUTOMATICAMENTE IGNORADO: (FORCED_IGNORE) CONSTRAINT ASTREQ.FK_ASTREQ_TSIEMP
+Nome do objeto: FK_ASTREQ_TSIEMP
+Tipo do objeto: CONSTRAINT
+Nome da tabela: ASTREQ
+      Executar: SE_NAO_EXISTIR
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.CODPARC ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Processando script CONSTRAINT ASTREQ.FK_ASTREQ_TGFPAR...
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - INICIO - Scripts executados.
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - 
+
+ALTER TABLE ASTREQ ADD CONSTRAINT FK_ASTREQ_TGFPAR FOREIGN KEY (CODPARC) REFERENCES TGFPAR(CODPARC);
+
+
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - FIM - Scripts executados.
+16/02/2026 06:09:17 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Erro na execuÃ§Ã£o do script.
+Nro: null
+Objeto: FK_ASTREQ_TGFPAR
+com.microsoft.sqlserver.jdbc.SQLServerException: Já existe um objeto com nome 'FK_ASTREQ_TGFPAR' no banco de dados.
+	at com.microsoft.sqlserver.jdbc.SQLServerException.makeFromDatabaseError(SQLServerException.java:216)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.getNextResult(SQLServerStatement.java:1522)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.doExecuteStatement(SQLServerStatement.java:799)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement$StmtExecCmd.doExecute(SQLServerStatement.java:696)
+	at com.microsoft.sqlserver.jdbc.TDSCommand.execute(IOBuffer.java:5696)
+	at com.microsoft.sqlserver.jdbc.SQLServerConnection.executeCommand(SQLServerConnection.java:1716)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeCommand(SQLServerStatement.java:180)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeStatement(SQLServerStatement.java:155)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.execute(SQLServerStatement.java:669)
+	at org.jboss.jca.adapters.jdbc.WrappedStatement.execute(WrappedStatement.java:198)
+	at br.com.sankhya.skw.environment.upd.db.ScriptRunner.executeDBScripts(ScriptRunner.java:429)
+	at br.com.sankhya.addonmodule.AddonModuleServletContextListener.executeScriptAddon(r:215)
+	at br.com.sankhya.addonmodule.MicroModuleServletContextListener.runMigrations(j:40)
+	at br.com.sankhya.module.BootModuleServletContextListener.contextInitialized(BootModuleServletContextListener.java:86)
+	at io.undertow.servlet.core.ApplicationListeners.contextInitialized(ApplicationListeners.java:187)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:219)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:187)
+	at io.undertow.servlet.core.ServletRequestContextThreadSetupAction$1.call(ServletRequestContextThreadSetupAction.java:42)
+	at io.undertow.servlet.core.ContextClassLoaderSetupAction$1.call(ContextClassLoaderSetupAction.java:43)
+	at org.wildfly.extension.undertow.security.SecurityContextThreadSetupAction.lambda$create$0(SecurityContextThreadSetupAction.java:105)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at io.undertow.servlet.core.DeploymentManagerImpl.deploy(DeploymentManagerImpl.java:255)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService.startContext(UndertowDeploymentService.java:96)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService$1.run(UndertowDeploymentService.java:78)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at org.jboss.threads.ContextClassLoaderSavingRunnable.run(ContextClassLoaderSavingRunnable.java:35)
+	at org.jboss.threads.EnhancedQueueExecutor.safeRun(EnhancedQueueExecutor.java:1990)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.doRunTask(EnhancedQueueExecutor.java:1486)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1377)
+	at java.lang.Thread.run(Thread.java:748)
+	at org.jboss.threads.JBossThread.run(JBossThread.java:513)
+
+16/02/2026 06:09:17 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script AUTOMATICAMENTE IGNORADO: (FORCED_IGNORE) CONSTRAINT ASTREQ.FK_ASTREQ_TGFPAR
+Nome do objeto: FK_ASTREQ_TGFPAR
+Tipo do objeto: CONSTRAINT
+Nome da tabela: ASTREQ
+      Executar: SE_NAO_EXISTIR
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.CODPROD ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Processando script CONSTRAINT ASTREQ.FK_ASTREQ_TGFPRO...
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - INICIO - Scripts executados.
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - 
+
+ALTER TABLE ASTREQ ADD CONSTRAINT FK_ASTREQ_TGFPRO FOREIGN KEY (CODPROD) REFERENCES TGFPRO(CODPROD);
+
+
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - FIM - Scripts executados.
+16/02/2026 06:09:17 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Erro na execuÃ§Ã£o do script.
+Nro: null
+Objeto: FK_ASTREQ_TGFPRO
+com.microsoft.sqlserver.jdbc.SQLServerException: Já existe um objeto com nome 'FK_ASTREQ_TGFPRO' no banco de dados.
+	at com.microsoft.sqlserver.jdbc.SQLServerException.makeFromDatabaseError(SQLServerException.java:216)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.getNextResult(SQLServerStatement.java:1522)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.doExecuteStatement(SQLServerStatement.java:799)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement$StmtExecCmd.doExecute(SQLServerStatement.java:696)
+	at com.microsoft.sqlserver.jdbc.TDSCommand.execute(IOBuffer.java:5696)
+	at com.microsoft.sqlserver.jdbc.SQLServerConnection.executeCommand(SQLServerConnection.java:1716)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeCommand(SQLServerStatement.java:180)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeStatement(SQLServerStatement.java:155)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.execute(SQLServerStatement.java:669)
+	at org.jboss.jca.adapters.jdbc.WrappedStatement.execute(WrappedStatement.java:198)
+	at br.com.sankhya.skw.environment.upd.db.ScriptRunner.executeDBScripts(ScriptRunner.java:429)
+	at br.com.sankhya.addonmodule.AddonModuleServletContextListener.executeScriptAddon(r:215)
+	at br.com.sankhya.addonmodule.MicroModuleServletContextListener.runMigrations(j:40)
+	at br.com.sankhya.module.BootModuleServletContextListener.contextInitialized(BootModuleServletContextListener.java:86)
+	at io.undertow.servlet.core.ApplicationListeners.contextInitialized(ApplicationListeners.java:187)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:219)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:187)
+	at io.undertow.servlet.core.ServletRequestContextThreadSetupAction$1.call(ServletRequestContextThreadSetupAction.java:42)
+	at io.undertow.servlet.core.ContextClassLoaderSetupAction$1.call(ContextClassLoaderSetupAction.java:43)
+	at org.wildfly.extension.undertow.security.SecurityContextThreadSetupAction.lambda$create$0(SecurityContextThreadSetupAction.java:105)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at io.undertow.servlet.core.DeploymentManagerImpl.deploy(DeploymentManagerImpl.java:255)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService.startContext(UndertowDeploymentService.java:96)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService$1.run(UndertowDeploymentService.java:78)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at org.jboss.threads.ContextClassLoaderSavingRunnable.run(ContextClassLoaderSavingRunnable.java:35)
+	at org.jboss.threads.EnhancedQueueExecutor.safeRun(EnhancedQueueExecutor.java:1990)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.doRunTask(EnhancedQueueExecutor.java:1486)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1377)
+	at java.lang.Thread.run(Thread.java:748)
+	at org.jboss.threads.JBossThread.run(JBossThread.java:513)
+
+16/02/2026 06:09:17 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script AUTOMATICAMENTE IGNORADO: (FORCED_IGNORE) CONSTRAINT ASTREQ.FK_ASTREQ_TGFPRO
+Nome do objeto: FK_ASTREQ_TGFPRO
+Tipo do objeto: CONSTRAINT
+Nome da tabela: ASTREQ
+      Executar: SE_NAO_EXISTIR
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.CODTIPOPER ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.DHTIPOPER ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.STATUS ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.JSONAJU ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.NUMNFSE ignorado por condição de execução
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Processando script COLUMN ASTREQ.DHTIPOPER...
+16/02/2026 06:09:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.DHTIPOPER executado com sucesso!
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Processando script CONSTRAINT ASTREQ.FK_ASTREQ_TGFTOP...
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - INICIO - Scripts executados.
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - 
+
+ALTER TABLE ASTREQ ADD CONSTRAINT FK_ASTREQ_TGFTOP FOREIGN KEY (CODTIPOPER, DHTIPOPER) REFERENCES TGFTOP(CODTIPOPER, DHALTER);
+
+
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - FIM - Scripts executados.
+16/02/2026 06:09:18 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Erro na execuÃ§Ã£o do script.
+Nro: null
+Objeto: FK_ASTREQ_TGFTOP
+com.microsoft.sqlserver.jdbc.SQLServerException: Já existe um objeto com nome 'FK_ASTREQ_TGFTOP' no banco de dados.
+	at com.microsoft.sqlserver.jdbc.SQLServerException.makeFromDatabaseError(SQLServerException.java:216)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.getNextResult(SQLServerStatement.java:1522)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.doExecuteStatement(SQLServerStatement.java:799)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement$StmtExecCmd.doExecute(SQLServerStatement.java:696)
+	at com.microsoft.sqlserver.jdbc.TDSCommand.execute(IOBuffer.java:5696)
+	at com.microsoft.sqlserver.jdbc.SQLServerConnection.executeCommand(SQLServerConnection.java:1716)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeCommand(SQLServerStatement.java:180)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeStatement(SQLServerStatement.java:155)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.execute(SQLServerStatement.java:669)
+	at org.jboss.jca.adapters.jdbc.WrappedStatement.execute(WrappedStatement.java:198)
+	at br.com.sankhya.skw.environment.upd.db.ScriptRunner.executeDBScripts(ScriptRunner.java:429)
+	at br.com.sankhya.addonmodule.AddonModuleServletContextListener.executeScriptAddon(r:215)
+	at br.com.sankhya.addonmodule.MicroModuleServletContextListener.runMigrations(j:40)
+	at br.com.sankhya.module.BootModuleServletContextListener.contextInitialized(BootModuleServletContextListener.java:86)
+	at io.undertow.servlet.core.ApplicationListeners.contextInitialized(ApplicationListeners.java:187)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:219)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:187)
+	at io.undertow.servlet.core.ServletRequestContextThreadSetupAction$1.call(ServletRequestContextThreadSetupAction.java:42)
+	at io.undertow.servlet.core.ContextClassLoaderSetupAction$1.call(ContextClassLoaderSetupAction.java:43)
+	at org.wildfly.extension.undertow.security.SecurityContextThreadSetupAction.lambda$create$0(SecurityContextThreadSetupAction.java:105)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at io.undertow.servlet.core.DeploymentManagerImpl.deploy(DeploymentManagerImpl.java:255)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService.startContext(UndertowDeploymentService.java:96)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService$1.run(UndertowDeploymentService.java:78)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at org.jboss.threads.ContextClassLoaderSavingRunnable.run(ContextClassLoaderSavingRunnable.java:35)
+	at org.jboss.threads.EnhancedQueueExecutor.safeRun(EnhancedQueueExecutor.java:1990)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.doRunTask(EnhancedQueueExecutor.java:1486)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1377)
+	at java.lang.Thread.run(Thread.java:748)
+	at org.jboss.threads.JBossThread.run(JBossThread.java:513)
+
+16/02/2026 06:09:18 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script AUTOMATICAMENTE IGNORADO: (FORCED_IGNORE) CONSTRAINT ASTREQ.FK_ASTREQ_TGFTOP
+Nome do objeto: FK_ASTREQ_TGFTOP
+Tipo do objeto: CONSTRAINT
+Nome da tabela: ASTREQ
+      Executar: SE_NAO_EXISTIR
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.CNPJTOMA ignorado por condição de execução
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.VLRTOTALNOTA ignorado por condição de execução
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.CNPJPRESTADOR ignorado por condição de execução
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.DTEMISSAO ignorado por condição de execução
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.CODCIDISS ignorado por condição de execução
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.CODCIDPRE ignorado por condição de execução
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.NRPROTASIS ignorado por condição de execução
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Processando script COLUMN ASTINC.MSGERRO...
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTINC.MSGERRO executado com sucesso!
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Script COLUMN ASTREQ.XMLNOTA ignorado por condição de execução
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Fim do processamento dos scripts.....
+16/02/2026 06:09:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apiservicostomados - ddmigration] - Iniciando importacao do dicionario de dados
+16/02/2026 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [app-builder-api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+16/02/2026 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [app-builder-api - ddmigration] - Script TABLE TSICTAPI.TSICTAPI ignorado por condição de execução
+16/02/2026 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [app-builder-api - ddmigration] - Script TABLE TSICTDRAFT.TSICTDRAFT ignorado por condição de execução
+16/02/2026 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [app-builder-api - ddmigration] - Script TABLE TSICTRES.TSICTRES ignorado por condição de execução
+16/02/2026 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [app-builder-api - ddmigration] - Script TABLE TSIBIAPI.TSIBIAPI ignorado por condição de execução
+16/02/2026 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [app-builder-api - ddmigration] - Script TABLE TSIBIGDG.TSIBIGDG ignorado por condição de execução
+16/02/2026 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [app-builder-api - ddmigration] - Fim do processamento dos scripts.....
+16/02/2026 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [app-builder-api - ddmigration] - Iniciando importacao do dicionario de dados
+16/02/2026 06:09:20 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [app-builder-api - ddmigration] - Não há hooks para serem registrados.

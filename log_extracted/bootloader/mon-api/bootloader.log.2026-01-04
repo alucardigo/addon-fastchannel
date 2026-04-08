@@ -1,0 +1,15 @@
+04/01/2026 16:18:19 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.servlet.MMBootModuleListener.
+04/01/2026 16:18:19 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/01/2026 16:18:19 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'mon-api'...
+04/01/2026 16:18:19 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+04/01/2026 16:18:19 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+04/01/2026 16:43:40 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [mon-api]...
+04/01/2026 16:43:40 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [placemm]...
+04/01/2026 16:43:40 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'fintech'.
+04/01/2026 16:43:40 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'placemm'.
+04/01/2026 16:43:40 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mon-api'.
+04/01/2026 16:43:40 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'integracaoasis'.
+04/01/2026 16:46:51 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.servlet.MMBootModuleListener.
+04/01/2026 16:46:51 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/01/2026 16:46:51 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'mon-api'...
+04/01/2026 16:46:51 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

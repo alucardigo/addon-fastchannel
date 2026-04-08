@@ -1,0 +1,27 @@
+{
+  "startedAt": "2026-02-26T20:54:28.515Z",
+  "status": "failed",
+  "config": {
+    "baseUrl": "https://skw.bellube.com.br/mge/",
+    "user": "sup",
+    "headless": true,
+    "slowMoMs": 0,
+    "actionTimeoutMs": 30000,
+    "longTimeoutMs": 360000,
+    "outDir": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\fastchannel-ui-homolog-2026-02-26T20-54-26-529Z"
+  },
+  "steps": [
+    {
+      "name": "login-mge",
+      "startedAt": "2026-02-26T20:54:31.542Z",
+      "status": "failed",
+      "error": "page.waitForURL: Timeout 360000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+      "finishedAt": "2026-02-26T21:00:48.625Z",
+      "durationMs": 377083,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\fastchannel-ui-homolog-2026-02-26T20-54-26-529Z\\screenshots\\01-login-mge-failed.png"
+    }
+  ],
+  "dialogs": [],
+  "fatalError": "page.waitForURL: Timeout 360000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+  "finishedAt": "2026-02-26T21:00:48.626Z"
+}

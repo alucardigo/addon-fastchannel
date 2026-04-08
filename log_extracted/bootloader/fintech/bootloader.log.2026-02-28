@@ -1,0 +1,25 @@
+28/02/2026 06:09:29 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+28/02/2026 06:09:29 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Script TABLE TFTPIX.TFTPIX ignorado por condição de execução
+28/02/2026 06:09:29 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Fim do processamento dos scripts.....
+28/02/2026 06:09:29 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando importacao do dicionario de dados
+28/02/2026 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Não há hooks para serem registrados.
+28/02/2026 06:09:30 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.fintech.servlet.BootModuleListenerImpl.
+28/02/2026 06:09:30 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.fintech.servlet.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+28/02/2026 06:09:30 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'fintech'...
+28/02/2026 06:09:30 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+28/02/2026 06:09:30 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+28/02/2026 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetriafiscal - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+28/02/2026 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetriafiscal - ddmigration] - Script TABLE TTFFILA.TTFFILA ignorado por condição de execução
+28/02/2026 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetriafiscal - ddmigration] - Fim do processamento dos scripts.....
+28/02/2026 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetriafiscal - ddmigration] - Iniciando importacao do dicionario de dados
+28/02/2026 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+28/02/2026 06:09:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Scripts não encontrados.
+28/02/2026 06:09:31 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Scripts ignorados, pois já foram processados
+28/02/2026 06:09:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Diretório de metadados não encontrado.
+28/02/2026 06:09:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+28/02/2026 06:09:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apivenda - ddmigration] - Não há hooks para serem registrados.
+28/02/2026 06:09:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+28/02/2026 06:09:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Scripts não encontrados.
+28/02/2026 06:09:31 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Scripts ignorados, pois já foram processados
+28/02/2026 06:09:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Iniciando importacao do dicionario de dados
+28/02/2026 06:09:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Não há hooks para serem registrados.

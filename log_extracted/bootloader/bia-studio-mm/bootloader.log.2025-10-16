@@ -1,0 +1,34 @@
+16/10/2025 21:12:38 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+16/10/2025 21:12:38 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+16/10/2025 21:12:38 WARN  br.com.sankhya.module.connect.impl.internal.ServiceDiscoveryImpl - No class with @ServiceUnit found for path br.com.sankhya.bia-studio-mm.model.services
+16/10/2025 21:12:38 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+16/10/2025 21:12:38 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+16/10/2025 21:12:38 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [bia-studio-mm]...
+16/10/2025 21:13:15 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:13:15 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:18:10 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+16/10/2025 21:18:10 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+16/10/2025 21:18:10 WARN  br.com.sankhya.module.connect.impl.internal.ServiceDiscoveryImpl - No class with @ServiceUnit found for path br.com.sankhya.bia-studio-mm.model.services
+16/10/2025 21:18:10 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+16/10/2025 21:18:10 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+16/10/2025 21:18:10 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+16/10/2025 21:31:08 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [bia-studio-mm]...
+16/10/2025 21:31:08 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:31:08 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:31:08 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:31:08 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:31:08 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+16/10/2025 21:31:08 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+16/10/2025 21:31:08 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:31:08 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgefin-bff'.
+16/10/2025 21:31:08 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:31:08 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:31:08 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:31:08 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+16/10/2025 21:35:13 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+16/10/2025 21:35:13 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+16/10/2025 21:35:13 WARN  br.com.sankhya.module.connect.impl.internal.ServiceDiscoveryImpl - No class with @ServiceUnit found for path br.com.sankhya.bia-studio-mm.model.services
+16/10/2025 21:35:13 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+16/10/2025 21:35:13 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+16/10/2025 21:35:13 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

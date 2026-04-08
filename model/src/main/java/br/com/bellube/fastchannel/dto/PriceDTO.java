@@ -1,24 +1,45 @@
 package br.com.bellube.fastchannel.dto;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
- * DTO para operações de preço com a API Fastchannel.
+ * DTO para operacoes de preco com a API Fastchannel.
  *
  * Representa a estrutura de dados para envio/recebimento
- * de informações de preço.
+ * de informacoes de preco.
  */
 public class PriceDTO {
 
-    private String sku;
+    private transient String sku;
+
+    @SerializedName("ResellerId")
     private String resellerId;
+
+    @SerializedName("PriceTableId")
+    private BigDecimal priceTableId;
+
+    @SerializedName("SalePrice")
     private BigDecimal price;
+
+    @SerializedName("ListPrice")
     private BigDecimal listPrice;
+
+    @SerializedName("PromotionalPrice")
     private BigDecimal promotionalPrice;
+
+    @SerializedName("PromotionStartDate")
     private Timestamp promotionStartDate;
+
+    @SerializedName("PromotionEndDate")
     private Timestamp promotionEndDate;
+
+    @SerializedName("Currency")
     private String currency;
+
+    @SerializedName("LastUpdate")
     private Timestamp lastUpdate;
 
     // Campos adicionais Sankhya (para mapeamento interno)
@@ -54,6 +75,14 @@ public class PriceDTO {
 
     public void setResellerId(String resellerId) {
         this.resellerId = resellerId;
+    }
+
+    public BigDecimal getPriceTableId() {
+        return priceTableId;
+    }
+
+    public void setPriceTableId(BigDecimal priceTableId) {
+        this.priceTableId = priceTableId;
     }
 
     public BigDecimal getPrice() {

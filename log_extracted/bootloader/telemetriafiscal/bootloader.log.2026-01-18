@@ -1,0 +1,4 @@
+18/01/2026 15:56:23 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContext telemetriafiscal
+18/01/2026 15:56:24 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'telemetriafiscal'...
+18/01/2026 15:56:24 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+18/01/2026 15:56:24 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

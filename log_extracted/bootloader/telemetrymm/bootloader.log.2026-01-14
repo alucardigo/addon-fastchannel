@@ -1,0 +1,15 @@
+14/01/2026 06:08:25 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.servlet.MMBootModuleListener.
+14/01/2026 06:08:25 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+14/01/2026 06:08:25 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'telemetrymm'...
+14/01/2026 06:08:25 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+14/01/2026 06:08:25 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [telemetrymm]...
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'telemetrymm'.
+14/01/2026 23:03:22 ERROR br.com.sankhya.module.BootModuleServletContextListener - java.lang.NullPointerException
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.BootModuleServletContextListener - Não encontramos AsyncTask pendentes no contexto 'turnkey'.
+14/01/2026 23:06:34 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.servlet.MMBootModuleListener.
+14/01/2026 23:06:34 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+14/01/2026 23:06:34 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'telemetrymm'...
+14/01/2026 23:06:34 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+14/01/2026 23:06:34 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

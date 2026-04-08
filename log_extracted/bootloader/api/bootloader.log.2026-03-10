@@ -1,0 +1,10 @@
+10/03/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+10/03/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+10/03/2026 06:09:16 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+10/03/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Diretório de metadados não encontrado.
+10/03/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+10/03/2026 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Não há hooks para serem registrados.
+10/03/2026 06:09:16 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+10/03/2026 06:09:16 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+10/03/2026 06:09:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+10/03/2026 06:09:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

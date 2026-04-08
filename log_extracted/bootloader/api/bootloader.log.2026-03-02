@@ -1,0 +1,13 @@
+02/03/2026 06:08:56 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+02/03/2026 06:08:56 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+02/03/2026 06:08:56 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+02/03/2026 06:08:56 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando importacao do dicionario de dados
+02/03/2026 06:08:56 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+02/03/2026 06:08:56 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+02/03/2026 06:08:56 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+02/03/2026 06:08:56 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+02/03/2026 06:08:58 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+02/03/2026 06:08:58 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetriafiscal - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+02/03/2026 06:08:58 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetriafiscal - ddmigration] - Script TABLE TTFFILA.TTFFILA ignorado por condição de execução
+02/03/2026 06:08:58 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetriafiscal - ddmigration] - Fim do processamento dos scripts.....
+02/03/2026 06:08:58 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetriafiscal - ddmigration] - Iniciando importacao do dicionario de dados

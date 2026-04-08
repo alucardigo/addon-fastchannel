@@ -45,13 +45,13 @@ public class FCLogsService {
 
             String dataInicio = getString(params, "dataInicio");
             if (dataInicio != null && !dataInicio.isEmpty()) {
-                where.append(" AND DH_LOG >= ?");
+                where.append(" AND DH_REGISTRO >= ?");
                 queryParams.add(dataInicio);
             }
 
             String dataFim = getString(params, "dataFim");
             if (dataFim != null && !dataFim.isEmpty()) {
-                where.append(" AND DH_LOG <= ?");
+                where.append(" AND DH_REGISTRO <= ?");
                 queryParams.add(dataFim + " 23:59:59");
             }
 
@@ -74,9 +74,9 @@ public class FCLogsService {
             int total = rsCount.getInt("CNT");
 
             // Get page - SQL Server syntax
-            String sql = "SELECT IDLOG, DH_LOG, NIVEL, OPERACAO, REFERENCIA, MENSAGEM, STACKTRACE " +
+            String sql = "SELECT IDLOG, DH_REGISTRO, NIVEL, OPERACAO, REFERENCIA, MENSAGEM, DETALHES " +
                     "FROM AD_FCLOG WHERE " + where +
-                    " ORDER BY DH_LOG DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+                    " ORDER BY DH_REGISTRO DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
             stmt = conn.prepareStatement(sql);
             int paramIndex = setParameters(stmt, queryParams);
@@ -88,12 +88,12 @@ public class FCLogsService {
             while (rs.next()) {
                 Map<String, Object> logItem = new HashMap<>();
                 logItem.put("id", rs.getBigDecimal("IDLOG"));
-                logItem.put("dhLog", rs.getTimestamp("DH_LOG"));
+                logItem.put("dhLog", rs.getTimestamp("DH_REGISTRO"));
                 logItem.put("nivel", rs.getString("NIVEL"));
                 logItem.put("operacao", rs.getString("OPERACAO"));
                 logItem.put("referencia", rs.getString("REFERENCIA"));
                 logItem.put("mensagem", rs.getString("MENSAGEM"));
-                logItem.put("stacktrace", rs.getString("STACKTRACE"));
+                logItem.put("stacktrace", rs.getString("DETALHES"));
                 logs.add(logItem);
             }
 
@@ -127,7 +127,7 @@ public class FCLogsService {
             cal.add(Calendar.DAY_OF_MONTH, -dias);
             Timestamp limite = new Timestamp(cal.getTimeInMillis());
 
-            stmt = conn.prepareStatement("DELETE FROM AD_FCLOG WHERE DH_LOG < ?");
+            stmt = conn.prepareStatement("DELETE FROM AD_FCLOG WHERE DH_REGISTRO < ?");
             stmt.setTimestamp(1, limite);
             stmt.executeUpdate();
 

@@ -1,0 +1,7 @@
+20/10/2025 06:08:59 INFO  br.com.sankhya.module.scriptmigration.ScriptMigration - [mge-bff - scriptmigration] - Iniciando processo de script de migração do módulo...
+20/10/2025 06:08:59 INFO  br.com.sankhya.module.scriptmigration.ScriptMigration - [mge-bff - scriptmigration] - Script de migração não localizado, path: WEB-INF/db-migration/script/script-migration.json.
+20/10/2025 06:08:59 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Diretorio de metadadados não encontrato.
+20/10/2025 06:08:59 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bff.mge.BootModuleListenerImpl.
+20/10/2025 06:08:59 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bff.mge.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+20/10/2025 06:09:00 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'mge-bff'...
+20/10/2025 06:09:00 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

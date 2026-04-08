@@ -1,0 +1,9 @@
+21/12/2025 13:43:21 INFO  br.com.sankhya.module.scriptmigration.ScriptMigration - [mgecom-bff - scriptmigration] - Iniciando processo de script de migração do módulo...
+21/12/2025 13:43:21 INFO  br.com.sankhya.module.scriptmigration.ScriptMigration - [mgecom-bff - scriptmigration] - Script de migração não localizado, path: WEB-INF/db-migration/script/script-migration.json.
+21/12/2025 13:43:21 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Diretorio de metadadados não encontrato.
+21/12/2025 13:43:21 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bff.mgecom.BootModuleListenerImpl.
+21/12/2025 13:43:21 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bff.mgecom.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+21/12/2025 13:43:22 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'mgecom-bff'...
+21/12/2025 13:43:22 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'mgecom-bff' no pacote 'br.com.sankhya.mgecom-bff.model.scripts'.
+21/12/2025 13:43:22 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [mgecom-bff] finalizando inicialização...
+21/12/2025 13:43:22 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

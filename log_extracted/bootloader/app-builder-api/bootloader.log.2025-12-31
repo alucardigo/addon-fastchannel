@@ -1,0 +1,31 @@
+31/12/2025 06:08:38 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.servlet.MMBootModuleListener.
+31/12/2025 06:08:38 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+31/12/2025 06:08:38 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'app-builder-api'...
+31/12/2025 06:08:38 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'app-builder-api' no pacote 'br.com.sankhya.app-builder-api.model.scripts'.
+31/12/2025 06:08:38 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [app-builder-api] finalizando inicialização...
+31/12/2025 15:08:26 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [app-builder-api]...
+31/12/2025 15:08:26 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'app-builder-api'.
+31/12/2025 15:08:27 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] Iniciando módulo [app-builder-api]...
+31/12/2025 15:08:27 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+31/12/2025 15:08:28 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.servlet.MMBootModuleListener.
+31/12/2025 15:08:28 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+31/12/2025 15:08:28 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'app-builder-api'...
+31/12/2025 15:08:28 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'app-builder-api' no pacote 'br.com.sankhya.app-builder-api.model.scripts'.
+31/12/2025 15:08:28 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [app-builder-api] finalizando inicialização...
+31/12/2025 15:31:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 15:31:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 16:01:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 16:01:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 16:18:04 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 16:31:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 16:31:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 17:00:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 17:00:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 17:01:22 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 17:01:22 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 17:31:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 17:31:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 18:01:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 18:01:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 18:15:13 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+31/12/2025 18:15:13 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService

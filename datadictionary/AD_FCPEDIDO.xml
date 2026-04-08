@@ -78,6 +78,32 @@
             <field name="OBSERVACAO" dataType="TEXTO" size="500" mandatory="N" allowSearch="N">
                 <description>Observacoes do pedido</description>
             </field>
+            <field name="STATUS_IMPORT" dataType="TEXTO" size="20" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Status da importacao no addon (PROCESSANDO, SUCESSO, ERRO)</description>
+                <options>
+                    <option value="PROCESSANDO" description="Processando"/>
+                    <option value="SUCESSO" description="Importado com sucesso"/>
+                    <option value="ERRO" description="Erro na importacao"/>
+                </options>
+            </field>
+            <field name="DH_PEDIDO" dataType="DATA_HORA" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Data/hora do pedido no Fastchannel</description>
+            </field>
+            <field name="NOME_CLIENTE" dataType="TEXTO" size="200" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Nome do cliente no Fastchannel</description>
+            </field>
+            <field name="CPF_CNPJ" dataType="TEXTO" size="20" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>CPF ou CNPJ do cliente</description>
+            </field>
+            <field name="VALOR_TOTAL" dataType="DECIMAL" mandatory="N" allowSearch="N">
+                <description>Valor total do pedido</description>
+            </field>
+            <field name="VALOR_FRETE" dataType="DECIMAL" mandatory="N" allowSearch="N">
+                <description>Valor do frete do pedido</description>
+            </field>
+            <field name="ERRO_MSG" dataType="TEXTO" size="1000" mandatory="N" allowSearch="N">
+                <description>Mensagem de erro da ultima tentativa de importacao</description>
+            </field>
         </fields>
     </table>
 </metadados>

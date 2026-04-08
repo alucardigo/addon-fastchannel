@@ -1,0 +1,77 @@
+04/12/2025 18:18:34 INFO  br.com.sankhya.addonmodule.utils.ModuleUtils - bellube-iconic-addon-dev - IS Vazia no war.
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script FUNCTION FUNCAO_EXEMPLO.FN_SOMA ignorado por condição de execução
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script TABLE AD_ICONICCFG.AD_ICONICCFG ignorado por condição de execução
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Processando script PROCEDURE AD_ICONICCFG_FIX_COLS.PR_AD_ICONICCFG_FIX_COLS...
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script PROCEDURE AD_ICONICCFG_FIX_COLS.PR_AD_ICONICCFG_FIX_COLS executado com sucesso!
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Processando script PROCEDURE AD_ICONICCFG_MIGRA.PR_AD_ICONICCFG_MIGRA...
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script PROCEDURE AD_ICONICCFG_MIGRA.PR_AD_ICONICCFG_MIGRA executado com sucesso!
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script TABLE AD_ICONICENDPOINT.AD_ICONICENDPOINT ignorado por condição de execução
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Processando script TABLE AD_ICONICINTLOG.AD_ICONICINTLOG...
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script TABLE AD_ICONICINTLOG.AD_ICONICINTLOG executado com sucesso!
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Processando script PROCEDURE AD_ICONICCFG_SEED.PR_AD_ICONICCFG_SEED...
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script PROCEDURE AD_ICONICCFG_SEED.PR_AD_ICONICCFG_SEED executado com sucesso!
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Processando script PROCEDURE AD_ICONICINTLOG_FIX_COLS.PR_AD_ICONICINTLOG_FIX_COLS...
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script PROCEDURE AD_ICONICINTLOG_FIX_COLS.PR_AD_ICONICINTLOG_FIX_COLS executado com sucesso!
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Processando script PROCEDURE AD_ICONICENDPOINT_FIX_COLS.PR_AD_ICONICENDPOINT_FIX_COLS...
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script PROCEDURE AD_ICONICENDPOINT_FIX_COLS.PR_AD_ICONICENDPOINT_FIX_COLS executado com sucesso!
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Processando script VIEW VW_ICONIC_DATA_EXPORT.VW_ICONIC_DATA_EXPORT...
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script VIEW VW_ICONIC_DATA_EXPORT.VW_ICONIC_DATA_EXPORT executado com sucesso!
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Processando script PROCEDURE AD_ICONICENDPOINT_SEED.PR_AD_ICONICENDPOINT_SEED...
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script PROCEDURE AD_ICONICENDPOINT_SEED.PR_AD_ICONICENDPOINT_SEED executado com sucesso!
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Processando script TABLE AD_ICONICSETTINGS.AD_ICONICSETTINGS...
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script TABLE AD_ICONICSETTINGS.AD_ICONICSETTINGS executado com sucesso!
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Processando script PROCEDURE AD_ICONICSETTINGS_SEED.PR_AD_ICONICSETTINGS_SEED...
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Script PROCEDURE AD_ICONICSETTINGS_SEED.PR_AD_ICONICSETTINGS_SEED executado com sucesso!
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Fim do processamento dos scripts.....
+04/12/2025 18:18:35 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Iniciando importacao do dicionario de dados
+04/12/2025 18:18:36 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Não há hooks para serem registrados.
+04/12/2025 18:18:36 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bellube-iconic-addon-dev'...
+04/12/2025 18:18:36 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+04/12/2025 18:19:03 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:19:03 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:19:05 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:19:05 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:19:07 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [bellube-iconic-addon-dev]...
+04/12/2025 18:19:07 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'bellube-iconic-addon-dev'.
+04/12/2025 18:19:07 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] Iniciando módulo [bellube-iconic-addon-dev]...
+04/12/2025 18:19:08 INFO  br.com.sankhya.addonmodule.utils.ModuleUtils - bellube-iconic-addon-dev - IS Vazia no war.
+04/12/2025 18:19:09 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+04/12/2025 18:19:09 WARN  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Scripts ignorados, pois já foram processados
+04/12/2025 18:19:09 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Dicionário de Dados ignorados
+04/12/2025 18:19:09 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [bellube-iconic-addon-dev - ddmigration] - Não há hooks para serem registrados.
+04/12/2025 18:19:10 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bellube-iconic-addon-dev'...
+04/12/2025 18:19:10 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+04/12/2025 18:23:53 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:23:53 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:23:53 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:23:54 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:23:54 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:37:35 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:37:35 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:37:35 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:37:35 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:24 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:24 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:24 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:26 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:26 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:26 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:26 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:26 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:26 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:27 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:51:27 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:53:44 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:53:45 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:53:45 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:53:45 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:53:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:53:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 18:53:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/12/2025 19:24:26 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+04/12/2025 19:24:29 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+04/12/2025 19:24:29 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Scripts não encontrados.
+04/12/2025 19:24:29 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Scripts ignorados, pois já foram processados
+04/12/2025 19:24:29 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando importacao do dicionario de dados
+04/12/2025 19:24:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Não há hooks para serem registrados.

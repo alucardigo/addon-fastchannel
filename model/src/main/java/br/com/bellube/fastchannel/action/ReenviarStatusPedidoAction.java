@@ -16,8 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A??o para reenviar status do pedido para o Fastchannel.
- * ?til quando h? falha na sincroniza??o autom?tica.
+ * Acao para reenviar status do pedido para o Fastchannel.
+ * Util quando ha falha na sincronizacao automatica.
  */
 public class ReenviarStatusPedidoAction implements AcaoRotinaJava {
 
@@ -28,17 +28,17 @@ public class ReenviarStatusPedidoAction implements AcaoRotinaJava {
         StringBuilder resultado = new StringBuilder();
 
         try {
-            // Verificar se integra??o est? ativa
+            // Verificar se integracao esta ativa
             FastchannelConfig config = FastchannelConfig.getInstance();
             if (!config.isAtivo()) {
-                resultado.append("[ERRO] Integra??o n?o est? ativa!");
+                resultado.append("[ERRO] Integracao nao esta ativa!");
                 contexto.setMensagemRetorno(resultado.toString());
                 return;
             }
 
             // Verificar se sincronizacao de status esta habilitada
             if (!config.isSyncStatusEnabled()) {
-                resultado.append("[ERRO] Sincronizacao de status est? desabilitada nas configuracoes!");
+                resultado.append("[ERRO] Sincronizacao de status esta desabilitada nas configuracoes!");
                 contexto.setMensagemRetorno(resultado.toString());
                 return;
             }
@@ -70,7 +70,7 @@ public class ReenviarStatusPedidoAction implements AcaoRotinaJava {
 
                     if (fcStatus == 0) {
                         resultado.append("[SKIP] Pedido ").append(orderId)
-                                .append(": Status ").append(statusSkw).append(" n?o mapeado\n");
+                                .append(": Status ").append(statusSkw).append(" nao mapeado\n");
                         continue;
                     }
 
@@ -127,9 +127,11 @@ public class ReenviarStatusPedidoAction implements AcaoRotinaJava {
     }
 
     private String buscarInfoNF(BigDecimal nuNota) {
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc.openSession();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT NUMNOTA, SERIENOTA FROM TGFCAB WHERE NUNOTA = :nuNota");
@@ -147,6 +149,9 @@ public class ReenviarStatusPedidoAction implements AcaoRotinaJava {
         } finally {
             if (rs != null) {
                 try { rs.close(); } catch (Exception ignored) {}
+            }
+            if (jdbc != null) {
+                try { jdbc.closeSession(); } catch (Exception ignored) {}
             }
         }
         return null;

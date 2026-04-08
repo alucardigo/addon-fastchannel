@@ -1,0 +1,16 @@
+25/12/2025 06:08:25 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+25/12/2025 06:08:25 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Script TABLE TFTPIX.TFTPIX ignorado por condição de execução
+25/12/2025 06:08:25 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Fim do processamento dos scripts.....
+25/12/2025 06:08:25 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Iniciando importacao do dicionario de dados
+25/12/2025 06:08:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [fintech - ddmigration] - Não há hooks para serem registrados.
+25/12/2025 06:08:26 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.fintech.servlet.BootModuleListenerImpl.
+25/12/2025 06:08:26 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.fintech.servlet.BootModuleListenerImpl não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+25/12/2025 06:08:26 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'fintech'...
+25/12/2025 06:08:26 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+25/12/2025 06:08:26 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+25/12/2025 06:08:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+25/12/2025 06:08:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Scripts não encontrados.
+25/12/2025 06:08:26 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Scripts ignorados, pois já foram processados
+25/12/2025 06:08:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Diretório de metadados não encontrado.
+25/12/2025 06:08:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+25/12/2025 06:08:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Não há hooks para serem registrados.

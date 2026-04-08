@@ -1,0 +1,140 @@
+openapi: 3.0.1
+info:
+  title: API de Créditos
+  description: API para gestão dos limites de crédito para os clientes das lojas virtuais B2B da plataforma Fast Channel.
+  version: v1
+servers:
+  - url: https://api.commerce.fastchannel.com/credit-management/v1
+paths:
+  /limits:
+    get:
+      summary: ListCreditLimits
+      description: Retorna a lista de regras de limites de crédito cadastradas para os clientes da loja virtual.
+      operationId: listcreditlimits
+      parameters:
+        - name: SellerId
+          in: query
+          description: Opcional.
+          schema:
+            type: int
+        - name: SellerIds
+          in: query
+          description: Opcional.
+          schema:
+            type: 'array[int]'
+        - name: RuleIds
+          in: query
+          description: Opcional.
+          schema:
+            type: 'array[long]'
+        - name: CustomerKeywords
+          in: query
+          description: Opcional.
+          schema:
+            type: string
+        - name: CustomerDocument
+          in: query
+          description: Opcional.
+          schema:
+            type: string
+        - name: CustomerType
+          in: query
+          description: Opcional.
+          schema:
+            type: enum
+        - name: StatusType
+          in: query
+          description: Opcional.
+          schema:
+            type: enum
+        - name: SortingDisabled
+          in: query
+          description: Opcional.
+          schema:
+            type: bool
+        - name: PageNumber
+          in: query
+          description: 'Opcional. Parâmetro para aplicação de paginação aos resultados, e que deve ser utilizado em conjunto com o parâmetro "PageSize". Valor inteiro igual ou maior que um, o qual define o "número da página" que deverá ser retornado dos resultados.'
+          schema:
+            type: int
+        - name: PageSize
+          in: query
+          description: 'Opcional. Parâmetro para aplicação de paginação aos resultados, e que deve ser utilizado em conjunto com o parâmetro "PageNumber". Valor inteiro igual ou maior que um, o qual define a quantidade de registros retornados "por página".'
+          schema:
+            type: int
+      responses:
+        '200':
+          description: 'Lista de regras de limites de crédito cadastradas para os clientes da loja virtual, opcionalmente filtrados por um ou mais parâmetros de pesquisa.'
+          content:
+            application/json: { }
+    post:
+      summary: SaveCreditLimit
+      description: 'Solicita a gravação das informações de uma ou mais regras de limites de crédito na plataforma. A gravação dos dados ocorre de forma assíncrona, e pode levar alguns instantes até que seus dados possam ser consultados e estejam efetivamente disponíveis na plataforma.'
+      operationId: savecreditlimit
+      responses:
+        '200':
+          description: Retorno de sucesso da solicitação de gravação das regras de limite de crédito.
+  '/limits/{CustomerDocument}':
+    get:
+      summary: GetCreditLimit
+      description: 'Retorna os detalhes da regra de limite de crédito vinculada a um determinado CPF ou CNPJ, de acordo com o documento informado na requisição.'
+      operationId: getcreditlimit
+      parameters:
+        - name: CustomerDocument
+          in: path
+          description: 'CPF ou CNPJ do cliente a que se refere a regra de limite de crédito, sem nenhuma pontuação, mas incluindo quaisquer zeros à esquerda. CPFs com 11 dígitos, e CNPJs com 14 dígitos, sempre. '
+          required: true
+          schema:
+            type: string
+        - name: RuleId
+          in: query
+          description: Opcional.
+          schema:
+            type: long
+        - name: SellerId
+          in: query
+          description: Opcional.
+          schema:
+            type: int
+      responses:
+        '200':
+          description: Detalhes da regra de limite de crédito vinculada a um determinado CPF ou CNPJ.
+          content:
+            application/json: { }
+    delete:
+      summary: DeleteCreditLimit
+      description: 'Solicita a exclusão de uma regra de limite de crédito existente para um determinado CPF ou CNPJ. As informações existentes da regra de limite de crédito a ser removida serão retornados como resposta à solicitação. A exclusão ocorre de forma assíncrona, e pode levar alguns instantes até ser efetivada. Qualquer solicitação duplicada para exclusão de uma mesma regra não causa efeitos colaterais negativos na plataforma.'
+      operationId: deletecreditlimit
+      parameters:
+        - name: CustomerDocument
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          description: 'Anuncia quais tipos de conteúdo, expressos como MIME types, o seu cliente é capaz de entender.'
+          required: true
+          schema:
+            enum:
+              - application/json
+            type: string
+            default: application/json
+      responses:
+        '200':
+          description: 'Retorno de sucesso da solicitação de exclusão da regra de limite de crédito, contendo as informações detalhadas da regra que será excluída.'
+          content:
+            application/json: { }
+components:
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      name: Subscription-Key
+      in: header
+    apiKeyQuery:
+      type: apiKey
+      name: subscription-key
+      in: query
+security:
+  - apiKeyHeader: [ ]
+  - apiKeyQuery: [ ]

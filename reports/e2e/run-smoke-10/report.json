@@ -1,0 +1,38 @@
+{
+  "startedAt": "2026-02-23T19:59:57.429Z",
+  "status": "failed",
+  "config": {
+    "baseUrl": "http://100.72.97.11:8080/mge/",
+    "user": "sup",
+    "headless": true,
+    "slowMoMs": 0,
+    "actionTimeoutMs": 30000,
+    "longTimeoutMs": 360000,
+    "outDir": "reports/e2e/run-smoke-10"
+  },
+  "steps": [
+    {
+      "name": "login-mge",
+      "startedAt": "2026-02-23T19:59:57.695Z",
+      "status": "passed",
+      "data": {
+        "url": "http://100.72.97.11:8080/mge/system.jsp"
+      },
+      "finishedAt": "2026-02-23T20:00:19.154Z",
+      "durationMs": 21459,
+      "screenshot": "reports\\e2e\\run-smoke-10\\screenshots\\01-login-mge.png"
+    },
+    {
+      "name": "open-addon-through-menu-search",
+      "startedAt": "2026-02-23T20:00:19.300Z",
+      "status": "failed",
+      "error": "Nao foi possivel abrir o Addon pelo menu de pesquisa",
+      "finishedAt": "2026-02-23T20:00:59.553Z",
+      "durationMs": 40253,
+      "screenshot": "reports\\e2e\\run-smoke-10\\screenshots\\02-open-addon-through-menu-search-failed.png"
+    }
+  ],
+  "dialogs": [],
+  "fatalError": "Nao foi possivel abrir o Addon pelo menu de pesquisa",
+  "finishedAt": "2026-02-23T20:00:59.553Z"
+}

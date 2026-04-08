@@ -1,0 +1,11 @@
+14/12/2025 10:05:53 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+14/12/2025 10:05:53 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+14/12/2025 10:05:54 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'integracaoasis'...
+14/12/2025 10:05:54 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+14/12/2025 10:05:54 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+14/12/2025 10:17:48 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [integracaoasis]...
+14/12/2025 10:21:01 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+14/12/2025 10:21:01 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+14/12/2025 10:21:01 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'integracaoasis'...
+14/12/2025 10:21:01 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+14/12/2025 10:21:02 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

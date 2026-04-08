@@ -1,0 +1,5 @@
+06/12/2025 06:08:50 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContext secmm
+06/12/2025 06:08:50 INFO  br.com.sankhya.module.BootModuleServletContextListener - Carregando jobs do BootModuleListener: br.com.sankhya.servlet.MMBootModuleListener.
+06/12/2025 06:08:50 INFO  br.com.sankhya.module.BootModuleServletContextListener - Classe br.com.sankhya.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+06/12/2025 06:08:50 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'secmm'...
+06/12/2025 06:08:50 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

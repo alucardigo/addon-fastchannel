@@ -111,8 +111,11 @@
             gap: 8px;
         }
 
-        .btn-primary { background: var(--accent); color: var(--bg); }
-        .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+        .btn-primary { background: var(--accent); color: var(--bg); font-weight: 600; }
+        .btn-secondary { background: #1e3a5f; border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { background: #254a73; border-color: var(--accent); }
+        .btn-filter { background: #0ea5e9; color: #fff; font-weight: 600; }
+        .btn-filter:hover { background: #0284c7; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
 
@@ -132,6 +135,12 @@
             text-transform: uppercase;
             background: var(--bg);
         }
+
+        th.sortable { cursor: pointer; user-select: none; }
+        th.sortable:hover { color: var(--accent); }
+        th.sortable::after { content: ' \2195'; opacity: 0.4; }
+        th.sortable.asc::after { content: ' \2191'; opacity: 1; }
+        th.sortable.desc::after { content: ' \2193'; opacity: 1; }
 
         td { font-size: 14px; }
         tr:hover { background: rgba(0, 217, 255, 0.05); }
@@ -249,6 +258,16 @@
 
         .detail-label { color: var(--muted); }
         .detail-value { font-weight: 500; }
+
+        @media (max-width: 768px) {
+            .container { padding: 12px; }
+            .filters { flex-direction: column; }
+            .nav-tabs { gap: 4px; }
+            .nav-tab { padding: 8px 12px; font-size: 12px; }
+            .card { padding: 16px; }
+            th, td { padding: 8px; font-size: 12px; }
+            .log-message { max-width: 200px; }
+        }
     </style>
 </head>
 <body>
@@ -261,7 +280,10 @@
         <nav class="nav-tabs">
             <a class="nav-tab" href="dashboard.html">Dashboard</a>
             <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab" href="depara.html">De-Para</a>
             <a class="nav-tab" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab" href="estoque.html">Estoque</a>
+            <a class="nav-tab" href="precos.html">Precos</a>
             <a class="nav-tab" href="fila.html">Fila de Sincronizacao</a>
             <a class="nav-tab active" href="logs.html">Logs</a>
         </nav>
@@ -277,7 +299,7 @@
             <div class="filters">
                 <div class="filter-group">
                     <span class="filter-label">Nivel</span>
-                    <select id="filterNivel" class="form-input" onchange="loadLogs()">
+                    <select id="filterNivel" class="form-input" onchange="loadLogs(true)">
                         <option value="">Todos</option>
                         <option value="ERROR">Error</option>
                         <option value="WARNING">Warning</option>
@@ -287,7 +309,7 @@
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Operacao</span>
-                    <select id="filterOperacao" class="form-input" onchange="loadLogs()">
+                    <select id="filterOperacao" class="form-input" onchange="loadLogs(true)">
                         <option value="">Todas</option>
                         <option value="ORDER_IMPORT">Importacao Pedidos</option>
                         <option value="STOCK_SYNC">Sinc. Estoque</option>
@@ -299,18 +321,18 @@
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Data Inicio</span>
-                    <input type="date" id="filterDataInicio" class="form-input" onchange="loadLogs()">
+                    <input type="date" id="filterDataInicio" class="form-input" onchange="loadLogs(true)">
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Data Fim</span>
-                    <input type="date" id="filterDataFim" class="form-input" onchange="loadLogs()">
+                    <input type="date" id="filterDataFim" class="form-input" onchange="loadLogs(true)">
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Buscar</span>
                     <input type="text" id="filterBusca" class="form-input" placeholder="Mensagem...">
                 </div>
                 <div class="filter-group" style="justify-content: flex-end;">
-                    <button class="btn btn-secondary" onclick="loadLogs()">Filtrar</button>
+                    <button class="btn btn-filter" onclick="loadLogs(true)">Filtrar</button>
                 </div>
             </div>
 
@@ -318,10 +340,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Data/Hora</th>
-                            <th>Nivel</th>
-                            <th>Operacao</th>
-                            <th>Referencia</th>
+                            <th class="sortable" data-col="timestamp" onclick="sortBy('timestamp','date')">Data/Hora</th>
+                            <th class="sortable" data-col="nivel" onclick="sortBy('nivel')">Nivel</th>
+                            <th class="sortable" data-col="operacao" onclick="sortBy('operacao')">Operacao</th>
+                            <th class="sortable" data-col="referencia" onclick="sortBy('referencia')">Referencia</th>
                             <th>Mensagem</th>
                             <th>Acoes</th>
                         </tr>
@@ -357,11 +379,12 @@
     </div>
 
     <script>
-        function resolveAddonContexts() {
+                                function resolveAddonContexts() {
             const origin = window.location.origin || '';
             const path = window.location.pathname || '';
             const search = window.location.search || '';
             const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
 
             function add(ctx) {
                 if (!ctx) return;
@@ -369,20 +392,25 @@
                 if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
             }
 
-            function addIfAddon(ctx) {
-                if (!ctx) return;
-                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
-                    ctx = ctx.replace(/^\/mge/, '');
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
                 }
-                if (ctx.indexOf('/addon-fastchannel') === -1) return;
-                add(ctx);
+                return null;
             }
 
             const htmlIdx = path.indexOf('/html5/');
-            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
 
-            const addonIdx = path.indexOf('/addon-fastchannel');
-            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
 
             if (search) {
                 try {
@@ -391,7 +419,10 @@
                     if (rawUrl) {
                         const decoded = decodeURIComponent(rawUrl);
                         const decodedHtmlIdx = decoded.indexOf('/html5/');
-                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
                     }
                 } catch (e) {
                     // ignore
@@ -406,6 +437,71 @@
         let currentPage = 1;
         let totalPages = 1;
         let pageSize = 50;
+        let currentItems = [];
+        let sortCol = null;
+        let sortDir = 'asc';
+
+        function sortBy(col, type) {
+            type = type || 'str';
+            if (sortCol === col) {
+                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortCol = col;
+                sortDir = 'asc';
+            }
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('asc', 'desc');
+                if (th.dataset.col === col) th.classList.add(sortDir);
+            });
+            if (!currentItems.length) return;
+            currentItems.sort((a, b) => {
+                let va = a[col], vb = b[col];
+                if (va == null) va = '';
+                if (vb == null) vb = '';
+                if (type === 'num') {
+                    va = parseFloat(va) || 0;
+                    vb = parseFloat(vb) || 0;
+                } else if (type === 'date') {
+                    va = va ? new Date(va).getTime() : 0;
+                    vb = vb ? new Date(vb).getTime() : 0;
+                } else {
+                    va = String(va).toLowerCase();
+                    vb = String(vb).toLowerCase();
+                }
+                if (va < vb) return sortDir === 'asc' ? -1 : 1;
+                if (va > vb) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
+            renderLogItems(currentItems);
+        }
+
+        function escapeHtml(text) {
+            return (text || '')
+                .toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderLogItems(items) {
+            const tbody = document.getElementById('logsTable');
+            tbody.innerHTML = items.map((log, idx) => `
+                <tr>
+                    <td>${formatDate(log.dhLog)}</td>
+                    <td>${getNivelPill(log.nivel)}</td>
+                    <td>${getOperacaoPill(log.operacao)}</td>
+                    <td>${escapeHtml(log.referencia || '--')}</td>
+                    <td class="log-message" title="${escapeHtml(log.mensagem || '')}">${escapeHtml(log.mensagem || '--')}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="showDetails(${idx})">
+                            Ver
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
         function getMgeSession() {
             try {
@@ -458,9 +554,28 @@
             throw new Error(lastErr || 'Nenhum endpoint respondeu');
         }
 
+        function parseBackendDate(dateStr) {
+            if (!dateStr) return null;
+            const match = typeof dateStr === 'string'
+                ? dateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/)
+                : null;
+            if (match) {
+                return new Date(
+                    Number(match[1]),
+                    Number(match[2]) - 1,
+                    Number(match[3]),
+                    Number(match[4]),
+                    Number(match[5]),
+                    Number(match[6])
+                );
+            }
+            const parsed = new Date(dateStr);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
         function formatDate(dateStr) {
-            if (!dateStr) return '--';
-            return new Date(dateStr).toLocaleString('pt-BR');
+            const parsed = parseBackendDate(dateStr);
+            return parsed ? parsed.toLocaleString('pt-BR') : (dateStr || '--');
         }
 
         function getNivelPill(nivel) {
@@ -485,7 +600,8 @@
             return `<span class="pill info">${labels[op] || op || '--'}</span>`;
         }
 
-        async function loadLogs() {
+        async function loadLogs(resetPage) {
+            if (resetPage) currentPage = 1;
             const tbody = document.getElementById('logsTable');
             tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
 
@@ -503,20 +619,8 @@
                 const data = await callService('FCLogsSP.list', filters);
 
                 if (data.items && data.items.length > 0) {
-                    tbody.innerHTML = data.items.map(log => `
-                        <tr>
-                            <td>${formatDate(log.dhLog)}</td>
-                            <td>${getNivelPill(log.nivel)}</td>
-                            <td>${getOperacaoPill(log.operacao)}</td>
-                            <td>${log.referencia || '--'}</td>
-                            <td class="log-message" title="${(log.mensagem || '').replace(/"/g, '&quot;')}">${log.mensagem || '--'}</td>
-                            <td>
-                                <button class="btn btn-secondary btn-sm" onclick='showDetails(${JSON.stringify(log)})'>
-                                    Ver
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
+                    currentItems = data.items;
+                    renderLogItems(currentItems);
 
                     totalPages = Math.ceil((data.total || 0) / pageSize);
                     updatePagination(data.total || 0);
@@ -530,7 +634,10 @@
         }
 
         function updatePagination(total) {
-            document.getElementById('paginationInfo').textContent = `Mostrando ${Math.min(pageSize, total)} de ${total}`;
+            const start = total === 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+            const end = total === 0 ? 0 : Math.min(currentPage * pageSize, total);
+            document.getElementById('paginationInfo').textContent =
+                total === 0 ? 'Mostrando 0 de 0' : `Mostrando ${start}-${end} de ${total}`;
             document.getElementById('btnPrev').disabled = currentPage <= 1;
             document.getElementById('btnNext').disabled = currentPage >= totalPages;
         }
@@ -538,7 +645,9 @@
         function prevPage() { if (currentPage > 1) { currentPage--; loadLogs(); } }
         function nextPage() { if (currentPage < totalPages) { currentPage++; loadLogs(); } }
 
-        function showDetails(log) {
+        function showDetails(idx) {
+            const log = currentItems[idx];
+            if (!log) return;
             const modal = document.getElementById('modalDetails');
             const body = document.getElementById('modalBody');
 
@@ -546,12 +655,12 @@
                 <div class="detail-row"><span class="detail-label">Data/Hora</span><span class="detail-value">${formatDate(log.dhLog)}</span></div>
                 <div class="detail-row"><span class="detail-label">Nivel</span><span class="detail-value">${getNivelPill(log.nivel)}</span></div>
                 <div class="detail-row"><span class="detail-label">Operacao</span><span class="detail-value">${getOperacaoPill(log.operacao)}</span></div>
-                <div class="detail-row"><span class="detail-label">Referencia</span><span class="detail-value">${log.referencia || '--'}</span></div>
+                <div class="detail-row"><span class="detail-label">Referencia</span><span class="detail-value">${escapeHtml(log.referencia || '--')}</span></div>
                 <h4 style="margin: 16px 0 8px; color: var(--muted);">Mensagem</h4>
-                <div class="log-detail">${log.mensagem || '--'}</div>
+                <div class="log-detail">${escapeHtml(log.mensagem || '--')}</div>
                 ${log.stacktrace ? `
                     <h4 style="margin: 16px 0 8px; color: var(--muted);">Stack Trace</h4>
-                    <div class="log-detail">${log.stacktrace}</div>
+                    <div class="log-detail">${escapeHtml(log.stacktrace)}</div>
                 ` : ''}
             `;
 
@@ -562,14 +671,38 @@
             document.getElementById('modalDetails').classList.remove('show');
         }
 
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        document.getElementById('modalDetails').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        function setButtonLoading(btn, loading) {
+            if (!btn) return;
+            if (loading) {
+                btn.disabled = true;
+                btn._origHTML = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner"></span> Aguarde...';
+            } else {
+                btn.disabled = false;
+                if (btn._origHTML) btn.innerHTML = btn._origHTML;
+            }
+        }
+
         async function limparLogs() {
             if (!confirm('Limpar logs com mais de 30 dias?')) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
             try {
                 const result = await callService('FCLogsSP.limpar', { dias: 30 });
                 alert(result.message || 'Logs limpos');
                 loadLogs();
             } catch (e) {
                 alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
             }
         }
 

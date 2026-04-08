@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V8: Controle de integração automática por registro no de-para -->
+    <sql nomeTabela="AD_FCDEPARA" nomeObjeto="INTEGRA_AUTO" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCDEPARA ADD INTEGRA_AUTO CHAR(1) DEFAULT 'N'
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCDEPARA ADD INTEGRA_AUTO CHAR(1) DEFAULT 'N'
+        </mssql>
+    </sql>
+</alteracoes>
+

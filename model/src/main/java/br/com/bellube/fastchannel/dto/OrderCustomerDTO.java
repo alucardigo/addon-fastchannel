@@ -9,7 +9,7 @@ import java.math.BigDecimal;
  */
 public class OrderCustomerDTO {
 
-    // Identificação
+    // Identificacao
     private String customerId;
     private String name;
     private String email;
@@ -23,7 +23,7 @@ public class OrderCustomerDTO {
 
     // Tipo
     private String personType; // PF ou PJ
-    private String companyName; // Razão Social (PJ)
+    private String companyName; // Razao Social (PJ)
 
     // Campos Sankhya (transient)
     private transient BigDecimal codParc;
@@ -131,7 +131,7 @@ public class OrderCustomerDTO {
     }
 
     /**
-     * Verifica se é pessoa jurídica.
+     * Verifica se e pessoa juridica.
      */
     public boolean isPJ() {
         if (personType != null) {
@@ -146,7 +146,7 @@ public class OrderCustomerDTO {
     }
 
     /**
-     * Retorna CPF/CNPJ limpo (somente números).
+     * Retorna CPF/CNPJ limpo (somente numeros).
      */
     public String getCleanCpfCnpj() {
         return cpfCnpj != null ? cpfCnpj.replaceAll("[^0-9]", "") : null;

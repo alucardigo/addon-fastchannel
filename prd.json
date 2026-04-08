@@ -1,0 +1,5 @@
+{
+  "objective": "Fix Fastchannel Addon UI layout issues",
+  "plan": "docs/plans/2026-03-20-ui-fixes.md",
+  "instructions": "Follow the implementation plan task-by-task. Use CSS flexbox/grid to fix the narrow inputs, misaligned buttons, and clashing layouts in the HTML pages."
+}

@@ -1,0 +1,11 @@
+05/12/2025 06:08:52 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContext sasserver
+05/12/2025 06:08:53 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.sas.servlet.SasBootModuleListener.
+05/12/2025 06:08:53 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.sas.servlet.SasBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+05/12/2025 06:08:53 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'sasserver'...
+05/12/2025 06:08:53 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+05/12/2025 06:08:58 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+05/12/2025 12:28:31 INFO  br.com.sankhya.module.BootModuleServletContextListener - moduloBootLoaderContext sasserver
+05/12/2025 12:28:31 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.sas.servlet.SasBootModuleListener.
+05/12/2025 12:28:31 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.sas.servlet.SasBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+05/12/2025 12:28:31 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'sasserver'...
+05/12/2025 12:28:31 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

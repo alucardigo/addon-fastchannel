@@ -3,7 +3,7 @@ package br.com.bellube.fastchannel.dto;
 import java.math.BigDecimal;
 
 /**
- * DTO para endereço em pedidos do Fastchannel.
+ * DTO para endereco em pedidos do Fastchannel.
  *
  * Mapeia para TGFEND no Sankhya.
  */
@@ -19,7 +19,7 @@ public class OrderAddressDTO {
     private String country;
     private String reference;
 
-    // Identificação do destinatário
+    // Identificacao do destinatario
     private String recipientName;
     private String recipientPhone;
 
@@ -147,14 +147,14 @@ public class OrderAddressDTO {
     }
 
     /**
-     * Retorna CEP limpo (somente números).
+     * Retorna CEP limpo (somente numeros).
      */
     public String getCleanZipCode() {
         return zipCode != null ? zipCode.replaceAll("[^0-9]", "") : null;
     }
 
     /**
-     * Retorna endereço completo formatado.
+     * Retorna endereco completo formatado.
      */
     public String getFullAddress() {
         StringBuilder sb = new StringBuilder();

@@ -1,0 +1,57 @@
+04/03/2026 00:37:54 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+04/03/2026 00:37:54 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/03/2026 00:37:54 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'integracaoasis'...
+04/03/2026 00:37:54 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+04/03/2026 00:37:55 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+04/03/2026 17:08:44 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [integracaoasis]...
+04/03/2026 17:08:44 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+04/03/2026 17:08:44 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'integracaoasis'.
+04/03/2026 17:08:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:08:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:08:47 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] Iniciando módulo [integracaoasis]...
+04/03/2026 17:08:47 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+04/03/2026 17:08:50 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+04/03/2026 17:08:50 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/03/2026 17:08:51 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'integracaoasis'...
+04/03/2026 17:08:51 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+04/03/2026 17:08:54 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:08:55 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:32 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:32 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:41 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:41 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:45 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:09:46 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:10:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:10:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:10:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:10:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:10:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:10:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:10:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:17 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:19 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:19 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:19 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:19 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:24 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: collectInfoCabAndProcess on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:24 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:24 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:31 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:31 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:35 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:36 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:45 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+04/03/2026 17:11:45 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService

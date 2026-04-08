@@ -1,0 +1,16 @@
+26/02/2026 06:08:50 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.EasyApiBootModuleListener.
+26/02/2026 06:08:50 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.EasyApiBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+26/02/2026 06:08:50 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apilogistica'...
+26/02/2026 06:08:50 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+26/02/2026 07:44:19 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [apilogistica]...
+26/02/2026 07:44:19 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+26/02/2026 07:48:01 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.EasyApiBootModuleListener.
+26/02/2026 07:48:01 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.EasyApiBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+26/02/2026 07:48:01 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apilogistica'...
+26/02/2026 07:48:01 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+26/02/2026 10:20:42 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [apilogistica]...
+26/02/2026 10:20:42 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+26/02/2026 10:25:08 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.EasyApiBootModuleListener.
+26/02/2026 10:25:08 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.EasyApiBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+26/02/2026 10:25:08 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apilogistica'...
+26/02/2026 10:25:08 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

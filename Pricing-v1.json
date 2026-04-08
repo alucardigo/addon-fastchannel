@@ -1,0 +1,934 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "API de Preços",
+        "description": "API para gestão dos preços de produtos das lojas virtuais B2B da plataforma Fast Channel.",
+        "version": "v1"
+    },
+    "servers": [
+        {
+            "url": "https://api.commerce.fastchannel.com/price-management/v1"
+        }
+    ],
+    "paths": {
+        "/prices/{ProductId}": {
+            "get": {
+                "tags": [
+                    "Preços Unitários"
+                ],
+                "summary": "GetProductPrices",
+                "description": "Retorna todos os preços cadastrados para um determinado produto da loja virtual, de acordo com o SKU informado na requisição.",
+                "operationId": "getproductprices",
+                "parameters": [
+                    {
+                        "name": "ProductId",
+                        "in": "path",
+                        "description": "Identificação única (SKU) do produto a ser utilizado como filtro dos preços desejados.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Preços cadastrados para um determinado produto.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "HttpStatusCode": 200,
+                                    "Success": true,
+                                    "Payload": [
+                                        {
+                                            "Id": "abc999",
+                                            "PriceTableId": 1,
+                                            "LisPrice": 1000,
+                                            "SalePrice": 0
+                                        },
+                                        {
+                                            "Id": "abc999",
+                                            "PriceTableId": 2,
+                                            "LisPrice": 1100,
+                                            "SalePrice": 0
+                                        },
+                                        {
+                                            "Id": "abc999",
+                                            "PriceTableId": 3,
+                                            "LisPrice": 1200,
+                                            "SalePrice": 1199
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Preços Unitários"
+                ],
+                "summary": "SetProductPrice",
+                "description": "Altera o preço de um produto específico em uma determinada tabela de preços.",
+                "operationId": "setproductprice",
+                "parameters": [
+                    {
+                        "name": "ProductId",
+                        "in": "path",
+                        "description": "Identificação única do produto (SKU) que terá o preço atualizado.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "* PriceTableId : identificação única da tabela de preço que será atualizada\n* ListPrice : preço \"de\" do produto (**em centavos**) que deverá ser considerado para tal tabela de preço\n* SalePrice : preço \"por\" do produto (**em centavos**) que deverá ser considerado para tal tabela de preço\n\nAs propriedades _ListPrice_ e _SalePrice_ são valores inteiros e representam o preço em centavos. Por este motivo, o preenchimento dessas propriedades devem obedecer o seguinte formato:\n\n* R$ 0,01 => Para representar este valor, preencher com 1;\n* R$ 1,00  => Para representar este valor, preencher com 100;\n* R$ 1.000,00 => Para representar este valor, preencher com 100000;\n\n---\n\n**Atenção!** Não são permitidos o cadastro de \"preços unitários zerados\" para nenhum produto. É considerado um \"**preço unitário zerado**\" qualquer requisição cujo valor de ambas as propriedades \"_ListPrice_\" e \"_SalePrice_\" sejam iguais a zero.\n\nRealizar o envio de um \"**preço unitário zerado**\" para a API Fastchannel causará a exclusão do preço do produto da tabela de preços especificada na requisição, bem como removerá quaisquer faixas de \"**Preços Escalonados**\" existentes para o produto na respectiva tabela de preços.",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "PriceTableId": 0,
+                                "ListPrice": 0,
+                                "SalePrice": 0
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Preço do produto atualizado em uma determinada tabela de preços.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "HttpStatusCode": 200,
+                                    "Success": true,
+                                    "Payload": {
+                                        "Id": "abc999",
+                                        "PriceTableId": 1,
+                                        "LisPrice": 1000,
+                                        "SalePrice": 0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/prices": {
+            "get": {
+                "tags": [
+                    "Preços Unitários"
+                ],
+                "summary": "ListProductPrices",
+                "description": "Retorna a lista de todos os preços, para todos os produtos cadastrados na loja virtual.",
+                "operationId": "listproductprices",
+                "parameters": [
+                    {
+                        "name": "ProductIds",
+                        "in": "query",
+                        "description": "Opcional. Lista de identificadores únicos dos produtos (SKU's) que deverão ser utilizados como filtro dos resultados. Informar os valores separados por vírgula.",
+                        "schema": {
+                            "type": "array[string]"
+                        }
+                    },
+                    {
+                        "name": "PriceTableIds",
+                        "in": "query",
+                        "description": "Opcional. Lista de identificadores únicos das tabelas de preços que deverão ser utilizados como filtro dos resultados. Informar os valores separados por vírgula.",
+                        "schema": {
+                            "type": "array[int]"
+                        }
+                    },
+                    {
+                        "name": "PageNumber",
+                        "in": "query",
+                        "description": "Opcional. Parâmetro para aplicação de paginação aos resultados, e que deve ser utilizado em conjunto com o parâmetro \"PageSize\". Valor inteiro igual ou maior que um, o qual define o \"número da página\" que deverá ser retornado dos resultados.",
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "PageSize",
+                        "in": "query",
+                        "description": "Opcional. Parâmetro para aplicação de paginação aos resultados, e que deve ser utilizado em conjunto com o parâmetro \"PageNumber\". Valor inteiro igual ou maior que um, o qual define a quantidade de registros retornados \"por página\".",
+                        "schema": {
+                            "type": "int"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista dos preços de produtos cadastrados na loja virtual, opcionalmente filtrados por um ou mais SKU's e também um ou mais códigos de tabelas de preço.",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "HttpStatusCode": 200,
+                                    "Success": true,
+                                    "Payload": [
+                                        {
+                                            "Id": "abc999",
+                                            "PriceTableId": 1,
+                                            "LisPrice": 1000,
+                                            "SalePrice": 0
+                                        },
+                                        {
+                                            "Id": "abc999",
+                                            "PriceTableId": 2,
+                                            "LisPrice": 1100,
+                                            "SalePrice": 0
+                                        },
+                                        {
+                                            "Id": "abc999",
+                                            "PriceTableId": 3,
+                                            "LisPrice": 1200,
+                                            "SalePrice": 1199
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/prices/{ProductId}/batches": {
+            "get": {
+                "tags": [
+                    "Preços Escalonados"
+                ],
+                "summary": "ListProductPriceBatches",
+                "description": "Retorna todas as faixas de preços escalonados atualmente cadastradas para um dado produto, considerando a combinação de todos os filtros informados na requisição.\n\nTodos os filtros são opcionais.\n\n**Caso a sua chave de assinatura esteja vinculada a uma tabela de preços específica, o filtro \"PriceTableId\" será preenchido automaticamente para todas as suas requisições.**",
+                "operationId": "listproductpricebatches",
+                "parameters": [
+                    {
+                        "name": "ProductId",
+                        "in": "path",
+                        "description": "Identificação única (SKU) do produto a ser utilizado como filtro dos preços escalonados desejados.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "PriceTableId",
+                        "in": "query",
+                        "description": "Opcional. Identificador único (ID) da tabela de preços relacionada às faixas de preço escalonado a serem retornadas.",
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "BatchId",
+                        "in": "query",
+                        "description": "Opcional. Identificador único (ID) da faixa de preço escalonado a ser retornada.",
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "Status",
+                        "in": "query",
+                        "description": "Opcional. Flag de status das faixas de preço escalonado a serem retornadas. Um valor \"true\" indica que apenas as faixas de preços ativas deverão ser retornadas. Um valor \"false\" indica que apenas as faixas de preços desativadas deverão ser retornadas. Para retornar quaisquer faixas de preço, basta que este filtro seja omitido da requisição.",
+                        "schema": {
+                            "type": "bool"
+                        }
+                    },
+                    {
+                        "name": "Quantity",
+                        "in": "query",
+                        "description": "Opcional. Quantidade do produto a ser considerada como filtro das faixas de preço escalonado a serem retornadas. Apenas as faixas de preços adequadas a quantidade informada serão retornadas.",
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "PageNumber",
+                        "in": "query",
+                        "description": "Opcional. Parâmetro para aplicação de paginação aos resultados, e que deve ser utilizado em conjunto com o parâmetro \"PageSize\". Valor inteiro igual ou maior que um, o qual define o \"número da página\" que deverá ser retornado dos resultados.",
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "PageSize",
+                        "in": "query",
+                        "description": "Opcional. Parâmetro para aplicação de paginação aos resultados, e que deve ser utilizado em conjunto com o parâmetro \"PageNumber\". Valor inteiro igual ou maior que um, o qual define a quantidade de registros retornados \"por página\".",
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "description": "Anuncia quais tipos de conteúdo, expressos como MIME types, o seu cliente é capaz de entender.",
+                        "required": true,
+                        "schema": {
+                            "enum": [
+                                "application/json"
+                            ],
+                            "type": "string",
+                            "default": "application/json"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de faixas de preço escalonado cadastradas para um determinado produto.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Lista_das_Faixas_de_Pre_o_Escalonado_"
+                                },
+                                "example": {
+                                    "Success": true,
+                                    "HttpStatusCode": 200,
+                                    "RequestParams": {
+                                        "PriceTableId": 2,
+                                        "ProductId": "31428700"
+                                    },
+                                    "Payload": [
+                                        {
+                                            "BatchId": 1,
+                                            "ProductId": "31428700",
+                                            "ProductName": "Havoline Semissintético SAE 10W-40 API SN- Granel",
+                                            "PriceTableId": 2,
+                                            "PriceTableName": "ÁTRIA - Tabela de Preços",
+                                            "UnitaryPrice": 9000,
+                                            "MinimumBatchSize": 10,
+                                            "MaximumBatchSize": 19,
+                                            "UnitaryPriceForBatch": 8820,
+                                            "BatchDisabled": false
+                                        },
+                                        {
+                                            "BatchId": 2,
+                                            "ProductId": "31428700",
+                                            "ProductName": "Havoline Semissintético SAE 10W-40 API SN- Granel",
+                                            "PriceTableId": 2,
+                                            "PriceTableName": "ÁTRIA - Tabela de Preços",
+                                            "UnitaryPrice": 9000,
+                                            "MinimumBatchSize": 20,
+                                            "MaximumBatchSize": 49,
+                                            "UnitaryPriceForBatch": 8550,
+                                            "BatchDisabled": false
+                                        },
+                                        {
+                                            "BatchId": 3,
+                                            "ProductId": "31428700",
+                                            "ProductName": "Havoline Semissintético SAE 10W-40 API SN- Granel",
+                                            "PriceTableId": 2,
+                                            "PriceTableName": "ÁTRIA - Tabela de Preços",
+                                            "UnitaryPrice": 9000,
+                                            "MinimumBatchSize": 50,
+                                            "MaximumBatchSize": 99,
+                                            "UnitaryPriceForBatch": 8370,
+                                            "BatchDisabled": false
+                                        },
+                                        {
+                                            "BatchId": 4,
+                                            "ProductId": "31428700",
+                                            "ProductName": "Havoline Semissintético SAE 10W-40 API SN- Granel",
+                                            "PriceTableId": 2,
+                                            "PriceTableName": "ÁTRIA - Tabela de Preços",
+                                            "UnitaryPrice": 9000,
+                                            "MinimumBatchSize": 100,
+                                            "MaximumBatchSize": 999,
+                                            "UnitaryPriceForBatch": 8100,
+                                            "BatchDisabled": false
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Preços Escalonados"
+                ],
+                "summary": "CreateProductPriceBatch",
+                "description": "Cria uma nova faixa de preço escalonado para um dado produto, em uma determinada tabela de preços.\n\n**Observação! Caso a sua chave de assinatura esteja vinculada a uma tabela de preços específica, a propriedade \"PriceTableId\" da requisição será sempre preenchida automaticamente, para todas as suas requisições, e portanto não precisará ser enviada em nenhuma das suas requisições.**",
+                "operationId": "createproductpricebatch",
+                "parameters": [
+                    {
+                        "name": "ProductId",
+                        "in": "path",
+                        "description": "Identificação única (SKU) do produto a ser utilizado como filtro dos preços desejados.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "**Atenção! Caso sua chave de assinatura esteja vinculada a uma tabela de preços específica, a propriedade \"_PriceTableId_\" poderá ser omitida das requisições. Do contrário, o preenchimento dessa propriedade será sempre obrigatório.**",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Informa__es_B_sicas_para_Cria__o_de_uma_Nova_Faixa_de_Pre_o_Escalonado"
+                            },
+                            "example": {
+                                "PriceTableId": 1,
+                                "MinimumBatchSize": 6,
+                                "MaximumBatchSize": 11,
+                                "UnitaryPriceForBatch": 890,
+                                "BatchDisabled": false
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "Retorno de sucesso caso a nova faixa de preço escalonado tenha sido cadastrada."
+                    }
+                }
+            }
+        },
+        "/prices/{ProductId}/batches/{BatchId}": {
+            "put": {
+                "tags": [
+                    "Preços Escalonados"
+                ],
+                "summary": "UpdateProductPriceBatch",
+                "description": "Atualiza uma faixa de preço escalonado existente para um dado produto, em uma determinada tabela de preços. Os dados da faixa de preço escalonado recém atualizada serão retornados após a atualização da respectiva faixa.\n\n**Anteção!** Caso não exista uma faixa de preço escalonado correspondente aos parâmetros da requisição, um erro HTTP 404 (NotFound) será retornado.",
+                "operationId": "5fb3c80023a32abbb16b2d63",
+                "parameters": [
+                    {
+                        "name": "ProductId",
+                        "in": "path",
+                        "description": "Identificação única (SKU) do produto a ser utilizado como filtro dos preços desejados.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "BatchId",
+                        "in": "path",
+                        "description": "Identificador único (ID) da faixa de preço escalonado que será atualizada.",
+                        "required": true,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "description": "Anuncia quais tipos de conteúdo, expressos como MIME types, o seu cliente é capaz de entender.",
+                        "required": true,
+                        "schema": {
+                            "enum": [
+                                "application/json"
+                            ],
+                            "type": "string",
+                            "default": "application/json"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "**Atenção!**\nTodas as propriedades da requisição de atualização são opcionais. Ou seja, as propriedades que forem omitidas da requisição serão mantidas inalteradas em nossa base.\n\nOu seja, é possível enviar uma requisição de atualização da faixa de preço escalonado de forma a atualizar apenas o valor do preço unitário escalonado de tal faixa.\n\nContudo, não é possível alterar a tabela de preços a que tal faixa de preço escalonado está vinculada. Para tanto, recomendamos a exclusão da faixa existente e posterior criação de uma nova faixa de preço, vinculada a tabela de preços adequada.\n\nAlém disso, caso a propriedade \"**UnitaryPriceForBatch**\" seja enviada no corpo da requisição, seu valor precisa ser **maior do que zero**, obrigatoriamente.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Informa__es_B_sicas_para_Atualiza__o_de_uma_Faixa_de_Pre_o_Escalonado"
+                            },
+                            "example": {
+                                "MinimumBatchSize": 6,
+                                "MaximumBatchSize": 11,
+                                "UnitaryPriceForBatch": 849,
+                                "BatchDisabled": false
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Resposta de sucesso recebida após a atualização de uma determinada faixa de preço escalonado.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Informa__es_Detalhadas_de_uma_Faixa_de_Pre_o_Escalonado"
+                                },
+                                "example": {
+                                    "Success": true,
+                                    "HttpStatusCode": 200,
+                                    "RequestParams": {
+                                        "PriceTableId": 2,
+                                        "ProductId": "31428700",
+                                        "BatchId": 5
+                                    },
+                                    "Payload": {
+                                        "BatchId": 5,
+                                        "ProductId": "31428700",
+                                        "ProductName": "Havoline Semissintético SAE 10W-40 API SN- Granel",
+                                        "PriceTableId": 2,
+                                        "PriceTableName": "ÁTRIA - Tabela de Preços",
+                                        "UnitaryPrice": 9000,
+                                        "MinimumBatchSize": 1000,
+                                        "MaximumBatchSize": 9999,
+                                        "UnitaryPriceForBatch": 7500,
+                                        "BatchDisabled": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Preços Escalonados"
+                ],
+                "summary": "DeleteProductPriceBatch",
+                "description": "Remove uma faixa de preço escalonado existente para um dado produto, em uma determinada tabela de preços. Os dados da faixa de preço escalonado removida serão retornados após a exclusão da respectiva faixa.\n\n**Anteção!** Caso não exista uma faixa de preço escalonado correspondente aos parâmetros da requisição, um erro HTTP 404 (NotFound) será retornado.",
+                "operationId": "5fb3c97ed7fdacb9a4fe20dc",
+                "parameters": [
+                    {
+                        "name": "ProductId",
+                        "in": "path",
+                        "description": "Identificação única (SKU) do produto a ser utilizado como filtro dos preços desejados.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "BatchId",
+                        "in": "path",
+                        "description": "Identificador único (ID) da faixa de preço escalonado que será removida.",
+                        "required": true,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "description": "Anuncia quais tipos de conteúdo, expressos como MIME types, o seu cliente é capaz de entender.",
+                        "required": true,
+                        "schema": {
+                            "enum": [
+                                "application/json"
+                            ],
+                            "type": "string",
+                            "default": "application/json"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retorno de sucesso da exclusão da faixa de preço escalonado, contendo as informações da faixa de preço escalonado que foi recém-excluída.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Informa__es_Detalhadas_de_uma_Faixa_de_Pre_o_Escalonado"
+                                },
+                                "example": {
+                                    "Success": true,
+                                    "HttpStatusCode": 200,
+                                    "RequestParams": {
+                                        "PriceTableId": 2,
+                                        "ProductId": "31428700",
+                                        "BatchId": 5
+                                    },
+                                    "Payload": {
+                                        "BatchId": 5,
+                                        "ProductId": "31428700",
+                                        "ProductName": "Havoline Semissintético SAE 10W-40 API SN- Granel",
+                                        "PriceTableId": 2,
+                                        "PriceTableName": "ÁTRIA - Tabela de Preços",
+                                        "UnitaryPrice": 9000,
+                                        "MinimumBatchSize": 1000,
+                                        "MaximumBatchSize": 9999,
+                                        "UnitaryPriceForBatch": 7500,
+                                        "BatchDisabled": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Preços Escalonados"
+                ],
+                "summary": "GetProductPriceBatch",
+                "description": "Obtém as informações detalhadas de uma faixa de preço escalonado existente para um dado produto, em uma determinada tabela de preços.",
+                "operationId": "5fb3df520c6baf4024e0d3b9",
+                "parameters": [
+                    {
+                        "name": "ProductId",
+                        "in": "path",
+                        "description": "Identificação única (SKU) do produto a ser utilizado como filtro dos preços desejados.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "BatchId",
+                        "in": "path",
+                        "description": "Identificador único (ID) da faixa de preço escalonado que será atualizada.",
+                        "required": true,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "description": "Anuncia quais tipos de conteúdo, expressos como MIME types, o seu cliente é capaz de entender.",
+                        "required": true,
+                        "schema": {
+                            "enum": [
+                                "application/json"
+                            ],
+                            "type": "string",
+                            "default": "application/json"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta de sucesso recebida após a consulta de uma determinada faixa de preço escalonado.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Informa__es_Detalhadas_de_uma_Faixa_de_Pre_o_Escalonado"
+                                },
+                                "example": {
+                                    "Success": true,
+                                    "HttpStatusCode": 200,
+                                    "RequestParams": {
+                                        "PriceTableId": 2,
+                                        "ProductId": "31428700",
+                                        "BatchId": 5
+                                    },
+                                    "Payload": {
+                                        "BatchId": 5,
+                                        "ProductId": "31428700",
+                                        "ProductName": "Havoline Semissintético SAE 10W-40 API SN- Granel",
+                                        "PriceTableId": 2,
+                                        "PriceTableName": "ÁTRIA - Tabela de Preços",
+                                        "UnitaryPrice": 9000,
+                                        "MinimumBatchSize": 1000,
+                                        "MaximumBatchSize": 9999,
+                                        "UnitaryPriceForBatch": 7500,
+                                        "BatchDisabled": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/prices/{ProductId}/batches/filter/{Quantity}": {
+            "get": {
+                "tags": [
+                    "Preços Escalonados"
+                ],
+                "summary": "FilterProductPriceBatch",
+                "description": "Obtém as informações detalhadas de uma faixa de preço escalonado existente para um dado produto, em uma determinada tabela de preços, considerando uma quantidade específica a ser comercializada.\n\n**Observação! Caso a sua chave de assinatura esteja vinculada a uma tabela de preços específica, o parâmetro \"PriceTableId\" será preenchido automaticamente para todas as suas requisições, e portanto não precisará ser enviado.**",
+                "operationId": "5fb3e09295cf8cf77791722a",
+                "parameters": [
+                    {
+                        "name": "ProductId",
+                        "in": "path",
+                        "description": "Identificação única (SKU) do produto a ser utilizado como filtro dos preços desejados.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "Quantity",
+                        "in": "path",
+                        "description": "Quantidade do produto a ser considerada na comercialização.",
+                        "required": true,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "PriceTableId",
+                        "in": "query",
+                        "description": "Obrigatório (vide observação acima). Identificador único da tabela de preços da faixa de preço escalonado a ser considerada.",
+                        "required": true,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "description": "Anuncia quais tipos de conteúdo, expressos como MIME types, o seu cliente é capaz de entender.",
+                        "required": true,
+                        "schema": {
+                            "enum": [
+                                "application/json"
+                            ],
+                            "type": "string",
+                            "default": "application/json"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resposta de sucesso recebida após a consulta de uma determinada faixa de preço escalonado.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Informa__es_Detalhadas_de_uma_Faixa_de_Pre_o_Escalonado"
+                                },
+                                "example": {
+                                    "Success": true,
+                                    "HttpStatusCode": 200,
+                                    "RequestParams": {
+                                        "PriceTableId": 2,
+                                        "ProductId": "31428700",
+                                        "BatchId": 5
+                                    },
+                                    "Payload": {
+                                        "BatchId": 5,
+                                        "ProductId": "31428700",
+                                        "ProductName": "Havoline Semissintético SAE 10W-40 API SN- Granel",
+                                        "PriceTableId": 2,
+                                        "PriceTableName": "ÁTRIA - Tabela de Preços",
+                                        "UnitaryPrice": 9000,
+                                        "MinimumBatchSize": 1000,
+                                        "MaximumBatchSize": 9999,
+                                        "UnitaryPriceForBatch": 7500,
+                                        "BatchDisabled": false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Resposta da API caso não haja uma faixa de preço escalonado que atenda à quantidade de unidades informada na requisição."
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Lista_das_Faixas_de_Pre_o_Escalonado_": {
+                "type": "object",
+                "properties": {
+                    "Success": {
+                        "type": "boolean"
+                    },
+                    "HttpStatusCode": {
+                        "type": "integer"
+                    },
+                    "RequestParams": {
+                        "type": "object",
+                        "properties": {
+                            "PriceTableId": {
+                                "type": "integer"
+                            },
+                            "ProductId": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "Payload": {
+                        "type": "array",
+                        "items": {
+                            "required": [
+                                "BatchId",
+                                "ProductId",
+                                "ProductName",
+                                "PriceTableId",
+                                "PriceTableName",
+                                "UnitaryPrice",
+                                "MinimumBatchSize",
+                                "MaximumBatchSize",
+                                "UnitaryPriceForBatch",
+                                "BatchDisabled"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "BatchId": {
+                                    "type": "integer"
+                                },
+                                "ProductId": {
+                                    "type": "string"
+                                },
+                                "ProductName": {
+                                    "type": "string"
+                                },
+                                "PriceTableId": {
+                                    "type": "integer"
+                                },
+                                "PriceTableName": {
+                                    "type": "string"
+                                },
+                                "UnitaryPrice": {
+                                    "type": "integer"
+                                },
+                                "MinimumBatchSize": {
+                                    "type": "integer"
+                                },
+                                "MaximumBatchSize": {
+                                    "type": "integer"
+                                },
+                                "UnitaryPriceForBatch": {
+                                    "type": "integer"
+                                },
+                                "BatchDisabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-apim-schema-name": "Lista das Faixas de Preço Escalonado "
+            },
+            "Informa__es_Detalhadas_de_uma_Faixa_de_Pre_o_Escalonado": {
+                "type": "object",
+                "properties": {
+                    "Success": {
+                        "type": "boolean"
+                    },
+                    "HttpStatusCode": {
+                        "type": "integer"
+                    },
+                    "RequestParams": {
+                        "type": "object",
+                        "properties": {
+                            "PriceTableId": {
+                                "type": "integer"
+                            },
+                            "ProductId": {
+                                "type": "string"
+                            },
+                            "BatchId": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "Payload": {
+                        "type": "object",
+                        "properties": {
+                            "BatchId": {
+                                "type": "integer"
+                            },
+                            "ProductId": {
+                                "type": "string"
+                            },
+                            "ProductName": {
+                                "type": "string"
+                            },
+                            "PriceTableId": {
+                                "type": "integer"
+                            },
+                            "PriceTableName": {
+                                "type": "string"
+                            },
+                            "UnitaryPrice": {
+                                "type": "integer"
+                            },
+                            "MinimumBatchSize": {
+                                "type": "integer"
+                            },
+                            "MaximumBatchSize": {
+                                "type": "integer"
+                            },
+                            "UnitaryPriceForBatch": {
+                                "type": "integer"
+                            },
+                            "BatchDisabled": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                },
+                "x-apim-schema-name": "Informações Detalhadas de uma Faixa de Preço Escalonado"
+            },
+            "Informa__es_B_sicas_para_Atualiza__o_de_uma_Faixa_de_Pre_o_Escalonado": {
+                "required": [
+                    "MinimumBatchSize",
+                    "MaximumBatchSize",
+                    "UnitaryPriceForBatch"
+                ],
+                "type": "object",
+                "properties": {
+                    "MinimumBatchSize": {
+                        "type": "integer",
+                        "description": "Quantidade mínima de itens do produto no carrinho para que a faixa de preço escalonado possa ser aplicada."
+                    },
+                    "MaximumBatchSize": {
+                        "type": "integer",
+                        "description": "Quantidade máxima de itens do produto no carrinho para que a faixa de preço escalonado possa ser aplicada."
+                    },
+                    "UnitaryPriceForBatch": {
+                        "type": "integer",
+                        "description": "Preço unitário escalonado (com desconto) a ser considerado para o produto no carrinho, quando a quantidade de itens do produto no carrinho esteja entre os valores _MinimumBatchSize_ e _MaximumBatchSize_."
+                    },
+                    "BatchDisabled": {
+                        "type": "boolean",
+                        "description": "Flag opcional que permite a criação de uma faixa de preço escalonado que não estará em vigor na loja. É utilizado principalmente para se desativar temporariamente uma faixa de preço escalonado, sem ter que remover a mesma."
+                    }
+                },
+                "x-apim-schema-name": "Informações Básicas para Atualização de uma Faixa de Preço Escalonado"
+            },
+            "Informa__es_B_sicas_para_Cria__o_de_uma_Nova_Faixa_de_Pre_o_Escalonado": {
+                "required": [
+                    "PriceTableId",
+                    "MinimumBatchSize",
+                    "MaximumBatchSize",
+                    "UnitaryPriceForBatch"
+                ],
+                "type": "object",
+                "properties": {
+                    "PriceTableId": {
+                        "type": "integer",
+                        "description": "Identificador único da tabela de preços onde a faixa de preço escalonado deverá ser criada. **Atenção! Caso sua chave de assinatura esteja vinculada a uma tabela de preços específica, essa propriedade poderá ser omitida da requisição. Do contrário, seu preenchimento é obrigatório.**"
+                    },
+                    "MinimumBatchSize": {
+                        "type": "integer",
+                        "description": "Quantidade mínima de itens do produto no carrinho para que a faixa de preço escalonado possa ser aplicada."
+                    },
+                    "MaximumBatchSize": {
+                        "type": "integer",
+                        "description": "Quantidade máxima de itens do produto no carrinho para que a faixa de preço escalonado possa ser aplicada."
+                    },
+                    "UnitaryPriceForBatch": {
+                        "type": "integer",
+                        "description": "Preço unitário escalonado (com desconto) a ser considerado para o produto no carrinho, quando a quantidade de itens do produto no carrinho esteja entre os valores _MinimumBatchSize_ e _MaximumBatchSize_."
+                    },
+                    "BatchDisabled": {
+                        "type": "boolean",
+                        "description": "Flag opcional que permite a criação de uma faixa de preço escalonado que não estará em vigor na loja. É utilizado principalmente para se desativar temporariamente uma faixa de preço escalonado, sem ter que remover a mesma."
+                    }
+                },
+                "x-apim-schema-name": "Informações Básicas para Criação de uma Nova Faixa de Preço Escalonado"
+            }
+        },
+        "securitySchemes": {
+            "apiKeyHeader": {
+                "type": "apiKey",
+                "name": "Subscription-Key",
+                "in": "header"
+            },
+            "apiKeyQuery": {
+                "type": "apiKey",
+                "name": "subscription-key",
+                "in": "query"
+            }
+        }
+    },
+    "security": [
+        {
+            "apiKeyHeader": []
+        },
+        {
+            "apiKeyQuery": []
+        }
+    ]
+}

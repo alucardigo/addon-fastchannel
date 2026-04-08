@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
- * DTO para itens da fila de sincronização (Outbox Pattern).
+ * DTO para itens da fila de sincronizacao (Outbox Pattern).
  *
  * Representa um registro na tabela AD_FCQUEUE.
  */

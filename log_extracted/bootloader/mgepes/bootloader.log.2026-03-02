@@ -1,0 +1,33 @@
+02/03/2026 06:09:39 INFO  br.com.sankhya.module.scriptmigration.ScriptMigration - [mgepes - scriptmigration] - Iniciando processo de script de migração do módulo...
+02/03/2026 06:09:39 INFO  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Iniciando processamento dos scripts de migração...
+02/03/2026 06:09:39 INFO  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Iniciando a preparação dos scripts de migração do módulo 'mgepes'.
+02/03/2026 06:09:39 INFO  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Buscando scripts embarcados no módulo...
+02/03/2026 06:09:39 INFO  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Iniciando processamento dos scripts de migração...
+02/03/2026 06:09:39 WARN  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Não há scripts de banco de dados!
+02/03/2026 06:09:39 INFO  br.com.sankhya.module.scriptmigration.ScriptMigrationProcessor - [mgepes - scriptmigration] - Fim do processamento dos scripts...
+02/03/2026 06:09:39 INFO  br.com.sankhya.skw.environment.upd.dd.MetadataProcessor - [mgepes - ddmigration] - [OwnerMigration] Não será necessário importar o dicionário de dados do módulo 'mgepes'.
+02/03/2026 06:09:39 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.mge.pessoal.servlet.PessoalBootModuleListener.
+02/03/2026 06:09:43 WARN  br.com.sankhya.module.bootloader.ObjectRegistryManager - Nenhum pacote informado para registrar os ObjectRegistryEntrySupplier do módulo mgepes
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'mgepes'...
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 15.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.ReprocessamentoEventoS5002' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaEmailTFPFUN' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AjustaEventosRETTransferencia' não será executando, pois não cumpre condição de condição de execução.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaParametrosCalculoRescisao' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.FinalizaProcessoEdicaoMultiplaAjusteAnualIrrf' será executado: true.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Executando script de inicialização 'br.com.sankhya.mgepes.model.scripts.FinalizaProcessoEdicaoMultiplaAjusteAnualIrrf' do módulo 'mgepes'...
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.FinalizaProcessoEdicaoMultiplaAjusteAnualIrrf' executado.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaHistoricoRegistroFiscal' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.IncluiPermissoesTela' será executado: true.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Executando script de inicialização 'br.com.sankhya.mgepes.model.scripts.IncluiPermissoesTela' do módulo 'mgepes'...
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.IncluiPermissoesTela' executado.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaCamposSSTRetroativo' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.GeraHistoricoEVE1010' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaEventosPIS' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaTabelasDeFaixa' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaHistoricoConsolidacao' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaCodigosMovimentosRescisao' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.AtualizaTipPontoPadroesCadFunc' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.mgepes.model.scripts.LimpaBackupDadosPadrao' será executado: false.
+02/03/2026 06:09:43 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [mgepes] finalizando inicialização...
+02/03/2026 06:09:58 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] Iniciando módulo [addon-fastchannel]...

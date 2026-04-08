@@ -1,0 +1,17 @@
+28/02/2026 06:09:21 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [platform-api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+28/02/2026 06:09:21 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [platform-api - ddmigration] - Scripts não encontrados.
+28/02/2026 06:09:21 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [platform-api - ddmigration] - Scripts ignorados, pois já foram processados
+28/02/2026 06:09:21 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [platform-api - ddmigration] - Diretório de metadados não encontrado.
+28/02/2026 06:09:21 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [platform-api - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+28/02/2026 06:09:21 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [platform-api - ddmigration] - Não há hooks para serem registrados.
+28/02/2026 06:09:21 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.account.mm.AccountBootListener.
+28/02/2026 06:09:21 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.account.mm.AccountBootListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+28/02/2026 06:09:21 INFO  br.com.sankhya.module.service.ServiceManager - Registering 1 services for module platform-api
+28/02/2026 06:09:21 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'platform-api'...
+28/02/2026 06:09:21 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+28/02/2026 06:09:21 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+28/02/2026 06:09:21 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+28/02/2026 06:09:21 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Scripts não encontrados.
+28/02/2026 06:09:21 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Scripts ignorados, pois já foram processados
+28/02/2026 06:09:21 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Iniciando importacao do dicionario de dados
+28/02/2026 06:09:22 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Não há hooks para serem registrados.

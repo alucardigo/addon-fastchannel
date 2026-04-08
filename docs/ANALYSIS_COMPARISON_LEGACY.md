@@ -27,6 +27,50 @@
 
 ---
 
+## 🧾 Pedidos - De-Para Minimo (Obrigatorio)
+
+Para importar pedidos, o add-on resolve cabecalhos via `AD_FCDEPARA`. Sem isso, ocorre:
+`CODEMP nao resolvido para StorageId=null ResellerId=21`.
+
+**Chaves suportadas:**
+- `S:<StorageId>|R:<ResellerId>` (combinado)
+- `S:<StorageId>` (apenas storage)
+- `R:<ResellerId>` (apenas reseller)
+
+**Tipos obrigatorios:**
+- `EMPRESA` → `CODEMP`
+- `TOP_PEDIDO` → `CODTIPOPER`
+- `TIPNEG` → `CODTIPVENDA`
+
+**Exemplo (ResellerId=21, StorageId=2):**
+```sql
+INSERT INTO AD_FCDEPARA (TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO)
+VALUES
+  ('EMPRESA',    1,  'R:21'),
+  ('TOP_PEDIDO', 300, 'R:21'),
+  ('TIPNEG',     1,  'R:21');
+```
+
+Se preferir especificar por storage:
+```sql
+INSERT INTO AD_FCDEPARA (TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO)
+VALUES
+  ('EMPRESA',    1,  'S:2'),
+  ('TOP_PEDIDO', 300, 'S:2'),
+  ('TIPNEG',     1,  'S:2');
+```
+
+Opcionalmente, use a chave combinada quando houver multiplos reseller/storage:
+```sql
+INSERT INTO AD_FCDEPARA (TIPO_ENTIDADE, COD_SANKHYA, COD_EXTERNO)
+VALUES
+  ('EMPRESA',    1,  'S:2|R:21'),
+  ('TOP_PEDIDO', 300, 'S:2|R:21'),
+  ('TIPNEG',     1,  'S:2|R:21');
+```
+
+---
+
 ## 📊 Comparação - Legado Node.js
 
 ### ✅ O que o Legado Faz CERTO
@@ -436,6 +480,15 @@ Falta autenticação HTTP (login/logout com JSESSIONID). Sem isso, chamadas ao S
 - Configuração: ~1 hora
 - Testes: ~2-3 horas
 - **Total: 5-7 horas de trabalho**
+
+---
+
+## ✅ Atualizações de Preços (Legado vs Add-on)
+
+- **Unidade de preço**: Fastchannel espera centavos no payload (ListPrice/SalePrice). O add-on converte decimal para centavos antes do envio e exibe decimal no UI.
+- **Cálculo de preço**: O add-on passou a usar `[sankhya].SNK_GET_PRECO` (SQL Server) para respeitar regras do ERP.
+- **Múltiplas tabelas**: Seleção por `PRICE_TABLE_IDS` ou `PRICE_TABLE_TIPOS` (AD_TIPO_FAST), com fallback em `NUTAB`.
+- **Batch prices**: Sincronização de faixas via query legado (SyncBatchPricesFastChannel) e POST em `/prices/{ProductId}/batches`.
 
 ---
 

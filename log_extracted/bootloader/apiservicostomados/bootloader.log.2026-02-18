@@ -1,0 +1,14 @@
+18/02/2026 06:08:55 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+18/02/2026 06:08:55 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+18/02/2026 06:08:55 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apiservicostomados'...
+18/02/2026 06:08:55 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+18/02/2026 06:08:55 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+18/02/2026 19:14:24 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [apiservicostomados]...
+18/02/2026 19:14:24 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.IllegalArgumentException: O método 'getName' não existe no ClassLoader: br.com.sankhya.modelcore.custommodule.CustomModuleLoader$ClpClassLoader
+18/02/2026 19:14:24 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apiservicostomados'.
+18/02/2026 19:14:29 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] Iniciando módulo [apiservicostomados]...
+18/02/2026 19:14:29 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+18/02/2026 19:14:30 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+18/02/2026 19:14:30 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+18/02/2026 19:14:31 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apiservicostomados'...
+18/02/2026 19:14:31 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

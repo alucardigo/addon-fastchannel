@@ -1,0 +1,185 @@
+[
+  {
+    "id": "TC001",
+    "title": "Autenticar no Sankhya e validar sessao real",
+    "description": "Executar login real e validar que a home autenticada e usavel.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Abrir somente http://127.0.0.1:18080/mge/.",
+      "Aguardar o componente de login carregar completamente; se a tela inicial mostrar apenas branding ou spinner, esperar ate os campos aparecerem.",
+      "Executar o fluxo real em duas etapas: preencher o campo Usuário com sup e clicar em Prosseguir; depois preencher o campo Senha com a senha informada e clicar novamente em Prosseguir.",
+      "Confirmar a chegada a uma area autenticada do Sankhya com menu, launcher, workspace ou equivalente.",
+      "Recarregar a pagina autenticada e validar se a sessao continua funcional ou se a reautenticacao exigida e coerente.",
+      "Registrar modais inesperados, erros JavaScript visiveis, redirecionamentos estranhos, elementos quebrados e lentidao fora do normal."
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Localizar e abrir o addon Fastchannel por navegacao real",
+    "description": "Encontrar o addon pelo fluxo nativo do Sankhya, sem usar URL interna direta.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "A partir da area autenticada, localizar o addon Fastchannel via menu, pesquisa de modulos, launcher, favoritos ou outro mecanismo real do Sankhya.",
+      "Se houver mais de um caminho, priorizar o mais natural para o usuario final.",
+      "Abrir o addon e confirmar que o contexto carregado e o do Fastchannel.",
+      "Registrar toda dificuldade de descoberta do modulo, nomenclatura confusa, clique sem feedback, erro de permissao ou pagina intermediaria quebrada."
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Abrir o dashboard do Fastchannel no contexto autenticado",
+    "description": "Validar o carregamento real do dashboard do addon apos entrar no contexto correto.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Depois de entrar no addon via navegacao real, abrir o dashboard inicial ou modulo equivalente.",
+      "Validar titulos, cards, metricas, atalhos operacionais, logs recentes e feedback visual de loading.",
+      "Se existir erro bloqueante, modal inesperado, gadget ausente ou painel vazio sem explicacao, registrar como bug e tentar seguir para outros modulos."
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Exercitar acoes rapidas do dashboard e feedback operacional",
+    "description": "Testar as principais acoes do dashboard com foco em feedback, bloqueios e consistencia.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "No dashboard, executar ao menos uma acao de teste de conexao, importacao, processamento de fila ou equivalente.",
+      "Observar loading, desabilitacao contra duplo clique, confirmacoes e mensagem final.",
+      "Executar um clique repetido proposital em uma acao sensivel para verificar se a UI previne disparos duplicados.",
+      "Validar se o estado da tela e das listas/cards muda de forma coerente apos a operacao."
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Revisar a tela de configuracao com profundidade",
+    "description": "Auditar estrutura, seguranca visual, validacoes e persistencia da configuracao.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      "Acessar a tela de configuracao pelo menu do proprio addon, nunca por URL direta.",
+      "Mapear grupos de campos, labels, placeholders, mascaramento de segredos, campos obrigatorios e botoes de acao.",
+      "Executar pelo menos um teste de edicao controlada e segura em um campo nao destrutivo.",
+      "Testar salvar com valor valido e tambem um cenario adverso como campo obrigatorio vazio, formato invalido ou tentativa de salvar sem alteracao.",
+      "Validar mensagens de sucesso, erro, permanencia do valor salvo apos refresh e qualquer exposicao indevida de credenciais."
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Validar listagem, filtros e detalhe em pedidos",
+    "description": "Cobrir profundidade funcional da tela de pedidos.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Abrir pedidos por navegacao real dentro do addon.",
+      "Aplicar ao menos um filtro que retorne registros e um filtro que retorne vazio.",
+      "Validar colunas, scroll, ordenacao se existir, mensagens de vazio e clareza dos status exibidos.",
+      "Abrir o detalhe de um pedido e verificar coerencia entre listagem e detalhe.",
+      "Registrar campos truncados, status contraditorios, datas incoerentes e botao sem feedback."
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Executar acoes operacionais em pedidos",
+    "description": "Testar importacao manual, reprocessamento e fluxo de confirmacao.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Na tela de pedidos, executar ao menos uma acao operacional real como importar novos pedidos, consultar remoto ou reprocessar.",
+      "Observar confirmacoes, loading, toasts e atualizacao da grade.",
+      "Tentar fechar modal no meio do fluxo ou clicar novamente para expor condicoes de corrida visiveis.",
+      "Validar se o resultado final ficou claro e se a interface recupera o controle apos a operacao."
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Validar estoque com comparacao e sincronizacao",
+    "description": "Cobrir grade, filtros, comparacao e operacoes do modulo de estoque.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Abrir estoque pelo fluxo real do addon.",
+      "Validar tabela, filtros, estados vazios, legibilidade de colunas e comportamento de scroll.",
+      "Executar comparacao com Fastchannel ou acao equivalente.",
+      "Executar sincronizacao ou reprocessamento, observando feedback de sucesso, erro ou falha parcial."
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Validar precos com operacoes individuais e em lote",
+    "description": "Cobrir o modulo de precos com foco em cenarios sensiveis.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Abrir precos por navegacao real.",
+      "Aplicar filtros variados e verificar consistencia da grade.",
+      "Executar uma operacao individual e, se disponivel, uma operacao em lote.",
+      "Observar confirmacoes, protecao contra repeticao, tratamento de falha parcial e clareza de retorno."
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Validar fila de integracao e manutencao administrativa",
+    "description": "Auditar estatisticas, filtros, detalhes e manutencao da fila.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Abrir fila pelo fluxo real do addon.",
+      "Validar cards/indicadores, grade, filtros por tipo e status e possivel abertura de detalhe.",
+      "Executar reprocessamento, limpeza de erro ou outra acao administrativa disponivel.",
+      "Confirmar se a grade/estatisticas refletem a acao e se o usuario entende o novo estado."
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Validar logs com filtros e usabilidade",
+    "description": "Cobrir observabilidade e legibilidade da tela de logs.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      "Abrir logs pelo fluxo real do addon.",
+      "Aplicar filtros por texto, nivel, periodo ou equivalente.",
+      "Validar leitura da tabela, timestamps, quebra de linha, scroll e mensagens de vazio.",
+      "Se houver limpeza ou manutencao, validar confirmacao, retorno e refresh do estado."
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Robustez de navegacao entre modulos autenticados",
+    "description": "Verificar manutencao de contexto ao alternar entre modulos do addon e do Sankhya.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      "Alternar entre dashboard, configuracao, pedidos, estoque, precos, fila e logs sempre pela navegacao disponivel ao usuario.",
+      "Usar voltar e avancar do navegador pelo menos uma vez.",
+      "Recarregar ao menos duas telas em momentos diferentes da sessao.",
+      "Registrar perda de sessao, perda de filtros, modais fantasma, overlays presos, componentes duplicados e tela em branco."
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Auditoria visual transversal desktop e viewport reduzida",
+    "description": "Avaliar qualidade visual e responsividade basica das telas principais.",
+    "category": "ui/ux",
+    "priority": "High",
+    "steps": [
+      "Inspecionar dashboard, configuracao, pedidos, estoque, precos, fila e logs em viewport desktop.",
+      "Verificar hierarquia visual, contraste, alinhamento, densidade de informacao, botoes ambiguos, labels truncadas e sobreposicoes.",
+      "Reduzir a viewport para largura menor e registrar quebras evidentes de layout, scroll horizontal desnecessario, modais truncados e controles inacessiveis."
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Mensagens, validacoes e tratamento de erro em toda a suite",
+    "description": "Cobrir consistencia de feedback da aplicacao em diferentes modulos.",
+    "category": "ui/ux",
+    "priority": "High",
+    "steps": [
+      "Durante toda a execucao, observar se erros sao especificos ou genericos demais.",
+      "Registrar casos em que o sistema falha sem toast, sem modal, sem loading ou sem indicacao de conclusao.",
+      "Checar se mensagens de sucesso e erro usam linguagem compreensivel, sem ambiguidade tecnica desnecessaria."
+    ]
+  }
+]

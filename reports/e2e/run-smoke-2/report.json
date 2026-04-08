@@ -1,0 +1,27 @@
+{
+  "startedAt": "2026-02-23T19:29:09.004Z",
+  "status": "failed",
+  "config": {
+    "baseUrl": "http://100.72.97.11:8080/mge/",
+    "user": "sup",
+    "headless": true,
+    "slowMoMs": 0,
+    "actionTimeoutMs": 30000,
+    "longTimeoutMs": 360000,
+    "outDir": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke-2"
+  },
+  "steps": [
+    {
+      "name": "login-mge",
+      "startedAt": "2026-02-23T19:29:09.218Z",
+      "status": "failed",
+      "error": "Campo de senha nao encontrado na tela de login",
+      "finishedAt": "2026-02-23T19:29:11.786Z",
+      "durationMs": 2568,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke-2\\screenshots\\01-login-mge-failed.png"
+    }
+  ],
+  "dialogs": [],
+  "fatalError": "Campo de senha nao encontrado na tela de login",
+  "finishedAt": "2026-02-23T19:29:11.787Z"
+}

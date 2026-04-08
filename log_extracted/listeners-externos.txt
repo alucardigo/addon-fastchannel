@@ -1,0 +1,37 @@
+Registro de Listeners externos, agrupados por entidades:
+
+Usuario
+
+   vfs:/content/sankhyaw.ear/ejb/mgefin-model-4.35b541.jar/br/com/sankhya/mgefin/model/dd/listeners/UsuarioListener.class
+   vfs:/content/sankhyaw.ear/ejb/mgeserv-model-4.35b541.jar/br/com/sankhya/mgeserv/model/dwfdata/listeners/UsuarioListener.class
+   vfs:/content/platform-api.ear/ejb/platform-api-model.jar/br/com/sankhya/platformapi/listener/AccountMMListener.class
+   vfs:/content/mgepes.ear/ejb/mgepes-model-5.86.4.jar/br/com/sankhya/pes/model/dd/tfp/listeners/UsuarioListener.classImpostosPdv
+
+   vfs:/content/sankhyaw.ear/ejb/mgecheckout-model-4.35b541.jar/br/com/sankhya/checkout/listeners/ImpostosPdvListener.classParceiro
+
+   vfs:/content/mgepes.ear/ejb/mgepes-model-5.86.4.jar/br/com/sankhya/pes/model/dd/tfp/listeners/ParceiroListener.classDescontosEspeciais
+
+   vfs:/content/sankhyaw.ear/ejb/mgecheckout-model-4.35b541.jar/br/com/sankhya/checkout/listeners/DescontosSazonaisListener.classRelacionamentoUsuario
+
+   vfs:/content/mgepes.ear/ejb/mgepes-model-5.86.4.jar/br/com/sankhya/pes/model/dd/tfp/listeners/RelacionamentoUsuarioListener.classParceiroEmpresGrupoIcms
+
+   vfs:/content/sankhyaw.ear/ejb/mgecheckout-model-4.35b541.jar/br/com/sankhya/checkout/listeners/TGFPAEMListener.classBeneficios
+
+   vfs:/content/sankhyaw.ear/ejb/mgecheckout-model-4.35b541.jar/br/com/sankhya/checkout/listeners/BeneficiosListener.classBairro
+
+   vfs:/content/sankhyaw.ear/ejb/mgecheckout-model-4.35b541.jar/br/com/sankhya/checkout/listeners/BairroListener.classCodBarrasPdv
+
+   vfs:/content/sankhyaw.ear/ejb/mgecheckout-model-4.35b541.jar/br/com/sankhya/checkout/listeners/CodBarrasPdvListener.classParametroSistema
+
+   vfs:/content/instance-logs-mm.ear/ejb/instance-logs-mm-model.jar/br/com/sankhya/instancelogmm/listener/SystemParametersListener.classUsuariosPdv
+
+   vfs:/content/sankhyaw.ear/ejb/mgecheckout-model-4.35b541.jar/br/com/sankhya/checkout/listeners/UsuariosPdvListener.classFinanceiro
+
+   vfs:/content/sankhyaw.ear/ejb/timimob-model-4.35b541.jar/br/com/sankhya/timimob/dwfdata/listeners/skw/TimFinanceiroListener.class
+   vfs:/content/fintech.ear/ejb/fintech-model.jar/br/com/sankhya/fintech/listeners/FintechFinanceiroListener.classDescontoPorQuantidade
+
+   vfs:/content/sankhyaw.ear/ejb/mgecheckout-model-4.35b541.jar/br/com/sankhya/checkout/listeners/DescontoPorQuantidadeListener.classFuncoesUsuarioPdv
+
+   vfs:/content/sankhyaw.ear/ejb/mgecheckout-model-4.35b541.jar/br/com/sankhya/checkout/listeners/FuncoesUsuarioPdvListener.classTipoNegociacao
+
+   vfs:/content/sankhyaw.ear/ejb/timimob-model-4.35b541.jar/br/com/sankhya/timimob/dwfdata/listeners/skw/TimTipoNegociacaoListener.class

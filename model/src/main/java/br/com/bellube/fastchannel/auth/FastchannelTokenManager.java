@@ -12,17 +12,26 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Gerenciador de Token OAuth2 para Fastchannel Commerce API.
  *
- * Implementa padrão Singleton com:
- * - Cache em memória do access_token
- * - Renovação proativa antes da expiração (5 min buffer)
+ * Implementa padrao Singleton com:
+ * - Cache em memoria do access_token
+ * - Renovacao proativa antes da expiracao (5 min buffer)
  * - Thread-safe com synchronized
  * - Retry em caso de falha
  */
@@ -40,6 +49,8 @@ public class FastchannelTokenManager {
     // Timeout em ms
     private static final int CONNECT_TIMEOUT_MS = 30000;
     private static final int READ_TIMEOUT_MS = 30000;
+    private static volatile SSLSocketFactory insecureSslSocketFactory;
+    private static volatile HostnameVerifier insecureHostnameVerifier;
 
     private FastchannelTokenManager() {
         this.accessToken = null;
@@ -47,7 +58,7 @@ public class FastchannelTokenManager {
     }
 
     /**
-     * Obtém instância Singleton do TokenManager.
+     * Obtem instancia Singleton do TokenManager.
      */
     public static synchronized FastchannelTokenManager getInstance() {
         if (instance == null) {
@@ -57,17 +68,17 @@ public class FastchannelTokenManager {
     }
 
     /**
-     * Obtém token válido para uso em requisições.
-     * Renova automaticamente se necessário.
+     * Obtem token valido para uso em requisicoes.
+     * Renova automaticamente se necessario.
      *
-     * @return Access token Bearer válido
-     * @throws Exception se falhar na autenticação
+     * @return Access token Bearer valido
+     * @throws Exception se falhar na autenticacao
      */
     public synchronized String getValidToken() throws Exception {
         long now = System.currentTimeMillis();
         long bufferMs = FastchannelConstants.TOKEN_REFRESH_BUFFER_SECONDS * 1000L;
 
-        // Verifica se token ainda é válido (com margem de segurança)
+        // Verifica se token ainda e valido (com margem de seguranca)
         if (accessToken != null && now < (expiresAt - bufferMs)) {
             log.fine("Usando token Fastchannel em cache. Expira em: " + ((expiresAt - now) / 1000) + "s");
             return accessToken;
@@ -79,10 +90,10 @@ public class FastchannelTokenManager {
     }
 
     /**
-     * Força renovação do token (útil após erro 401).
+     * Forca renovacao do token (util apos erro 401).
      */
     public synchronized String forceRenew() throws Exception {
-        log.info("Forçando renovação de token Fastchannel...");
+        log.info("Forcando renovacao de token Fastchannel...");
         return renewToken();
     }
 
@@ -96,7 +107,7 @@ public class FastchannelTokenManager {
     }
 
     /**
-     * Verifica se há token válido em cache.
+     * Verifica se ha token valido em cache.
      */
     public synchronized boolean hasValidToken() {
         long bufferMs = FastchannelConstants.TOKEN_REFRESH_BUFFER_SECONDS * 1000L;
@@ -115,15 +126,15 @@ public class FastchannelTokenManager {
     private String renewToken() throws Exception {
         FastchannelConfig config = FastchannelConfig.getInstance();
 
-        // Validar configuração
+        // Validar configuracao
         if (config.getClientId() == null || config.getClientId().isEmpty()) {
-            throw new Exception("Fastchannel Client ID não configurado.");
+            throw new Exception("Fastchannel Client ID nao configurado.");
         }
         if (config.getClientSecret() == null || config.getClientSecret().isEmpty()) {
-            throw new Exception("Fastchannel Client Secret não configurado.");
+            throw new Exception("Fastchannel Client Secret nao configurado.");
         }
         if (config.getScope() == null || config.getScope().isEmpty()) {
-            throw new Exception("Fastchannel Scope não configurado.");
+            throw new Exception("Fastchannel Scope nao configurado.");
         }
 
         // Montar body form-urlencoded
@@ -138,6 +149,7 @@ public class FastchannelTokenManager {
         try {
             URL url = new URL(config.getAuthUrl());
             connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+            configureSslIfNeeded(connection);
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
@@ -154,10 +166,22 @@ public class FastchannelTokenManager {
 
             if (responseCode == 200) {
                 String responseBody = readResponse(connection);
-                JsonObject json = gson.fromJson(responseBody, JsonObject.class);
+                TokenData tokenData = parseTokenResponse(responseBody);
+                if (tokenData.accessToken == null || tokenData.accessToken.isEmpty()) {
+                    String snippet = responseBody == null ? "" : responseBody.substring(0, Math.min(200, responseBody.length()));
+                    log.severe("Resposta OAuth2 invalida. error=" + tokenData.error + " desc=" + tokenData.errorDescription + " body=" + snippet);
+                    String msg = "Resposta OAuth2 invalida";
+                    if ((tokenData.error != null && !tokenData.error.isEmpty()) || (tokenData.errorDescription != null && !tokenData.errorDescription.isEmpty())) {
+                        msg += ": " + (tokenData.error == null ? "" : tokenData.error)
+                                + ((tokenData.errorDescription == null || tokenData.errorDescription.isEmpty()) ? "" : " - " + tokenData.errorDescription);
+                    } else if (!snippet.isEmpty()) {
+                        msg += ": " + snippet;
+                    }
+                    throw new Exception(msg);
+                }
 
-                this.accessToken = json.get("access_token").getAsString();
-                int expiresIn = json.get("expires_in").getAsInt();
+                this.accessToken = tokenData.accessToken;
+                int expiresIn = tokenData.expiresIn;
                 this.expiresAt = System.currentTimeMillis() + (expiresIn * 1000L);
 
                 log.info("Token Fastchannel renovado com sucesso. Expira em: " + expiresIn + " segundos.");
@@ -165,18 +189,117 @@ public class FastchannelTokenManager {
 
             } else {
                 String errorBody = readErrorResponse(connection);
-                log.severe("Falha na autenticação Fastchannel. HTTP " + responseCode + ": " + errorBody);
-                throw new Exception("Falha na autenticação Fastchannel: HTTP " + responseCode);
+                String snippet = errorBody == null ? "" : errorBody.substring(0, Math.min(200, errorBody.length()));
+                log.severe("Falha na autenticacao Fastchannel. HTTP " + responseCode + ": " + snippet);
+                String msg = "Falha na autenticacao Fastchannel: HTTP " + responseCode;
+                if (snippet != null && !snippet.isEmpty()) {
+                    msg += " - " + snippet;
+                }
+                throw new Exception(msg);
             }
 
         } catch (Exception e) {
-            log.log(Level.SEVERE, "Erro crítico na autenticação Fastchannel", e);
-            throw new Exception("Falha de Autenticação Fastchannel: " + e.getMessage(), e);
+            log.log(Level.SEVERE, "Erro critico na autenticacao Fastchannel", e);
+            String msg = e.getMessage();
+            if (msg == null || msg.trim().isEmpty()) {
+                msg = e.getClass().getSimpleName();
+            }
+            throw new Exception("Falha de Autenticacao Fastchannel: " + msg, e);
         } finally {
             if (connection != null) {
                 connection.disconnect();
             }
         }
+    }
+
+    private static class TokenData {
+        private final String accessToken;
+        private final int expiresIn;
+        private final String error;
+        private final String errorDescription;
+
+        private TokenData(String accessToken, int expiresIn, String error, String errorDescription) {
+            this.accessToken = accessToken;
+            this.expiresIn = expiresIn;
+            this.error = error;
+            this.errorDescription = errorDescription;
+        }
+    }
+
+    private static TokenData parseTokenResponse(String responseBody) {
+        if (responseBody == null || responseBody.trim().isEmpty()) {
+            return new TokenData(null, 0, null, null);
+        }
+
+        JsonObject json;
+        try {
+            json = gson.fromJson(responseBody, JsonObject.class);
+        } catch (Exception e) {
+            return new TokenData(null, 0, null, null);
+        }
+
+        if (json == null) {
+            return new TokenData(null, 0, null, null);
+        }
+
+        String accessToken = getValueByNormalizedKey(json, "access_token");
+        String expiresInValue = getValueByNormalizedKey(json, "expires_in");
+        String error = getValueByNormalizedKey(json, "error");
+        String errorDescription = getValueByNormalizedKey(json, "error_description");
+
+        String normalizedBody = responseBody
+                .replace("\uFEFF", "")
+                .replace("\u200B", "")
+                .replace("\\uFEFF", "");
+        if (accessToken == null && normalizedBody.contains("\"access_token\"")) {
+            accessToken = extractByRegex(normalizedBody, "\"access_token\"\\s*:\\s*\"([^\"]+)\"");
+        }
+        if ((expiresInValue == null || expiresInValue.isEmpty()) && normalizedBody.contains("\"expires_in\"")) {
+            expiresInValue = extractByRegex(normalizedBody, "\"expires_in\"\\s*:\\s*(\\d+)");
+        }
+
+        int expiresIn = 0;
+        if (expiresInValue != null && !expiresInValue.isEmpty()) {
+            try {
+                expiresIn = Integer.parseInt(expiresInValue);
+            } catch (NumberFormatException e) {
+                expiresIn = 0;
+            }
+        }
+
+        return new TokenData(accessToken, expiresIn, error, errorDescription);
+    }
+
+    private static String getValueByNormalizedKey(JsonObject json, String expectedKey) {
+        for (java.util.Map.Entry<String, com.google.gson.JsonElement> entry : json.entrySet()) {
+            String key = entry.getKey();
+            String normalized = normalizeKey(key).replaceAll("\\s+", "");
+            if (expectedKey.equalsIgnoreCase(normalized)) {
+                com.google.gson.JsonElement value = entry.getValue();
+                if (value == null || value.isJsonNull()) {
+                    return null;
+                }
+                return value.getAsString();
+            }
+        }
+        return null;
+    }
+
+    private static String normalizeKey(String key) {
+        if (key == null) return "";
+        return key.replace("\uFEFF", "").replace("\u200B", "").trim();
+    }
+
+    private static String extractByRegex(String text, String pattern) {
+        try {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(pattern).matcher(text);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        } catch (Exception e) {
+            // Ignorar
+        }
+        return null;
     }
 
     private String readResponse(HttpURLConnection connection) throws Exception {
@@ -201,6 +324,45 @@ public class FastchannelTokenManager {
     }
 
     private String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            return value;
+        }
+    }
+
+    private void configureSslIfNeeded(HttpURLConnection connection) throws Exception {
+        if (!(connection instanceof HttpsURLConnection)) {
+            return;
+        }
+
+        String configured = System.getProperty("fastchannel.ssl.insecure");
+        if (configured == null || configured.trim().isEmpty()) {
+            configured = System.getenv("FASTCHANNEL_SSL_INSECURE");
+        }
+        boolean insecure = configured == null || configured.trim().isEmpty() || Boolean.parseBoolean(configured);
+        if (!insecure) {
+            return;
+        }
+
+        if (insecureSslSocketFactory == null || insecureHostnameVerifier == null) {
+            synchronized (FastchannelTokenManager.class) {
+                if (insecureSslSocketFactory == null || insecureHostnameVerifier == null) {
+                    TrustManager[] trustAll = new TrustManager[]{new X509TrustManager() {
+                        public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+                        public void checkClientTrusted(X509Certificate[] chain, String authType) {}
+                        public void checkServerTrusted(X509Certificate[] chain, String authType) {}
+                    }};
+                    SSLContext sc = SSLContext.getInstance("TLS");
+                    sc.init(null, trustAll, new SecureRandom());
+                    insecureSslSocketFactory = sc.getSocketFactory();
+                    insecureHostnameVerifier = (hostname, session) -> true;
+                }
+            }
+        }
+
+        HttpsURLConnection https = (HttpsURLConnection) connection;
+        https.setSSLSocketFactory(insecureSslSocketFactory);
+        https.setHostnameVerifier(insecureHostnameVerifier);
     }
 }

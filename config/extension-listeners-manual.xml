@@ -1,0 +1,6 @@
+<listeners>
+  <listener entityName="Estoque">br.com.bellube.fastchannel.listener.EstoqueListener</listener>
+  <listener entityName="ExcecaoPreco">br.com.bellube.fastchannel.listener.PrecoListener</listener>
+  <listener entityName="CabecalhoNota">br.com.bellube.fastchannel.listener.NotaFiscalListener</listener>
+  <listener entityName="Produto">br.com.bellube.fastchannel.listener.ProdutoListener</listener>
+</listeners>

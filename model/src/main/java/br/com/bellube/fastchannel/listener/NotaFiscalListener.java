@@ -6,84 +6,41 @@ import br.com.bellube.fastchannel.dto.OrderInvoiceDTO;
 import br.com.bellube.fastchannel.http.FastchannelOrdersClient;
 import br.com.bellube.fastchannel.service.LogService;
 import br.com.bellube.fastchannel.service.QueueService;
-import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.event.PersistenceEvent;
-import br.com.sankhya.jape.event.TransactionContext;
+import br.com.sankhya.jape.event.PersistenceEventAdapter;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
+import br.com.sankhya.studio.annotations.Listener;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Listener de Nota Fiscal (TGFCAB/TGFNOT).
  *
- * Captura eventos de faturamento para notificar o Fastchannel:
- * - Nota fiscal emitida (enviar chave e n?mero da NF)
- * - Altera??o de status do pedido
- *
- * Configura??o no Sankhya:
- * - Eventos Program?veis > Listeners
- * - Entidade: CabecalhoNota (TGFCAB)
- * - Eventos: afterUpdate
+ * Captura eventos de faturamento para notificar o Fastchannel.
  */
-public class NotaFiscalListener implements EventoProgramavelJava {
+@Listener(instanceNames = {"CabecalhoNota"})
+public class NotaFiscalListener extends PersistenceEventAdapter {
 
     private static final Logger log = Logger.getLogger(NotaFiscalListener.class.getName());
-
-    @Override
-    public void beforeInsert(PersistenceEvent event) throws Exception {
-        // Not used
-    }
-
-    @Override
-    public void beforeUpdate(PersistenceEvent event) throws Exception {
-        // Not used
-    }
-
-    @Override
-    public void beforeDelete(PersistenceEvent event) throws Exception {
-        // Not used
-    }
-
-    @Override
-    public void afterInsert(PersistenceEvent event) throws Exception {
-        // Not used for TGFCAB
-    }
 
     @Override
     public void afterUpdate(PersistenceEvent event) throws Exception {
         processNotaUpdate(event);
     }
 
-    @Override
-    public void afterDelete(PersistenceEvent event) throws Exception {
-        // Not used
-    }
-
-    @Override
-    public void beforeCommit(TransactionContext transactionContext) throws Exception {
-        // Not used
-    }
-
-    public void executeScheduler() throws Exception {
-        // Not used - this is a listener, not a scheduler
-    }
-
     private void processNotaUpdate(PersistenceEvent event) {
         try {
-            // Verificar se integra??o est? ativa
             FastchannelConfig config = FastchannelConfig.getInstance();
             if (!config.isAtivo()) {
                 return;
             }
 
-            // Verificar se sincronizacao de status esta habilitada
             if (!config.isSyncStatusEnabled()) {
                 log.fine("Sincronizacao de status desabilitada. Pulando atualizacao.");
                 return;
@@ -93,28 +50,24 @@ public class NotaFiscalListener implements EventoProgramavelJava {
             BigDecimal nuNota = vo.asBigDecimal("NUNOTA");
             String statusNota = vo.asString("STATUSNOTA");
 
-            // Verificar se ? um pedido do Fastchannel
             String orderId = getOrderIdByNuNota(nuNota);
             if (orderId == null) {
-                return; // N?o ? um pedido Fastchannel
+                return;
             }
 
             log.info("Nota " + nuNota + " atualizada (Pedido FC: " + orderId + ") - Status: " + statusNota);
 
-            // Verificar se foi faturada (STATUSNOTA = 'F' ou tem CHAVENFE)
             String chaveNfe = vo.asString("CHAVENFE");
             if (chaveNfe != null && !chaveNfe.isEmpty()) {
-                // Nota fiscal emitida - notificar Fastchannel
                 processInvoiceCreated(nuNota, orderId, vo);
             }
 
-            // Verificar mudan?a de status
             if (statusNota != null) {
                 processStatusChange(nuNota, orderId, statusNota);
             }
 
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao processar atualiza??o de nota", e);
+            log.log(Level.WARNING, "Erro ao processar atualizacao de nota", e);
         }
     }
 
@@ -129,11 +82,9 @@ public class NotaFiscalListener implements EventoProgramavelJava {
             invoice.setInvoiceDate(vo.asTimestamp("DTFATUR"));
             invoice.setTotalValue(vo.asBigDecimal("VLRNOTA"));
 
-            // Enviar para Fastchannel
             FastchannelOrdersClient ordersClient = new FastchannelOrdersClient();
             ordersClient.sendInvoice(orderId, invoice);
 
-            // Atualizar status para "Faturado"
             ordersClient.updateOrderStatus(orderId,
                     FastchannelConstants.STATUS_INVOICE_CREATED,
                     "Nota fiscal emitida: " + invoice.getInvoiceNumber());
@@ -154,38 +105,33 @@ public class NotaFiscalListener implements EventoProgramavelJava {
             String message;
 
             switch (statusNota) {
-                case "L": // Liberado
+                case "L":
                     fcStatus = FastchannelConstants.STATUS_APPROVED;
                     message = "Pedido aprovado";
                     break;
-
-                case "P": // Pendente
+                case "P":
                     fcStatus = FastchannelConstants.STATUS_CREATED;
                     message = "Pedido pendente";
                     break;
-
-                case "F": // Faturado
+                case "F":
                     fcStatus = FastchannelConstants.STATUS_INVOICE_CREATED;
                     message = "Pedido faturado";
                     break;
-
-                case "C": // Cancelado
+                case "C":
                     fcStatus = FastchannelConstants.STATUS_DENIED;
                     message = "Pedido cancelado";
                     break;
-
                 default:
-                    return; // Status n?o mapeado
+                    return;
             }
 
-            // Enfileirar atualiza??o de status (usa fila para garantir entrega)
             QueueService queueService = QueueService.getInstance();
             queueService.enqueueOrderStatus(nuNota, orderId, fcStatus);
 
             log.info("Status do pedido " + orderId + " enfileirado: " + statusNota + " -> " + fcStatus);
 
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao processar mudan?a de status", e);
+            log.log(Level.WARNING, "Erro ao processar mudanca de status", e);
         }
     }
 
@@ -194,7 +140,6 @@ public class NotaFiscalListener implements EventoProgramavelJava {
         try {
             JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
 
-            // Primeiro tentar na AD_FCPEDIDO
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT ORDER_ID FROM AD_FCPEDIDO WHERE NUNOTA = :nuNota");
             sql.setNamedParameter("nuNota", nuNota);
@@ -205,7 +150,6 @@ public class NotaFiscalListener implements EventoProgramavelJava {
             }
             closeQuietly(rs);
 
-            // Fallback: verificar campo customizado em TGFCAB
             sql = new NativeSql(jdbc);
             sql.appendSql("SELECT AD_FASTCHANNEL_ID FROM TGFCAB WHERE NUNOTA = :nuNota");
             sql.setNamedParameter("nuNota", nuNota);
@@ -229,4 +173,3 @@ public class NotaFiscalListener implements EventoProgramavelJava {
         }
     }
 }
-

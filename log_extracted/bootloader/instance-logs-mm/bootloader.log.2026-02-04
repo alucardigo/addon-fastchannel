@@ -1,0 +1,20 @@
+04/02/2026 06:08:39 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.instacelogmm.servlet.MMBootListenerEntryPoint.
+04/02/2026 06:08:39 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.instacelogmm.servlet.MMBootListenerEntryPoint não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/02/2026 06:08:40 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'instance-logs-mm'...
+04/02/2026 06:08:40 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+04/02/2026 18:02:34 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.instacelogmm.servlet.MMBootListenerEntryPoint.
+04/02/2026 18:02:34 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.instacelogmm.servlet.MMBootListenerEntryPoint não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/02/2026 18:02:34 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'instance-logs-mm'...
+04/02/2026 18:02:34 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+04/02/2026 18:02:34 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+04/02/2026 18:25:26 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [instance-logs-mm]...
+04/02/2026 18:27:45 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.instacelogmm.servlet.MMBootListenerEntryPoint.
+04/02/2026 18:27:45 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.instacelogmm.servlet.MMBootListenerEntryPoint não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/02/2026 18:27:45 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'instance-logs-mm'...
+04/02/2026 18:27:45 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+04/02/2026 18:27:45 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+04/02/2026 18:38:04 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [instance-logs-mm]...
+04/02/2026 18:41:16 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.instacelogmm.servlet.MMBootListenerEntryPoint.
+04/02/2026 18:41:16 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.instacelogmm.servlet.MMBootListenerEntryPoint não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/02/2026 18:41:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'instance-logs-mm'...
+04/02/2026 18:41:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.

@@ -1,0 +1,24 @@
+08/03/2026 11:12:18 INFO  br.com.sankhya.addonmodule.utils.ModuleUtils - mitra - IS Vazia no war.
+08/03/2026 11:12:24 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+08/03/2026 11:12:24 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+08/03/2026 11:12:24 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Script TABLE TEMP_TGLATS_V2.TEMP_TGLATS_V2 ignorado por condição de execução
+08/03/2026 11:12:24 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Fim do processamento dos scripts.....
+08/03/2026 11:12:24 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Iniciando importacao do dicionario de dados
+08/03/2026 11:12:25 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Não há hooks para serem registrados.
+08/03/2026 11:12:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+08/03/2026 11:12:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Scripts não encontrados.
+08/03/2026 11:12:26 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Scripts ignorados, pois já foram processados
+08/03/2026 11:12:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Diretório de metadados não encontrado.
+08/03/2026 11:12:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+08/03/2026 11:12:26 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [apifinanceiro - ddmigration] - Não há hooks para serem registrados.
+08/03/2026 11:13:17 INFO  br.com.sankhya.addonmodule.utils.ModuleUtils - mitra - IS Vazia no war.
+08/03/2026 11:13:19 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+08/03/2026 11:13:19 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Script TABLE TGMTASK.TGMTASK ignorado por condição de execução
+08/03/2026 11:13:19 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Script COLUMN TGMTASK.TENANTID ignorado por condição de execução
+08/03/2026 11:13:19 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Script TABLE TGMTOKEN.TGMTOKEN ignorado por condição de execução
+08/03/2026 11:13:19 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Fim do processamento dos scripts.....
+08/03/2026 11:13:19 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Iniciando importacao do dicionario de dados
+08/03/2026 11:13:19 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Não há hooks para serem registrados.
+08/03/2026 11:13:20 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'mitra'...
+08/03/2026 11:13:20 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+08/03/2026 11:13:26 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] Iniciando módulo [bellube-iconic-addon-dev]...

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!--
+        V19: Correcoes criticas de importacao de pedidos
+
+        1. CODTIPOPER 344 -> 403: A TOP configurada estava incorreta.
+           A TOP 403 (Pedido de Venda) e a correta para importacao de pedidos Fastchannel.
+
+        2. Reset pedidos PROCESSANDO sem NUNOTA: Bug corrigido nesta versao
+           (isOrderAlreadyImported + upsertOrderMapping) permitia que pedidos
+           ficassem travados em PROCESSANDO indefinidamente quando:
+           - upsertOrderMapping engolia excecoes silenciosamente
+           - isOrderAlreadyImported usava COALESCE(DH_IMPORTACAO, CURRENT_TIMESTAMP)
+             que classificava pedidos com DH_IMPORTACAO NULL como "em processamento"
+           Este UPDATE limpa os dados legados do bug. O codigo agora impede recorrencia.
+
+        3. Garantir DH_IMPORTACAO nao-nula em pedidos PROCESSANDO existentes
+           para que a logica de timeout (10 min) funcione corretamente.
+    -->
+
+    <!-- 1. Corrigir TOP de 344 para 403 -->
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="FIX_CODTIPOPER_403" ordem="1" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            UPDATE AD_FCCONFIG SET CODTIPOPER = 403 WHERE CODTIPOPER = 344
+        </oracle>
+        <mssql>
+            UPDATE AD_FCCONFIG SET CODTIPOPER = 403 WHERE CODTIPOPER = 344
+        </mssql>
+    </sql>
+
+    <!-- 2. Pedidos PROCESSANDO sem NUNOTA: marcar como PENDENTE para reprocessamento -->
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="FIX_STUCK_PROCESSANDO_NO_NUNOTA" ordem="2" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            UPDATE AD_FCPEDIDO
+               SET STATUS_IMPORT = 'PENDENTE',
+                   ERRO_MSG = 'V19: reset de PROCESSANDO sem NUNOTA (bug corrigido em isOrderAlreadyImported/upsertOrderMapping)',
+                   DH_IMPORTACAO = CURRENT_TIMESTAMP
+             WHERE STATUS_IMPORT = 'PROCESSANDO'
+               AND NUNOTA IS NULL
+        </oracle>
+        <mssql>
+            UPDATE AD_FCPEDIDO
+               SET STATUS_IMPORT = 'PENDENTE',
+                   ERRO_MSG = 'V19: reset de PROCESSANDO sem NUNOTA (bug corrigido em isOrderAlreadyImported/upsertOrderMapping)',
+                   DH_IMPORTACAO = CURRENT_TIMESTAMP
+             WHERE STATUS_IMPORT = 'PROCESSANDO'
+               AND NUNOTA IS NULL
+        </mssql>
+    </sql>
+
+    <!-- 3. Pedidos PROCESSANDO com DH_IMPORTACAO NULL: setar para permitir timeout -->
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="FIX_PROCESSANDO_NULL_DH" ordem="3" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            UPDATE AD_FCPEDIDO
+               SET DH_IMPORTACAO = CURRENT_TIMESTAMP
+             WHERE STATUS_IMPORT = 'PROCESSANDO'
+               AND DH_IMPORTACAO IS NULL
+        </oracle>
+        <mssql>
+            UPDATE AD_FCPEDIDO
+               SET DH_IMPORTACAO = CURRENT_TIMESTAMP
+             WHERE STATUS_IMPORT = 'PROCESSANDO'
+               AND DH_IMPORTACAO IS NULL
+        </mssql>
+    </sql>
+
+</alteracoes>

@@ -1,0 +1,30 @@
+09/02/2026 06:09:20 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.servlet.MMBootModuleListener.
+09/02/2026 06:09:20 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+09/02/2026 06:09:20 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'app-builder-api'...
+09/02/2026 06:09:20 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'app-builder-api' no pacote 'br.com.sankhya.app-builder-api.model.scripts'.
+09/02/2026 06:09:20 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [app-builder-api] finalizando inicialização...
+09/02/2026 06:09:20 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+09/02/2026 21:39:45 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [app-builder-api]...
+09/02/2026 21:39:45 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'api'.
+09/02/2026 21:39:45 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apiservicostomados'.
+09/02/2026 21:39:45 ERROR br.com.sankhya.module.BootModuleServletContextListener - java.lang.NullPointerException
+09/02/2026 21:39:45 ERROR br.com.sankhya.module.BootModuleServletContextListener - java.lang.NullPointerException
+09/02/2026 21:39:45 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+09/02/2026 21:39:45 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+09/02/2026 21:39:45 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'telemetrymm'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.BootModuleServletContextListener - Não encontramos AsyncTask pendentes no contexto 'turnkey'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'bia-studio-mm'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'fintech'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'app-builder-api'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apifinanceiro'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.BootModuleServletContextListener - Não encontramos AsyncTask pendentes no contexto 'telemetriafiscal'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgecontab'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'instance-logs-mm'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'conectividademm'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgeprod'.
+09/02/2026 21:39:46 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgewms'.
+09/02/2026 22:04:40 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.servlet.MMBootModuleListener.
+09/02/2026 22:04:40 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+09/02/2026 22:04:40 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'app-builder-api'...
+09/02/2026 22:04:40 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'app-builder-api' no pacote 'br.com.sankhya.app-builder-api.model.scripts'.
+09/02/2026 22:04:40 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [app-builder-api] finalizando inicialização...

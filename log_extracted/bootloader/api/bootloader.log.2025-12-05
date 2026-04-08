@@ -1,0 +1,70 @@
+05/12/2025 06:08:49 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+05/12/2025 06:08:50 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+05/12/2025 06:08:50 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+05/12/2025 06:08:50 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando importacao do dicionario de dados
+05/12/2025 06:08:50 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+05/12/2025 06:08:50 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+05/12/2025 06:08:50 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+05/12/2025 06:08:50 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+05/12/2025 06:08:52 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [secmm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [secmm - ddmigration] - Scripts não encontrados.
+05/12/2025 06:08:52 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [secmm - ddmigration] - Scripts ignorados, pois já foram processados
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [secmm - ddmigration] - Iniciando importacao do dicionario de dados
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Processando script TABLE TRDCON.TRDCON...
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Script TABLE TRDCON.TRDCON executado com sucesso!
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Processando script TABLE TRDFCO.TRDFCO...
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Script TABLE TRDFCO.TRDFCO executado com sucesso!
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Fim do processamento dos scripts.....
+05/12/2025 06:08:52 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Iniciando importacao do dicionario de dados
+05/12/2025 06:08:58 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+05/12/2025 06:08:58 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Scripts não encontrados.
+05/12/2025 06:08:58 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Scripts ignorados, pois já foram processados
+05/12/2025 06:08:58 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Diretório de metadados não encontrado.
+05/12/2025 06:08:58 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Sem arquivo de DD. Usando arquivo XML padrão.
+05/12/2025 06:08:58 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [telemetrymm - ddmigration] - Não há hooks para serem registrados.
+05/12/2025 12:28:36 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+05/12/2025 12:28:36 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+05/12/2025 12:28:36 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+05/12/2025 12:28:36 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando importacao do dicionario de dados
+05/12/2025 12:28:36 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+05/12/2025 12:28:36 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+05/12/2025 12:28:36 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+05/12/2025 12:28:36 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+05/12/2025 12:28:38 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+05/12/2025 12:28:38 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+05/12/2025 12:28:38 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Scripts não encontrados.
+05/12/2025 12:28:38 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Scripts ignorados, pois já foram processados
+05/12/2025 12:28:38 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Iniciando importacao do dicionario de dados
+05/12/2025 12:28:38 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [conectividademm - ddmigration] - Não há hooks para serem registrados.
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Script TABLE TSIMAP.TSIMAP ignorado por condição de execução
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Script TABLE TSIMAPS.TSIMAPS ignorado por condição de execução
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Script COLUMN TSIMAPS.METODO ignorado por condição de execução
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Script COLUMN TSIMAPS.METODO ignorado por condição de execução
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Script PRIMARY KEY TSIMAPS.PK_TSIMAPS ignorado por condição de execução
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Processando script COLUMN TSIMAP.DATA...
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Script COLUMN TSIMAP.DATA executado com sucesso!
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Processando script COLUMN TSIMAP.PRIMEIROLOGIN...
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Script COLUMN TSIMAP.PRIMEIROLOGIN executado com sucesso!
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Processando script COLUMN TSIMAP.ULTIMOLOGIN...
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Script COLUMN TSIMAP.ULTIMOLOGIN executado com sucesso!
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Fim do processamento dos scripts.....
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Iniciando importacao do dicionario de dados
+05/12/2025 12:28:39 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [mon-api - ddmigration] - Não há hooks para serem registrados.
+05/12/2025 12:28:40 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+05/12/2025 12:28:40 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Scripts não encontrados.
+05/12/2025 12:28:40 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Scripts ignorados, pois já foram processados
+05/12/2025 12:28:40 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Iniciando importacao do dicionario de dados
+05/12/2025 12:28:40 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [bia-studio-mm - ddmigration] - Não há hooks para serem registrados.
+05/12/2025 12:28:40 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+05/12/2025 12:28:40 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Script TABLE TEMP_TGLATS_V2.TEMP_TGLATS_V2 ignorado por condição de execução
+05/12/2025 12:28:40 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Fim do processamento dos scripts.....
+05/12/2025 12:28:40 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Iniciando importacao do dicionario de dados
+05/12/2025 12:28:41 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Não há hooks para serem registrados.

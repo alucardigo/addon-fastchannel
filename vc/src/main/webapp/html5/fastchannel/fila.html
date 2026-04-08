@@ -135,11 +135,13 @@
             gap: 8px;
         }
 
-        .btn-primary { background: var(--accent); color: var(--bg); }
+        .btn-primary { background: var(--accent); color: var(--bg); font-weight: 600; }
         .btn-primary:hover { background: #00b8d9; }
-        .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
-        .btn-secondary:hover { border-color: var(--accent); }
-        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: #1e3a5f; border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { background: #254a73; border-color: var(--accent); }
+        .btn-filter { background: #0ea5e9; color: #fff; font-weight: 600; }
+        .btn-filter:hover { background: #0284c7; }
+        .btn-danger { background: var(--danger); color: white; font-weight: 600; }
         .btn-danger:hover { background: #dc2626; }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -160,6 +162,12 @@
             text-transform: uppercase;
             background: var(--bg);
         }
+
+        th.sortable { cursor: pointer; user-select: none; }
+        th.sortable:hover { color: var(--accent); }
+        th.sortable::after { content: ' \2195'; opacity: 0.4; }
+        th.sortable.asc::after { content: ' \2191'; opacity: 1; }
+        th.sortable.desc::after { content: ' \2193'; opacity: 1; }
 
         td { font-size: 14px; }
         tr:hover { background: rgba(0, 217, 255, 0.05); }
@@ -208,6 +216,16 @@
             height: 18px;
             cursor: pointer;
         }
+
+        @media (max-width: 768px) {
+            .container { padding: 12px; }
+            .filters { flex-direction: column; }
+            .nav-tabs { gap: 4px; }
+            .nav-tab { padding: 8px 12px; font-size: 12px; }
+            .card { padding: 16px; }
+            th, td { padding: 8px; font-size: 12px; }
+            .stat-cards { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
@@ -220,7 +238,10 @@
         <nav class="nav-tabs">
             <a class="nav-tab" href="dashboard.html">Dashboard</a>
             <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab" href="depara.html">De-Para</a>
             <a class="nav-tab" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab" href="estoque.html">Estoque</a>
+            <a class="nav-tab" href="precos.html">Precos</a>
             <a class="nav-tab active" href="fila.html">Fila de Sincronizacao</a>
             <a class="nav-tab" href="logs.html">Logs</a>
         </nav>
@@ -263,17 +284,17 @@
             <div class="filters">
                 <div class="filter-group">
                     <span class="filter-label">Status</span>
-                    <select id="filterStatus" class="form-input" onchange="loadFila()">
+                    <select id="filterStatus" class="form-input" onchange="loadFila(true)">
                         <option value="">Todos</option>
                         <option value="PENDENTE">Pendente</option>
                         <option value="PROCESSANDO">Processando</option>
-                        <option value="CONCLUIDO">Concluido</option>
+                        <option value="ENVIADO">Concluido</option>
                         <option value="ERRO">Com Erro</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Tipo</span>
-                    <select id="filterTipo" class="form-input" onchange="loadFila()">
+                    <select id="filterTipo" class="form-input" onchange="loadFila(true)">
                         <option value="">Todos</option>
                         <option value="STOCK">Estoque</option>
                         <option value="PRICE">Preco</option>
@@ -286,7 +307,7 @@
                     <input type="text" id="filterRef" class="form-input" placeholder="Buscar...">
                 </div>
                 <div class="filter-group" style="justify-content: flex-end;">
-                    <button class="btn btn-secondary" onclick="loadFila()">Filtrar</button>
+                    <button class="btn btn-filter" onclick="loadFila(true)">Filtrar</button>
                 </div>
             </div>
 
@@ -294,16 +315,14 @@
                 <table>
                     <thead>
                         <tr>
-                            <th class="checkbox-col">
-                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                            </th>
-                            <th>ID</th>
-                            <th>Tipo</th>
-                            <th>Referencia</th>
-                            <th>SKU</th>
-                            <th>Status</th>
-                            <th>Tentativas</th>
-                            <th>Criado em</th>
+                            <th class="checkbox-col"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                            <th class="sortable" data-col="id" onclick="sortBy('id','num')">ID</th>
+                            <th class="sortable" data-col="tipo" onclick="sortBy('tipo')">Tipo</th>
+                            <th class="sortable" data-col="referencia" onclick="sortBy('referencia')">Referencia</th>
+                            <th class="sortable" data-col="sku" onclick="sortBy('sku')">SKU</th>
+                            <th class="sortable" data-col="status" onclick="sortBy('status')">Status</th>
+                            <th class="sortable" data-col="tentativas" onclick="sortBy('tentativas','num')">Tentativas</th>
+                            <th class="sortable" data-col="dhCriacao" onclick="sortBy('dhCriacao','date')">Criado em</th>
                             <th>Ultimo Erro</th>
                             <th>Acoes</th>
                         </tr>
@@ -325,11 +344,12 @@
     </div>
 
     <script>
-        function resolveAddonContexts() {
+                                function resolveAddonContexts() {
             const origin = window.location.origin || '';
             const path = window.location.pathname || '';
             const search = window.location.search || '';
             const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
 
             function add(ctx) {
                 if (!ctx) return;
@@ -337,20 +357,25 @@
                 if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
             }
 
-            function addIfAddon(ctx) {
-                if (!ctx) return;
-                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
-                    ctx = ctx.replace(/^\/mge/, '');
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
                 }
-                if (ctx.indexOf('/addon-fastchannel') === -1) return;
-                add(ctx);
+                return null;
             }
 
             const htmlIdx = path.indexOf('/html5/');
-            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
 
-            const addonIdx = path.indexOf('/addon-fastchannel');
-            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
 
             if (search) {
                 try {
@@ -359,7 +384,10 @@
                     if (rawUrl) {
                         const decoded = decodeURIComponent(rawUrl);
                         const decodedHtmlIdx = decoded.indexOf('/html5/');
-                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
                     }
                 } catch (e) {
                     // ignore
@@ -374,6 +402,70 @@
         let currentPage = 1;
         let totalPages = 1;
         let pageSize = 20;
+        let currentItems = [];
+        let sortCol = null;
+        let sortDir = 'asc';
+
+        function sortBy(col, type) {
+            type = type || 'str';
+            if (sortCol === col) {
+                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortCol = col;
+                sortDir = 'asc';
+            }
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('asc', 'desc');
+                if (th.dataset.col === col) th.classList.add(sortDir);
+            });
+            if (!currentItems.length) return;
+            currentItems.sort((a, b) => {
+                let va = a[col], vb = b[col];
+                if (va == null) va = '';
+                if (vb == null) vb = '';
+                if (type === 'num') {
+                    va = parseFloat(va) || 0;
+                    vb = parseFloat(vb) || 0;
+                } else if (type === 'date') {
+                    va = va ? new Date(va).getTime() : 0;
+                    vb = vb ? new Date(vb).getTime() : 0;
+                } else {
+                    va = String(va).toLowerCase();
+                    vb = String(vb).toLowerCase();
+                }
+                if (va < vb) return sortDir === 'asc' ? -1 : 1;
+                if (va > vb) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
+            renderFilaItems(currentItems);
+        }
+
+        function renderFilaItems(items) {
+            const tbody = document.getElementById('filaTable');
+            tbody.innerHTML = items.map((item, idx) => `
+                <tr>
+                    <td class="checkbox-col">
+                        <input type="checkbox" class="item-checkbox" value="${item.id}">
+                    </td>
+                    <td>${item.id || '--'}</td>
+                    <td>${getTipoPill(item.tipo)}</td>
+                    <td>${escapeHtml(item.referencia || '--')}</td>
+                    <td>${escapeHtml(item.sku || '--')}</td>
+                    <td>${getStatusPill(item.status)}</td>
+                    <td>${item.tentativas || 0}</td>
+                    <td>${formatDate(item.dhCriacao)}</td>
+                    <td title="${escapeHtml(item.ultimoErro || '')}">
+                        ${escapeHtml(shortError(item.ultimoErro || '--', 140))}
+                        ${item.ultimoErro ? \`<button class="btn btn-secondary btn-sm" style="margin-left:8px;" onclick="verErro(\${idx})">Ver</button>\` : ''}
+                    </td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="reprocessarItem(${item.id})">
+                            Retry
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
         function getMgeSession() {
             try {
@@ -426,9 +518,28 @@
             throw new Error(lastErr || 'Nenhum endpoint respondeu');
         }
 
+        function parseBackendDate(dateStr) {
+            if (!dateStr) return null;
+            const match = typeof dateStr === 'string'
+                ? dateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/)
+                : null;
+            if (match) {
+                return new Date(
+                    Number(match[1]),
+                    Number(match[2]) - 1,
+                    Number(match[3]),
+                    Number(match[4]),
+                    Number(match[5]),
+                    Number(match[6])
+                );
+            }
+            const parsed = new Date(dateStr);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
         function formatDate(dateStr) {
-            if (!dateStr) return '--';
-            return new Date(dateStr).toLocaleString('pt-BR');
+            const parsed = parseBackendDate(dateStr);
+            return parsed ? parsed.toLocaleString('pt-BR') : (dateStr || '--');
         }
 
         function getStatusPill(status) {
@@ -436,9 +547,14 @@
                 'PENDENTE': 'warning',
                 'PROCESSANDO': 'info',
                 'CONCLUIDO': 'success',
-                'ERRO': 'danger'
+                'ENVIADO': 'success',
+                'ERRO': 'danger',
+                'ERRO_FATAL': 'danger'
             };
-            return `<span class="pill ${map[status] || 'info'}">${status || '--'}</span>`;
+            const labels = {
+                'ENVIADO': 'CONCLUIDO'
+            };
+            return `<span class="pill ${map[status] || 'info'}">${labels[status] || status || '--'}</span>`;
         }
 
         function getTipoPill(tipo) {
@@ -469,7 +585,8 @@
             }
         }
 
-        async function loadFila() {
+        async function loadFila(resetPage) {
+            if (resetPage) currentPage = 1;
             const tbody = document.getElementById('filaTable');
             tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
 
@@ -483,28 +600,10 @@
                 };
 
                 const data = await callService('FCFilaSP.list', filters);
+                currentItems = data.items || [];
 
                 if (data.items && data.items.length > 0) {
-                    tbody.innerHTML = data.items.map(item => `
-                        <tr>
-                            <td class="checkbox-col">
-                                <input type="checkbox" class="item-checkbox" value="${item.id}">
-                            </td>
-                            <td>${item.id || '--'}</td>
-                            <td>${getTipoPill(item.tipo)}</td>
-                            <td>${item.referencia || '--'}</td>
-                            <td>${item.sku || '--'}</td>
-                            <td>${getStatusPill(item.status)}</td>
-                            <td>${item.tentativas || 0}</td>
-                            <td>${formatDate(item.dhCriacao)}</td>
-                            <td title="${item.ultimoErro || ''}">${(item.ultimoErro || '--').substring(0, 50)}</td>
-                            <td>
-                                <button class="btn btn-secondary btn-sm" onclick="reprocessarItem(${item.id})">
-                                    Retry
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
+                    renderFilaItems(currentItems);
 
                     totalPages = Math.ceil((data.total || 0) / pageSize);
                     updatePagination(data.total || 0);
@@ -520,9 +619,37 @@
         }
 
         function updatePagination(total) {
-            document.getElementById('paginationInfo').textContent = `Mostrando ${Math.min(pageSize, total)} de ${total}`;
+            const start = total === 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+            const end = total === 0 ? 0 : Math.min(currentPage * pageSize, total);
+            document.getElementById('paginationInfo').textContent =
+                total === 0 ? 'Mostrando 0 de 0' : `Mostrando ${start}-${end} de ${total}`;
             document.getElementById('btnPrev').disabled = currentPage <= 1;
             document.getElementById('btnNext').disabled = currentPage >= totalPages;
+        }
+
+        function shortError(text, size) {
+            const value = (text || '').toString();
+            if (value.length <= size) return value;
+            return value.substring(0, size) + '...';
+        }
+
+        function escapeHtml(text) {
+            return (text || '')
+                .toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function verErro(idx) {
+            const item = currentItems[idx];
+            if (!item || !item.ultimoErro) {
+                alert('Sem detalhe de erro para este item.');
+                return;
+            }
+            alert(item.ultimoErro);
         }
 
         function prevPage() { if (currentPage > 1) { currentPage--; loadFila(); } }
@@ -537,24 +664,44 @@
             return Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
         }
 
+        function setButtonLoading(btn, loading) {
+            if (!btn) return;
+            if (loading) {
+                btn.disabled = true;
+                btn._origHTML = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner"></span> Aguarde...';
+            } else {
+                btn.disabled = false;
+                if (btn._origHTML) btn.innerHTML = btn._origHTML;
+            }
+        }
+
         async function processarFila() {
             if (!confirm('Processar todos os itens pendentes agora?')) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
             try {
                 const result = await callService('FCAdminSP.processarFila', {});
                 alert(result.message || 'Processamento iniciado');
                 loadFila();
             } catch (e) {
                 alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
             }
         }
 
         async function reprocessarItem(id) {
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
             try {
                 const result = await callService('FCFilaSP.reprocessar', { ids: [id] });
                 alert(result.message || 'Item marcado para reprocessamento');
                 loadFila();
             } catch (e) {
                 alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
             }
         }
 
@@ -565,23 +712,31 @@
                 return;
             }
             if (!confirm(`Reprocessar ${ids.length} item(ns)?`)) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
             try {
                 const result = await callService('FCFilaSP.reprocessar', { ids });
                 alert(result.message || 'Itens marcados para reprocessamento');
                 loadFila();
             } catch (e) {
                 alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
             }
         }
 
         async function limparErros() {
             if (!confirm('Limpar todos os itens com erro fatal?')) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
             try {
                 const result = await callService('FCFilaSP.limparErros', {});
                 alert(result.message || 'Erros limpos');
                 loadFila();
             } catch (e) {
                 alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
             }
         }
 

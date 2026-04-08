@@ -1,0 +1,70 @@
+{
+  "product_name": "Fastchannel Sankhya Addon QA Homologacao",
+  "environment": {
+    "base_url": "http://127.0.0.1:18080/mge/",
+    "login_user": "sup",
+    "login_required": true,
+    "deployment_type": "homologacao",
+    "notes": [
+      "A aplicacao alvo e um ambiente Sankhya Om com addon Fastchannel.",
+      "A navegacao deve acontecer como um usuario real autenticado dentro do Sankhya.",
+      "Nao e permitido abrir diretamente as paginas internas do addon por URL, exceto se a propria aplicacao autenticada redirecionar para elas durante a navegacao normal.",
+      "O addon deve ser localizado pelo menu, launcher, pesquisa de modulos, favoritos ou outro mecanismo nativo do Sankhya.",
+      "Se uma rota direta /mge/addon-fastchannel/html5/fastchannel/*.html responder Not Found fora do contexto do app, isso nao e criterio de falha do produto; isso deve ser tratado como erro de estrategia de teste e evitado.",
+      "Os testes devem ser criticos, profundos e profissionais, com foco em UX, fluxos operacionais, mensagens, validacoes, regressao visual e robustez.",
+      "Sempre priorizar bugs confirmados com evidencias claras, passos reproduziveis e impacto funcional."
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-LOGIN",
+      "title": "Autenticacao e bootstrap de sessao",
+      "description": "O usuario deve conseguir autenticar no Sankhya, chegar a uma area autenticada valida, manter a sessao viva apos refresh e navegar sem cair em tela anonima, erro generico ou modal bloqueante inesperado."
+    },
+    {
+      "id": "REQ-ENTRY",
+      "title": "Entrada real no addon Fastchannel",
+      "description": "O addon Fastchannel deve ser acessivel a partir da navegacao normal do Sankhya por menu, pesquisa ou launcher. A entrada deve abrir o contexto correto do addon sem depender de digitacao manual de URL interna."
+    },
+    {
+      "id": "REQ-DASHBOARD",
+      "title": "Dashboard operacional",
+      "description": "O dashboard deve carregar no contexto autenticado correto, exibir cards, indicadores, acoes rapidas, logs ou mensagens coerentes, e tratar indisponibilidades com feedback claro sem deixar a tela em estado morto."
+    },
+    {
+      "id": "REQ-CONFIG",
+      "title": "Configuracao do addon",
+      "description": "A tela de configuracao deve carregar campos e secoes esperadas, permitir leitura e edicao, validar obrigatoriedades, mascarar segredos quando aplicavel, persistir alteracoes e comunicar sucesso ou falha com clareza."
+    },
+    {
+      "id": "REQ-PEDIDOS",
+      "title": "Monitoramento e operacoes de pedidos",
+      "description": "A tela de pedidos deve listar registros, permitir filtros com e sem resultado, abrir detalhes, executar acoes operacionais como importar ou reprocessar e refletir o resultado sem inconsistencias visuais ou funcionais."
+    },
+    {
+      "id": "REQ-ESTOQUE",
+      "title": "Monitoramento e sincronizacao de estoque",
+      "description": "A tela de estoque deve exibir dados legiveis, filtros, comparacao com o Fastchannel, acoes de sincronizacao ou reprocessamento e feedback adequado para sucesso, vazio e erro."
+    },
+    {
+      "id": "REQ-PRECOS",
+      "title": "Monitoramento e sincronizacao de precos",
+      "description": "A tela de precos deve suportar filtros, listagem coerente, comparacoes, sincronizacao individual e em lote quando disponivel, tratando bloqueios, confirmacoes e falhas parciais corretamente."
+    },
+    {
+      "id": "REQ-FILA",
+      "title": "Fila de integracao",
+      "description": "A tela de fila deve exibir estatisticas, registros, filtros por status ou tipo, detalhes e acoes administrativas como reprocessamento ou limpeza sem estados ambiguos."
+    },
+    {
+      "id": "REQ-LOGS",
+      "title": "Observabilidade por logs",
+      "description": "A tela de logs deve listar eventos relevantes, permitir filtros, manter legibilidade em volume maior e oferecer feedback coerente para consultas e acoes administrativas."
+    },
+    {
+      "id": "REQ-UX",
+      "title": "Qualidade de interface e robustez",
+      "description": "As telas devem apresentar hierarquia visual consistente, contraste suficiente, estados de loading e vazio compreensiveis, responsividade basica, navegacao confiavel e ausencia de overlays bloqueantes ou componentes quebrados."
+    }
+  ]
+}

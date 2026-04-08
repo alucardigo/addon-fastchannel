@@ -1,0 +1,21 @@
+06/02/2026 06:08:28 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+06/02/2026 06:08:28 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+06/02/2026 06:08:28 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+06/02/2026 06:08:28 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando importacao do dicionario de dados
+06/02/2026 06:08:29 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+06/02/2026 06:08:29 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+06/02/2026 06:08:29 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+06/02/2026 06:08:29 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+06/02/2026 06:08:31 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+06/02/2026 06:08:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Processando script TABLE TRDCON.TRDCON...
+06/02/2026 06:08:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+06/02/2026 06:08:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Script TABLE TRDCON.TRDCON executado com sucesso!
+06/02/2026 06:08:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Processando script TABLE TRDFCO.TRDFCO...
+06/02/2026 06:08:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+06/02/2026 06:08:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Script TABLE TRDFCO.TRDFCO executado com sucesso!
+06/02/2026 06:08:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Fim do processamento dos scripts.....
+06/02/2026 06:08:31 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [sasserver - ddmigration] - Iniciando importacao do dicionario de dados

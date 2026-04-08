@@ -12,8 +12,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A??o para limpar itens com erro fatal da fila.
- * Remove itens que n?o ser?o mais reprocessados.
+ * Acao para limpar itens com erro fatal da fila.
+ * Remove itens que nao serao mais reprocessados.
  */
 public class LimparErrosFataisAction implements AcaoRotinaJava {
 
@@ -22,11 +22,13 @@ public class LimparErrosFataisAction implements AcaoRotinaJava {
     @Override
     public void doAction(ContextoAcao contexto) throws Exception {
         StringBuilder resultado = new StringBuilder();
+        JdbcWrapper jdbc = null;
 
         try {
             resultado.append("=== Limpeza de Itens com Erro Fatal ===\n\n");
 
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc.openSession();
 
             // Contar itens antes
             NativeSql countSql = new NativeSql(jdbc);
@@ -41,7 +43,7 @@ public class LimparErrosFataisAction implements AcaoRotinaJava {
             rs.close();
 
             if (count == 0) {
-                resultado.append("[INFO] N?o h? itens com erro fatal para limpar.\n");
+                resultado.append("[INFO] Nao ha itens com erro fatal para limpar.\n");
                 contexto.setMensagemRetorno(resultado.toString());
                 return;
             }
@@ -63,6 +65,10 @@ public class LimparErrosFataisAction implements AcaoRotinaJava {
         } catch (Exception e) {
             resultado.append("\n[ERRO] Falha na limpeza: ").append(e.getMessage());
             log.log(Level.SEVERE, "Erro na limpeza de erros fatais", e);
+        } finally {
+            if (jdbc != null) {
+                try { jdbc.closeSession(); } catch (Exception ignored) {}
+            }
         }
 
         contexto.setMensagemRetorno(resultado.toString());

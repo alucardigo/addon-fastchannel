@@ -1,0 +1,51 @@
+16/10/2025 21:12:37 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+16/10/2025 21:12:37 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+16/10/2025 21:12:37 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apifinanceiro'...
+16/10/2025 21:12:37 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+16/10/2025 21:12:37 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [apifinanceiro]...
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apifinanceiro'.
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgeprod'.
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgewms'.
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgepes'.
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'bia-studio-mm'.
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mon-api'.
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgeliv'.
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'sasserver'.
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'placemm'.
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgecontab'.
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered 
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered 
+16/10/2025 21:13:15 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgebase have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered 
+16/10/2025 21:13:16 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered 
+16/10/2025 21:18:15 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+16/10/2025 21:18:15 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+16/10/2025 21:18:15 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apifinanceiro'...
+16/10/2025 21:18:15 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+16/10/2025 21:18:15 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+16/10/2025 21:31:08 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [apifinanceiro]...
+16/10/2025 21:35:21 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+16/10/2025 21:35:21 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+16/10/2025 21:35:21 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apifinanceiro'...
+16/10/2025 21:35:21 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+16/10/2025 21:35:21 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

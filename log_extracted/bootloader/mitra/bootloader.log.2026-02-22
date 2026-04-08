@@ -1,0 +1,185 @@
+22/02/2026 12:12:11 INFO  br.com.sankhya.addonmodule.utils.ModuleUtils - mitra - IS Vazia no war.
+22/02/2026 12:12:17 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+22/02/2026 12:12:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+22/02/2026 12:12:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Script TABLE TEMP_TGLATS_V2.TEMP_TGLATS_V2 ignorado por condição de execução
+22/02/2026 12:12:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Fim do processamento dos scripts.....
+22/02/2026 12:12:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Iniciando importacao do dicionario de dados
+22/02/2026 12:12:17 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [instance-logs-mm - ddmigration] - Não há hooks para serem registrados.
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAICEMP.TAICEMP ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIDOCINT.TAIDOCINT ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIOBGINT.TAIOBGINT ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAICEMP.INTEGRARAUTOMATICO ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script CONSTRAINT TAIOBGINT.CKC_TPESCRIT_TAIOBGINT...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script CONSTRAINT TAIOBGINT.CKC_TPESCRIT_TAIOBGINT executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script CONSTRAINT TAIOBGINT.CKC_TPESCRIT_TAIOBGINT...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script CONSTRAINT TAIOBGINT.CKC_TPESCRIT_TAIOBGINT executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.STATUSNFE ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIDOCINT.MENSAGEM...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.MENSAGEM executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.NUARQUIVO ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIDOCAUDIT.TAIDOCAUDIT ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIOBGAUDIT.TAIOBGAUDIT ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.DTNEG ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIAPURREF.TAIAPURREF ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIAPURREFCD.TAIAPURREFCD ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIAPURREFATUAL.TAIAPURREFATUAL ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIAPURREFCOMP.TAIAPURREFCOMP ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIOBGINT.ARQUIVO...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGINT.ARQUIVO executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script PRIMARY KEY TAIOBGINT.PK_TAIOBGINT...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script PRIMARY KEY TAIOBGINT.PK_TAIOBGINT executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script PRIMARY KEY TAIOBGINT.PK_TAIOBGINT...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script PRIMARY KEY TAIOBGINT.PK_TAIOBGINT executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIALTERP.TAIALTERP ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCAUDIT.ALTERADOERP ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIHCEMP.TAIHCEMP ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.TIPMOV ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCAUDIT.JSONAUDITORIA ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCAUDIT.NIVELAUDITORIA ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAICEMP.DTPINTEG ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script CONSTRAINT TAICEMP.CKC_TAICEMP_DTPINTEG...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script CONSTRAINT TAICEMP.CKC_TAICEMP_DTPINTEG executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script CONSTRAINT TAICEMP.CKC_TAICEMP_DTPINTEG...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script CONSTRAINT TAICEMP.CKC_TAICEMP_DTPINTEG executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGAUDIT.JSONAUDITORIA ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGAUDIT.NIVELAUDITORIA ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.AUDITORIACONSULTADA ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGINT.AUDITORIACONSULTADA ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIDOCAUDIT.JSONAUDITORIA...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCAUDIT.JSONAUDITORIA executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIOBGAUDIT.JSONAUDITORIA...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGAUDIT.JSONAUDITORIA executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIOBGINT.MENSAGEM...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGINT.MENSAGEM executado com sucesso!
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIMONITORIA.TAIMONITORIA ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIMONITORIA.TIPOTRIB ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIMONITORIA.DHMON ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIMONITORIA.STATUSAPLIC ignorado por condição de execução
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIMONITORIA.CKC_STATUSAPLIC_TAIMONITORIA...
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - INICIO - Scripts executados.
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - 
+
+ALTER TABLE TAIMONITORIA ADD CONSTRAINT CKC_STATUSAPLIC_TAIMONITORIA CHECK(STATUSAPLIC IN ('P','A','D') OR STATUSAPLIC IS NULL)
+
+
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - FIM - Scripts executados.
+22/02/2026 12:12:18 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Erro na execuÃ§Ã£o do script.
+Nro: null
+Objeto: CKC_STATUSAPLIC_TAIMONITORIA
+com.microsoft.sqlserver.jdbc.SQLServerException: Já existe um objeto com nome 'CKC_STATUSAPLIC_TAIMONITORIA' no banco de dados.
+	at com.microsoft.sqlserver.jdbc.SQLServerException.makeFromDatabaseError(SQLServerException.java:216)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.getNextResult(SQLServerStatement.java:1522)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.doExecuteStatement(SQLServerStatement.java:799)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement$StmtExecCmd.doExecute(SQLServerStatement.java:696)
+	at com.microsoft.sqlserver.jdbc.TDSCommand.execute(IOBuffer.java:5696)
+	at com.microsoft.sqlserver.jdbc.SQLServerConnection.executeCommand(SQLServerConnection.java:1716)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeCommand(SQLServerStatement.java:180)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeStatement(SQLServerStatement.java:155)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.execute(SQLServerStatement.java:669)
+	at org.jboss.jca.adapters.jdbc.WrappedStatement.execute(WrappedStatement.java:198)
+	at br.com.sankhya.skw.environment.upd.db.ScriptRunner.executeDBScripts(ScriptRunner.java:429)
+	at br.com.sankhya.addonmodule.AddonModuleServletContextListener.executeScriptAddon(r:215)
+	at br.com.sankhya.addonmodule.MicroModuleServletContextListener.runMigrations(j:40)
+	at br.com.sankhya.module.BootModuleServletContextListener.contextInitialized(BootModuleServletContextListener.java:86)
+	at io.undertow.servlet.core.ApplicationListeners.contextInitialized(ApplicationListeners.java:187)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:219)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:187)
+	at io.undertow.servlet.core.ServletRequestContextThreadSetupAction$1.call(ServletRequestContextThreadSetupAction.java:42)
+	at io.undertow.servlet.core.ContextClassLoaderSetupAction$1.call(ContextClassLoaderSetupAction.java:43)
+	at org.wildfly.extension.undertow.security.SecurityContextThreadSetupAction.lambda$create$0(SecurityContextThreadSetupAction.java:105)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at io.undertow.servlet.core.DeploymentManagerImpl.deploy(DeploymentManagerImpl.java:255)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService.startContext(UndertowDeploymentService.java:96)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService$1.run(UndertowDeploymentService.java:78)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at org.jboss.threads.ContextClassLoaderSavingRunnable.run(ContextClassLoaderSavingRunnable.java:35)
+	at org.jboss.threads.EnhancedQueueExecutor.safeRun(EnhancedQueueExecutor.java:1990)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.doRunTask(EnhancedQueueExecutor.java:1486)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1377)
+	at java.lang.Thread.run(Thread.java:748)
+	at org.jboss.threads.JBossThread.run(JBossThread.java:513)
+
+22/02/2026 12:12:18 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script AUTOMATICAMENTE IGNORADO: (FORCED_IGNORE) COLUMN TAIMONITORIA.CKC_STATUSAPLIC_TAIMONITORIA
+Nome do objeto: CKC_STATUSAPLIC_TAIMONITORIA
+Tipo do objeto: COLUMN
+Nome da tabela: TAIMONITORIA
+      Executar: SE_NAO_EXISTIR
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Fim do processamento dos scripts.....
+22/02/2026 12:12:18 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando importacao do dicionario de dados
+22/02/2026 12:13:04 INFO  br.com.sankhya.addonmodule.utils.ModuleUtils - mitra - IS Vazia no war.
+22/02/2026 12:13:06 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+22/02/2026 12:13:06 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Script TABLE TGMTASK.TGMTASK ignorado por condição de execução
+22/02/2026 12:13:06 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Script COLUMN TGMTASK.TENANTID ignorado por condição de execução
+22/02/2026 12:13:06 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Script TABLE TGMTOKEN.TGMTOKEN ignorado por condição de execução
+22/02/2026 12:13:06 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Fim do processamento dos scripts.....
+22/02/2026 12:13:06 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Iniciando importacao do dicionario de dados
+22/02/2026 12:13:06 INFO  br.com.sankhya.addonmodule.AddonModuleServletContextListener - [mitra - ddmigration] - Não há hooks para serem registrados.
+22/02/2026 12:13:06 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'mitra'...
+22/02/2026 12:13:06 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+22/02/2026 12:15:06 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 12:15:06 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 12:32:10 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 12:32:10 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 13:02:11 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 13:02:11 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 13:32:11 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 13:32:11 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 14:02:10 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 14:02:10 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 14:32:10 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 14:32:10 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 15:02:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 15:02:15 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 15:32:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 15:32:14 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 16:02:10 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 16:02:10 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 16:32:10 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 16:32:10 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 17:02:16 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 17:02:16 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 17:32:11 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 17:32:11 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 18:02:11 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: calcularDespesasAcessorias on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService
+22/02/2026 18:02:11 INFO  br.com.sankhya.module.connect.impl.internal.MethodInvocationHandler - Invoking method: totalizaImpostos on service: br.com.sankhya.mgelivrosfiscais.model.services.ImpostoInfoService

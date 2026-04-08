@@ -1,0 +1,50 @@
+{
+  "startedAt": "2026-02-23T19:35:47.959Z",
+  "status": "failed",
+  "config": {
+    "baseUrl": "http://100.72.97.11:8080/mge/",
+    "user": "sup",
+    "headless": true,
+    "slowMoMs": 0,
+    "actionTimeoutMs": 30000,
+    "longTimeoutMs": 360000,
+    "outDir": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke-7"
+  },
+  "steps": [
+    {
+      "name": "login-mge",
+      "startedAt": "2026-02-23T19:35:48.159Z",
+      "status": "passed",
+      "data": {
+        "url": "http://100.72.97.11:8080/mge/system.jsp"
+      },
+      "finishedAt": "2026-02-23T19:36:05.202Z",
+      "durationMs": 17043,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke-7\\screenshots\\01-login-mge.png"
+    },
+    {
+      "name": "open-addon-through-menu-search",
+      "startedAt": "2026-02-23T19:36:05.265Z",
+      "status": "passed",
+      "data": {
+        "openedBy": "/Pedidos Addon-FastChannel/i",
+        "title": "Fastchannel - Pedidos"
+      },
+      "finishedAt": "2026-02-23T19:36:09.096Z",
+      "durationMs": 3831,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke-7\\screenshots\\02-open-addon-through-menu-search.png"
+    },
+    {
+      "name": "pedidos-importar",
+      "startedAt": "2026-02-23T19:36:09.197Z",
+      "status": "failed",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Pedidos', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <a href=\"pedidos.html\" class=\"nav-tab active\">Pedidos</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <manager-webcomponent parameters=\"eyJwcm9maWxlIjp7ImNsaWVudF9pZCI6IjE1NjgwIiwgImNsaWVudF9uYW1lIjoiQkVMIERJU1RS↵SUJVSURPUiBERSBMVUJSSUZJQ0FOVEVTIExUREEiLCAidXNlcl9pZF9vbSI6IjAiLCAidXNlcl9p↵ZF9pZCI6bnVsbCwgInVzZXJfbmFtZSI6IlNVUCIsICJlbnZpcm9ubWVudCI6InRlc3RlIiwgImRi↵X2lkIjpudWxsLCAiZGJfdmVuZG9yIjoiTWljcm9zb2Z0IFNRTCBTZXJ2ZXIiLCAiZGJfdmVyc2lv↵biI6IjE1LjAwLjQwNjMiLCAiZGJfc2NyaXB0X3ZlcnNpb24iOiI0NjYwMDQyIiwgImJyb3dzZXIi↵OiJDaHJvbWUiLCAic2VydmVyX29zIjoiTGludXgiLCAib21fdmVyc2lvbiI6IjQuMzViNTMyIiwg↵ImFwcGxpY2F0aW9uX3NlcnZl…></manager-webcomponent> from <div class=\"Desktop\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <manager-webcomponent parameters=\"eyJwcm9maWxlIjp7ImNsaWVudF9pZCI6IjE1NjgwIiwgImNsaWVudF9uYW1lIjoiQkVMIERJU1RS↵SUJVSURPUiBERSBMVUJSSUZJQ0FOVEVTIExUREEiLCAidXNlcl9pZF9vbSI6IjAiLCAidXNlcl9p↵ZF9pZCI6bnVsbCwgInVzZXJfbmFtZSI6IlNVUCIsICJlbnZpcm9ubWVudCI6InRlc3RlIiwgImRi↵X2lkIjpudWxsLCAiZGJfdmVuZG9yIjoiTWljcm9zb2Z0IFNRTCBTZXJ2ZXIiLCAiZGJfdmVyc2lv↵biI6IjE1LjAwLjQwNjMiLCAiZGJfc2NyaXB0X3ZlcnNpb24iOiI0NjYwMDQyIiwgImJyb3dzZXIi↵OiJDaHJvbWUiLCAic2VydmVyX29zIjoiTGludXgiLCAib21fdmVyc2lvbiI6IjQuMzViNTMyIiwg↵ImFwcGxpY2F0aW9uX3NlcnZl…></manager-webcomponent> from <div class=\"Desktop\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    55 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <manager-webcomponent parameters=\"eyJwcm9maWxlIjp7ImNsaWVudF9pZCI6IjE1NjgwIiwgImNsaWVudF9uYW1lIjoiQkVMIERJU1RS↵SUJVSURPUiBERSBMVUJSSUZJQ0FOVEVTIExUREEiLCAidXNlcl9pZF9vbSI6IjAiLCAidXNlcl9p↵ZF9pZCI6bnVsbCwgInVzZXJfbmFtZSI6IlNVUCIsICJlbnZpcm9ubWVudCI6InRlc3RlIiwgImRi↵X2lkIjpudWxsLCAiZGJfdmVuZG9yIjoiTWljcm9zb2Z0IFNRTCBTZXJ2ZXIiLCAiZGJfdmVyc2lv↵biI6IjE1LjAwLjQwNjMiLCAiZGJfc2NyaXB0X3ZlcnNpb24iOiI0NjYwMDQyIiwgImJyb3dzZXIi↵OiJDaHJvbWUiLCAic2VydmVyX29zIjoiTGludXgiLCAib21fdmVyc2lvbiI6IjQuMzViNTMyIiwg↵ImFwcGxpY2F0aW9uX3NlcnZl…></manager-webcomponent> from <div class=\"Desktop\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n",
+      "finishedAt": "2026-02-23T19:36:39.281Z",
+      "durationMs": 30084,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke-7\\screenshots\\03-pedidos-importar-failed.png"
+    }
+  ],
+  "dialogs": [],
+  "fatalError": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Pedidos', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <a href=\"pedidos.html\" class=\"nav-tab active\">Pedidos</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <manager-webcomponent parameters=\"eyJwcm9maWxlIjp7ImNsaWVudF9pZCI6IjE1NjgwIiwgImNsaWVudF9uYW1lIjoiQkVMIERJU1RS↵SUJVSURPUiBERSBMVUJSSUZJQ0FOVEVTIExUREEiLCAidXNlcl9pZF9vbSI6IjAiLCAidXNlcl9p↵ZF9pZCI6bnVsbCwgInVzZXJfbmFtZSI6IlNVUCIsICJlbnZpcm9ubWVudCI6InRlc3RlIiwgImRi↵X2lkIjpudWxsLCAiZGJfdmVuZG9yIjoiTWljcm9zb2Z0IFNRTCBTZXJ2ZXIiLCAiZGJfdmVyc2lv↵biI6IjE1LjAwLjQwNjMiLCAiZGJfc2NyaXB0X3ZlcnNpb24iOiI0NjYwMDQyIiwgImJyb3dzZXIi↵OiJDaHJvbWUiLCAic2VydmVyX29zIjoiTGludXgiLCAib21fdmVyc2lvbiI6IjQuMzViNTMyIiwg↵ImFwcGxpY2F0aW9uX3NlcnZl…></manager-webcomponent> from <div class=\"Desktop\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <manager-webcomponent parameters=\"eyJwcm9maWxlIjp7ImNsaWVudF9pZCI6IjE1NjgwIiwgImNsaWVudF9uYW1lIjoiQkVMIERJU1RS↵SUJVSURPUiBERSBMVUJSSUZJQ0FOVEVTIExUREEiLCAidXNlcl9pZF9vbSI6IjAiLCAidXNlcl9p↵ZF9pZCI6bnVsbCwgInVzZXJfbmFtZSI6IlNVUCIsICJlbnZpcm9ubWVudCI6InRlc3RlIiwgImRi↵X2lkIjpudWxsLCAiZGJfdmVuZG9yIjoiTWljcm9zb2Z0IFNRTCBTZXJ2ZXIiLCAiZGJfdmVyc2lv↵biI6IjE1LjAwLjQwNjMiLCAiZGJfc2NyaXB0X3ZlcnNpb24iOiI0NjYwMDQyIiwgImJyb3dzZXIi↵OiJDaHJvbWUiLCAic2VydmVyX29zIjoiTGludXgiLCAib21fdmVyc2lvbiI6IjQuMzViNTMyIiwg↵ImFwcGxpY2F0aW9uX3NlcnZl…></manager-webcomponent> from <div class=\"Desktop\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    55 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <manager-webcomponent parameters=\"eyJwcm9maWxlIjp7ImNsaWVudF9pZCI6IjE1NjgwIiwgImNsaWVudF9uYW1lIjoiQkVMIERJU1RS↵SUJVSURPUiBERSBMVUJSSUZJQ0FOVEVTIExUREEiLCAidXNlcl9pZF9vbSI6IjAiLCAidXNlcl9p↵ZF9pZCI6bnVsbCwgInVzZXJfbmFtZSI6IlNVUCIsICJlbnZpcm9ubWVudCI6InRlc3RlIiwgImRi↵X2lkIjpudWxsLCAiZGJfdmVuZG9yIjoiTWljcm9zb2Z0IFNRTCBTZXJ2ZXIiLCAiZGJfdmVyc2lv↵biI6IjE1LjAwLjQwNjMiLCAiZGJfc2NyaXB0X3ZlcnNpb24iOiI0NjYwMDQyIiwgImJyb3dzZXIi↵OiJDaHJvbWUiLCAic2VydmVyX29zIjoiTGludXgiLCAib21fdmVyc2lvbiI6IjQuMzViNTMyIiwg↵ImFwcGxpY2F0aW9uX3NlcnZl…></manager-webcomponent> from <div class=\"Desktop\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n",
+  "finishedAt": "2026-02-23T19:36:39.281Z"
+}

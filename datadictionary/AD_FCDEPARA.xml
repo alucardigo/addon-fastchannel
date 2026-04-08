@@ -27,6 +27,12 @@
                     <option value="PRODUTO" description="Produto"/>
                     <option value="PARCEIRO" description="Parceiro"/>
                     <option value="LOCAL" description="Local de Estoque"/>
+                    <option value="EMPRESA" description="Empresa"/>
+                    <option value="TOP_PEDIDO" description="TOP Pedido"/>
+                    <option value="TIPNEG" description="Tipo de Negociacao"/>
+                    <option value="CODNAT" description="Natureza de Operacao"/>
+                    <option value="CODCENCUS" description="Centro de Resultado"/>
+                    <option value="CODVEND" description="Vendedor"/>
                     <option value="TABELA_PRECO" description="Tabela de Preco"/>
                     <option value="STOCK_STORAGE" description="StorageId (Fastchannel) x Empresa/Local"/>
                     <option value="STOCK_RESELLER" description="ResellerId (Fastchannel) x Empresa"/>
@@ -37,6 +43,9 @@
             </field>
             <field name="COD_EXTERNO" dataType="TEXTO" size="100" mandatory="S" allowSearch="S" visibleOnSearch="S">
                 <description>Codigo no Fastchannel (SKU, CustomerId, etc)</description>
+            </field>
+            <field name="INTEGRA_AUTO" dataType="TEXTO" size="1" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Flag para habilitar/desabilitar integração automática nos jobs (S/N)</description>
             </field>
             <field name="DH_CRIACAO" dataType="DATA_HORA" mandatory="N" allowSearch="S">
                 <description>Data/hora de criacao</description>

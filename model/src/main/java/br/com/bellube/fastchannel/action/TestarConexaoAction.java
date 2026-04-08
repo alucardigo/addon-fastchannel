@@ -10,8 +10,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Ação para testar conexão com a API Fastchannel.
- * Verifica autenticação OAuth2 e conectividade.
+ * Acao para testar conexao com a API Fastchannel.
+ * Verifica autenticacao OAuth2 e conectividade.
  */
 public class TestarConexaoAction implements AcaoRotinaJava {
 
@@ -23,42 +23,41 @@ public class TestarConexaoAction implements AcaoRotinaJava {
         boolean sucesso = true;
 
         try {
-            resultado.append("=== Teste de Conexão Fastchannel ===\n\n");
+            resultado.append("=== Teste de Conexao Fastchannel ===\n\n");
 
-            // 1. Verificar configuração
-            resultado.append("1. Verificando configuração...\n");
+            // 1. Verificar configuracao
+            resultado.append("1. Verificando configuracao...\n");
             FastchannelConfig config = FastchannelConfig.getInstance();
 
             if (!config.isAtivo()) {
-                resultado.append("   [ERRO] Integração não está ativa!\n");
-                sucesso = false;
+                resultado.append("   [AVISO] Integracao esta desativada (nao bloqueia conexao)\n");
             } else {
-                resultado.append("   [OK] Integração ativa\n");
+                resultado.append("   [OK] Integracao ativa\n");
             }
 
             if (config.getClientId() == null || config.getClientId().isEmpty()) {
-                resultado.append("   [ERRO] Client ID não configurado!\n");
+                resultado.append("   [ERRO] Client ID nao configurado!\n");
                 sucesso = false;
             } else {
                 resultado.append("   [OK] Client ID configurado\n");
             }
 
             if (config.getClientSecret() == null || config.getClientSecret().isEmpty()) {
-                resultado.append("   [ERRO] Client Secret não configurado!\n");
+                resultado.append("   [ERRO] Client Secret nao configurado!\n");
                 sucesso = false;
             } else {
                 resultado.append("   [OK] Client Secret configurado\n");
             }
 
             if (config.getBaseUrl() == null || config.getBaseUrl().isEmpty()) {
-                resultado.append("   [ERRO] URL Base não configurada!\n");
+                resultado.append("   [ERRO] URL Base nao configurada!\n");
                 sucesso = false;
             } else {
                 resultado.append("   [OK] URL Base: ").append(config.getBaseUrl()).append("\n");
             }
 
             if (config.getAuthUrl() == null || config.getAuthUrl().isEmpty()) {
-                resultado.append("   [ERRO] URL Auth não configurada!\n");
+                resultado.append("   [ERRO] URL Auth nao configurada!\n");
                 sucesso = false;
             } else {
                 resultado.append("   [OK] URL Auth: ").append(config.getAuthUrl()).append("\n");
@@ -66,9 +65,9 @@ public class TestarConexaoAction implements AcaoRotinaJava {
 
             resultado.append("\n");
 
-            // 2. Testar autenticação OAuth2
+            // 2. Testar autenticacao OAuth2
             if (sucesso) {
-                resultado.append("2. Testando autenticação OAuth2...\n");
+                resultado.append("2. Testando autenticacao OAuth2...\n");
                 try {
                     FastchannelTokenManager tokenManager = FastchannelTokenManager.getInstance();
                     String token = tokenManager.getValidToken();
@@ -81,9 +80,9 @@ public class TestarConexaoAction implements AcaoRotinaJava {
                         sucesso = false;
                     }
                 } catch (Exception e) {
-                    resultado.append("   [ERRO] Falha na autenticação: ").append(e.getMessage()).append("\n");
+                    resultado.append("   [ERRO] Falha na autenticacao: ").append(e.getMessage()).append("\n");
                     sucesso = false;
-                    log.log(Level.WARNING, "Erro no teste de autenticação", e);
+                    log.log(Level.WARNING, "Erro no teste de autenticacao", e);
                 }
                 resultado.append("\n");
             }
@@ -95,11 +94,11 @@ public class TestarConexaoAction implements AcaoRotinaJava {
                     FastchannelHttpClient httpClient = new FastchannelHttpClient();
                     // Fazer uma chamada simples para verificar conectividade
                     // GET em /orders com limit=1 apenas para testar
-                    String testUrl = config.getBaseUrl() + "/orders?page=1&pageSize=1";
+                    String testUrl = config.getBaseUrl() + "/orders?PageNumber=1&PageSize=1";
                     resultado.append("   Testando: ").append(testUrl).append("\n");
 
-                    // O cliente HTTP já trata erros e retries
-                    FastchannelHttpClient.HttpResult result = httpClient.getOrders("/orders?page=1&pageSize=1");
+                    // O cliente HTTP ja trata erros e retries
+                    FastchannelHttpClient.HttpResult result = httpClient.getOrders("/orders?PageNumber=1&PageSize=1");
                     if (result.isSuccess()) {
                         resultado.append("   [OK] API respondeu com sucesso!\n");
                         String body = result.getBody();
@@ -121,19 +120,19 @@ public class TestarConexaoAction implements AcaoRotinaJava {
             // Resultado final
             resultado.append("=== Resultado Final ===\n");
             if (sucesso) {
-                resultado.append("[SUCESSO] Conexão com Fastchannel OK!\n");
-                resultado.append("A integração está configurada corretamente e funcionando.");
+                resultado.append("[SUCESSO] Conexao com Fastchannel OK!\n");
+                resultado.append("A integracao esta configurada corretamente e funcionando.");
             } else {
-                resultado.append("[FALHA] Problemas encontrados na conexão.\n");
-                resultado.append("Verifique as configurações acima e tente novamente.");
+                resultado.append("[FALHA] Problemas encontrados na conexao.\n");
+                resultado.append("Verifique as configuracoes acima e tente novamente.");
             }
 
         } catch (Exception e) {
             resultado.append("\n[ERRO FATAL] ").append(e.getMessage());
-            log.log(Level.SEVERE, "Erro fatal no teste de conexão", e);
+            log.log(Level.SEVERE, "Erro fatal no teste de conexao", e);
         }
 
-        // Retornar resultado para o usuário
+        // Retornar resultado para o usuario
         contexto.setMensagemRetorno(resultado.toString());
     }
 }

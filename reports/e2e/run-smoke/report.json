@@ -1,0 +1,27 @@
+{
+  "startedAt": "2026-02-23T19:27:55.809Z",
+  "status": "failed",
+  "config": {
+    "baseUrl": "http://100.72.97.11:8080/mge/",
+    "user": "sup",
+    "headless": true,
+    "slowMoMs": 0,
+    "actionTimeoutMs": 30000,
+    "longTimeoutMs": 360000,
+    "outDir": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke"
+  },
+  "steps": [
+    {
+      "name": "login-mge",
+      "startedAt": "2026-02-23T19:27:57.043Z",
+      "status": "failed",
+      "error": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('textbox', { name: /Senha/i })\u001b[22m\n",
+      "finishedAt": "2026-02-23T19:28:31.379Z",
+      "durationMs": 34336,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke\\screenshots\\01-login-mge-failed.png"
+    }
+  ],
+  "dialogs": [],
+  "fatalError": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('textbox', { name: /Senha/i })\u001b[22m\n",
+  "finishedAt": "2026-02-23T19:28:31.379Z"
+}

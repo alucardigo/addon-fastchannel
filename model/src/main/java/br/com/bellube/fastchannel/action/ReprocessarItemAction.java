@@ -12,7 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Ação para reprocessar item específico da fila.
+ * Acao para reprocessar item especifico da fila.
  * Pode ser usado para itens com erro ou pendentes.
  */
 public class ReprocessarItemAction implements AcaoRotinaJava {
@@ -24,10 +24,10 @@ public class ReprocessarItemAction implements AcaoRotinaJava {
         StringBuilder resultado = new StringBuilder();
 
         try {
-            // Verificar se integração está ativa
+            // Verificar se integracao esta ativa
             FastchannelConfig config = FastchannelConfig.getInstance();
             if (!config.isAtivo()) {
-                resultado.append("[ERRO] Integração não está ativa!");
+                resultado.append("[ERRO] Integracao nao esta ativa!");
                 contexto.setMensagemRetorno(resultado.toString());
                 return;
             }
@@ -81,8 +81,8 @@ public class ReprocessarItemAction implements AcaoRotinaJava {
 
             if (sucesso > 0) {
                 resultado.append("\nOs itens foram marcados para reprocessamento.\n");
-                resultado.append("Execute 'Processar Fila Agora' na tela de Configuração\n");
-                resultado.append("ou aguarde o processamento automático.");
+                resultado.append("Execute 'Processar Fila Agora' na tela de Configuracao\n");
+                resultado.append("ou aguarde o processamento automatico.");
             }
 
         } catch (Exception e) {

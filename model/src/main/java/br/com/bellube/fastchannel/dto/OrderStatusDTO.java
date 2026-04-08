@@ -3,7 +3,7 @@ package br.com.bellube.fastchannel.dto;
 import java.sql.Timestamp;
 
 /**
- * DTO para atualização de status de pedido no Fastchannel.
+ * DTO para atualizacao de status de pedido no Fastchannel.
  */
 public class OrderStatusDTO {
 

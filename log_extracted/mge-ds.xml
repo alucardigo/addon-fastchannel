@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Normalizacao dos validations(DS Wildfly)--><datasources>
+  <datasource jta="true" jndi-name="java:/MGEDS" pool-name="MGEDS" enabled="true" use-java-context="true" use-ccm="true">
+    <connection-url>jdbc:sqlserver://bellube-sql02;databaseName=sankhya_prod;lastUpdateCount=true;applicationName=SANKHYAW</connection-url>
+    <driver-class>com.microsoft.sqlserver.jdbc.SQLServerDriver</driver-class>
+    <driver>com.microsoft.sqljdbc</driver>
+    <transaction-isolation>TRANSACTION_READ_COMMITTED</transaction-isolation>
+    <pool>
+      <min-pool-size>600</min-pool-size>
+      <max-pool-size>600</max-pool-size>
+    </pool>
+    <security>
+      <user-name>sankhya</user-name>
+      <password></password>
+    </security>
+    <validation>
+      <valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.mssql.MSSQLValidConnectionChecker" />
+    </validation>
+  </datasource>
+</datasources>

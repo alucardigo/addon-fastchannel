@@ -1,0 +1,14 @@
+<module name="br.com.bellube.fastchannel">
+    <services>
+        <service name="FCAdminService">br.com.bellube.fastchannel.web.FCAdminService</service>
+        <service name="FCConfigService">br.com.bellube.fastchannel.web.FCConfigService</service>
+        <service name="FCDashboardService">br.com.bellube.fastchannel.web.FCDashboardService</service>
+        <service name="FCDeparaService">br.com.bellube.fastchannel.web.FCDeparaService</service>
+        <service name="FCEstoqueService">br.com.bellube.fastchannel.web.FCEstoqueService</service>
+        <service name="FCFilaService">br.com.bellube.fastchannel.web.FCFilaService</service>
+        <service name="FCLogsService">br.com.bellube.fastchannel.web.FCLogsService</service>
+        <service name="FCPedidosService">br.com.bellube.fastchannel.web.FCPedidosService</service>
+        <service name="FCPrecosService">br.com.bellube.fastchannel.web.FCPrecosService</service>
+        <service name="LifecycleController">br.com.bellube.fastchannel.installation.LifecycleController</service>
+    </services>
+</module>

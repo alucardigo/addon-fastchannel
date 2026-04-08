@@ -1,0 +1,4444 @@
+openapi: 3.0.1
+info:
+  title: API de Pedidos
+  description: API para gestão dos pedidos das lojas virtuais B2B da plataforma Fast Channel.
+  version: v1
+servers:
+  - url: https://api.commerce.fastchannel.com/order-management/v1
+paths:
+  /orders:
+    get:
+      tags:
+        - Sincronização de Pedidos
+      summary: ListOrders
+      description: 'Retorna a lista (array) de pedidos existentes na sua Conta Fastchannel. Por padrão, apenas os pedidos que tenham sido gerados nas últimas 24 horas serão retornados. Para modificar a listagem retornada, combine os diversos parâmetros de filtro da operação.'
+      operationId: listorders
+      parameters:
+        - name: IsSynched
+          in: query
+          description: Situação de sincronização atual dos pedidos que deverão ser retornados.
+          schema:
+            enum:
+              - 'false'
+              - 'true'
+            type: Boolean
+            default: 'false'
+        - name: CreatedAfter
+          in: query
+          description: Data/Hora mínima de abertura/criação dos pedidos que deverão ser retornados.
+          schema:
+            enum:
+              - '2016-01-31T01:29:35.000'
+            type: Datetime
+            default: '2016-01-31T01:29:35.000'
+        - name: CurrentStatusIds
+          in: query
+          description: Lista de identificadores dos status em que devem estar os pedidos que deverão ser retornados.
+          schema:
+            enum:
+              - '200,201'
+            type: 'Array[number]'
+        - name: OrderIds
+          in: query
+          description: Lista de identificadores únicos dos pedidos que deverão ser retornados.
+          schema:
+            enum:
+              - '1234,5678,9012'
+            type: 'Array[number]'
+        - name: OrderCodes
+          in: query
+          description: Lista de identificadores únicos dos pedidos que deverão ser retornados.
+          schema:
+            enum:
+              - 'XYZ123,XYZ567,XYZ890'
+            type: 'Array[string]'
+        - name: CustomerIds
+          in: query
+          description: "\nLista de identificadores únicos de clientes para ser utilizada como filtro dos pedidos que deverão ser retornados."
+          schema:
+            enum:
+              - '1,2,3,4'
+            type: 'Array[number]'
+        - name: StorageIds
+          in: query
+          description: Lista de identificadores únicos de CD's (Lojas/Depósitos/Filiais) para ser utilizada como filtro dos pedidos que deverão ser retornados.
+          schema:
+            enum:
+              - '1,2,3,4'
+            type: 'Array[number]'
+            default: '1,2,3,4'
+        - name: ResellerIds
+          in: query
+          description: Lista de identificadores únicos de revendas para ser utilizada como filtro dos pedidos que deverão ser retornados.
+          schema:
+            enum:
+              - '1,2,3,4'
+            type: 'Array[number]'
+        - name: IgnoreCreationDate
+          in: query
+          description: 'Permite que a data de abertura/criação possa ser ignorada durante a execução dos filtros dos pedidos que deverão ser retornados (só é considerado quando utilizado em conjunto com um dos seguintes parâmetros: ''CurrentStatusIds'', ''OrderIds'', ''OrderCodes'', ''CustomerIds'', ''StorageIds'' ou ''ResellerIds'').'
+          schema:
+            enum:
+              - 'false'
+              - 'true'
+            type: Boolean
+            default: 'false'
+        - name: PageNumber
+          in: query
+          description: 'Permite a aplicação de paginação nos resultados que deverão ser retornados, definindo o número da página de resultados desejada (deve ser utilizado em conjunto com o parâmetro ''PageSize'').'
+          schema:
+            enum:
+              - '0'
+              - '1'
+            type: Number
+            default: '0'
+        - name: PageSize
+          in: query
+          description: 'Permite a aplicação de paginação nos resultados que deverão ser retornados, definindo o limite máximo de registros por página a serem retornados (deve ser utilizado em conjunto com o parâmetro ''PageNumber'').'
+          schema:
+            enum:
+              - '0'
+              - '10'
+            type: Number
+            default: '0'
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: string
+            default: application/json
+      responses:
+        '200':
+          description: 'Resposta de sucesso da listagem de pedidos, porém com alguns pedidos encontrados para os filtros informados.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listagem_de_Pedidos_-_Com_Conte_do'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                TotalRecords: 6
+                TotalPages: 1
+                RequestParams:
+                  CreatedAfter: /Date(1585507119990)/
+                  ResellerIds:
+                    - 1
+                Payload:
+                  - OrderId: 483
+                    OrderCode: S863816913
+                    IsSynched: false
+                    CreatedAt: /Date(1600922405460)/
+                    CurrentStatusId: 200
+                    CurrentStatusDescription: Pedido aguardando confirmação de pagamento
+                    CurrentStatusTypeId: 5
+                    CurrentStatusTypeDescription: Pedido Recebido
+                    CustomerId: 286
+                    CustomerName: Karl Heinz Brehme
+                    CustomerDocument: '19008627000117'
+                    CustomerType: J
+                    StorageId: 1
+                    StorageName: Loja Confecção A
+                    StorageCityId: '3550308'
+                    StorageCityName: São Paulo
+                    StorageStateId: SP
+                    ResellerId: 1
+                    ResellerName: Confecção Teste A
+                    PaymentOption: VISA (à vista)
+                    OrderTotal: 330.3
+                  - OrderId: 481
+                    OrderCode: S571805521
+                    IsSynched: false
+                    CreatedAt: /Date(1600461872177)/
+                    CurrentStatusId: 200
+                    CurrentStatusDescription: Pedido aguardando confirmação de pagamento
+                    CurrentStatusTypeId: 5
+                    CurrentStatusTypeDescription: Pedido Recebido
+                    CustomerId: 285
+                    CustomerName: ANDERSON SILVA DE MIRANDA
+                    CustomerDocument: '42353346111'
+                    CustomerType: F
+                    StorageId: 1
+                    StorageName: Loja Confecção A
+                    StorageCityId: '3550308'
+                    StorageCityName: São Paulo
+                    StorageStateId: SP
+                    ResellerId: 1
+                    ResellerName: Confecção Teste A
+                    PaymentOption: VISA (7x c/ juros)
+                    OrderTotal: 137.55
+                  - OrderId: 480
+                    OrderCode: S786053650
+                    IsSynched: false
+                    CreatedAt: /Date(1600459299560)/
+                    CurrentStatusId: 200
+                    CurrentStatusDescription: Pedido aguardando confirmação de pagamento
+                    CurrentStatusTypeId: 5
+                    CurrentStatusTypeDescription: Pedido Recebido
+                    CustomerId: 285
+                    CustomerName: ANDERSON SILVA DE MIRANDA
+                    CustomerDocument: '42353346111'
+                    CustomerType: F
+                    StorageId: 1
+                    StorageName: Loja Confecção A
+                    StorageCityId: '3550308'
+                    StorageCityName: São Paulo
+                    StorageStateId: SP
+                    ResellerId: 1
+                    ResellerName: Confecção Teste A
+                    PaymentOption: VISA (6x c/ juros)
+                    OrderTotal: 135.66
+                  - OrderId: 479
+                    OrderCode: S854474129
+                    IsSynched: false
+                    CreatedAt: /Date(1600458441190)/
+                    CurrentStatusId: 100
+                    CurrentStatusDescription: 'Pedido recebido, em análise'
+                    CurrentStatusTypeId: 5
+                    CurrentStatusTypeDescription: Pedido Recebido
+                    CustomerId: 285
+                    CustomerName: ANDERSON SILVA DE MIRANDA
+                    CustomerDocument: '42353346111'
+                    CustomerType: F
+                    StorageId: 1
+                    StorageName: Loja Confecção A
+                    StorageCityId: '3550308'
+                    StorageCityName: São Paulo
+                    StorageStateId: SP
+                    ResellerId: 1
+                    ResellerName: Confecção Teste A
+                    PaymentOption: VISA (6x c/ juros)
+                    OrderTotal: 135.66
+                  - OrderId: 477
+                    OrderCode: S287583107
+                    IsSynched: false
+                    CreatedAt: /Date(1600458318200)/
+                    CurrentStatusId: 100
+                    CurrentStatusDescription: 'Pedido recebido, em análise'
+                    CurrentStatusTypeId: 5
+                    CurrentStatusTypeDescription: Pedido Recebido
+                    CustomerId: 285
+                    CustomerName: ANDERSON SILVA DE MIRANDA
+                    CustomerDocument: '42353346111'
+                    CustomerType: F
+                    StorageId: 1
+                    StorageName: Loja Confecção A
+                    StorageCityId: '3550308'
+                    StorageCityName: São Paulo
+                    StorageStateId: SP
+                    ResellerId: 1
+                    ResellerName: Confecção Teste A
+                    PaymentOption: VISA (6x c/ juros)
+                    OrderTotal: 135.66
+                  - OrderId: 476
+                    OrderCode: S394339416
+                    IsSynched: false
+                    CreatedAt: /Date(1600458226187)/
+                    CurrentStatusId: 100
+                    CurrentStatusDescription: 'Pedido recebido, em análise'
+                    CurrentStatusTypeId: 5
+                    CurrentStatusTypeDescription: Pedido Recebido
+                    CustomerId: 285
+                    CustomerName: ANDERSON SILVA DE MIRANDA
+                    CustomerDocument: '42353346111'
+                    CustomerType: F
+                    StorageId: 1
+                    StorageName: Loja Confecção A
+                    StorageCityId: '3550308'
+                    StorageCityName: São Paulo
+                    StorageStateId: SP
+                    ResellerId: 1
+                    ResellerName: Confecção Teste A
+                    PaymentOption: VISA (6x c/ juros)
+                    OrderTotal: 135.66
+  '/orders/{OrderId}':
+    get:
+      tags:
+        - Sincronização de Pedidos
+      summary: GetOrderDetails
+      description: Retorna as informações detalhadas de um determinado pedido da Loja Virtual.
+      operationId: getorderdetails
+      parameters:
+        - name: OrderId
+          in: path
+          required: true
+          schema:
+            type: ''
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: string
+            default: application/json
+      responses:
+        '200':
+          description: Informações detalhadas de todos os aspectos de um determinado pedido da loja virtual.
+          content:
+            application/json:
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 476
+                  IncludeItemDetails: true
+                  IncludeCustomerData: true
+                  IncludeWithdrawalData: true
+                  IncludeStatusHistory: true
+                  IncludePaymentHistory: true
+                  IncludeTrackingData: true
+                  IncludeRiskAnalysisHistory: true
+                  IncludeInvoiceData: true
+                  IncludeDiscountCoupon: true
+                  IncludeAuditingHistory: true
+                  IncludeDistributionCenterData: true
+                Payload:
+                  OrderId: 476
+                  OrderType: Standard
+                  OrderCode: S394339416
+                  CreatedAt: /Date(1600458226187)/
+                  IsSynched: false
+                  SalesUserId: 0
+                  ResellerId: 1
+                  SourceIpAddress: '::1'
+                  BuyerRemarks: ''
+                  HasScheduledWithdrawal: false
+                  TotalDeliveryDays: 6
+                  DeliveryDateLimit: /Date(1600976626187)/
+                  ShippingMethodId: 2
+                  ShippingMethodName: Sedex
+                  ShippingDiscountId: 0
+                  ShippingDiscountName: ''
+                  ShippingDiscountType: 0
+                  ShippingDiscountAmount: 0
+                  ProductCost: 10000
+                  ProductDiscount: 0
+                  ProductDiscountQuota: 0
+                  ProductDiscountCoupon: 0
+                  ProductDiscountManual: 0
+                  ProductDiscountPayment: 0
+                  ProductDiscountAssociation: 0
+                  ShippingCost: 2250
+                  ShippingDiscount: 0
+                  ShippingDiscountCoupon: 0
+                  ShippingDiscountManual: 0
+                  PaymentInstallmentCost: 1316
+                  SubtotalProducts: 10000
+                  SubtotalShipping: 2250
+                  IpiBaseValue: 0
+                  IpiTotalCost: 0
+                  IcmsBaseValue: 0
+                  IcmsTotalCost: 0
+                  IcmsStBaseValue: 0
+                  IcmsStTotalCost: 0
+                  TotalOrderValue: 13566
+                  CurrentStatus:
+                    OrderId: 476
+                    OrderStatusId: 100
+                    OrderStatusHistoryId: 2518
+                    Removed: false
+                    CreatedAt: /Date(1600458226887)/
+                    ResponsibleUserId: 1
+                    ResponsibleUserName: Sistema (WebStore)
+                    OrderStatusName: Pendente
+                    OrderStatusDescription: 'Pedido recebido, em análise'
+                    IsActive: true
+                    Priority: 1
+                    PreviousOrderStatusIds: ''
+                    ManagerStatusTypeId: 1
+                    ManagerStatusTypeName: Pendente
+                    ManagerStatusTypePriority: 1
+                    CustomerStatusTypeId: 5
+                    CustomerStatusTypeName: Pedido Recebido
+                    CustomerStatusTypePriority: 1
+                    IsRemovable: false
+                    PossibleNextStatuses:
+                      - OrderStatusId: 101
+                        OrderStatusName: Pendente
+                        OrderStatusDescription: 'Pedido pendente, aguardando documentos'
+                        ManagerStatusTypeId: 1
+                        CustomerStatusTypeId: 5
+                        IsActive: true
+                        Priority: 1
+                        PreviousStatusIds: '100'
+                      - OrderStatusId: 102
+                        OrderStatusName: Pendente (aprovado pela análise de risco)
+                        OrderStatusDescription: 'Pedido pendente, aguardando confirmação de pagamento'
+                        ManagerStatusTypeId: 1
+                        CustomerStatusTypeId: 5
+                        IsActive: true
+                        Priority: 1
+                        PreviousStatusIds: '100,101'
+                      - OrderStatusId: 200
+                        OrderStatusName: Pendente (Aguardando confirmação de pagamento)
+                        OrderStatusDescription: Pedido aguardando confirmação de pagamento
+                        ManagerStatusTypeId: 1
+                        CustomerStatusTypeId: 5
+                        IsActive: true
+                        Priority: 1
+                        PreviousStatusIds: '100,101'
+                      - OrderStatusId: 401
+                        OrderStatusName: Cancelado
+                        OrderStatusDescription: Pedido cancelado pela operadora de cartão de crédito
+                        ManagerStatusTypeId: 2
+                        CustomerStatusTypeId: 2
+                        IsActive: true
+                        Priority: 1
+                        PreviousStatusIds: '100,101,200'
+                      - OrderStatusId: 402
+                        OrderStatusName: Cancelado
+                        OrderStatusDescription: Pedido cancelado por análise
+                        ManagerStatusTypeId: 2
+                        CustomerStatusTypeId: 2
+                        IsActive: true
+                        Priority: 1
+                        PreviousStatusIds: '100,101,200'
+                      - OrderStatusId: 403
+                        OrderStatusName: Cancelado
+                        OrderStatusDescription: Pedido cancelado pelo cliente
+                        ManagerStatusTypeId: 2
+                        CustomerStatusTypeId: 2
+                        IsActive: true
+                        Priority: 1
+                        PreviousStatusIds: '100,101,102,200,201,300,303'
+                      - OrderStatusId: 404
+                        OrderStatusName: Cancelado
+                        OrderStatusDescription: Pedido cancelado por motivos diversos
+                        ManagerStatusTypeId: 2
+                        CustomerStatusTypeId: 2
+                        IsActive: true
+                        Priority: 1
+                        PreviousStatusIds: '100,101,102,200,201,300,303'
+                  Customer:
+                    OrderId: 476
+                    CustomerId: 285
+                    CustomerTypeFlag: F
+                    CustomerTypeName: Pessoa Física
+                    CurrentProfileId: 1
+                    CurrentStatusId: 2
+                    CurrentStatusDescription: Cadastro Aprovado
+                    EmailAddress: anderson@fastchannel.com
+                    FullName: ANDERSON SILVA DE MIRANDA
+                    PersonFederalRegistry: '09342771769'
+                    PersonDocument: '550540623'
+                    CreatedAt: /Date(1600454840387)/
+                    LastLoginAt: /Date(1600458082463)/
+                    Birthdate: /Date(381808800000)/
+                    GenderName: (não informado)
+                    IsMailingEnabled: false
+                    IsBlacklisted: false
+                    Addresses:
+                      - IdCity: '3550308'
+                        IdState: SP
+                        IdAddressType: 1
+                        DsAddress: Avenida General Ataliba Leonel
+                        DsNumber: '123'
+                        DsDistrict: Santana
+                        NuZip: '02033000'
+                        DsCity: São Paulo
+                        NuPhoneDDD: '11'
+                        NuPhone: '999999999'
+                        NuMobilePhoneDDD: '11'
+                        NuMobilePhone: '999999999'
+                        NuPhone2: ''
+                        IdCompany: 0
+                        OrderId: 476
+                        OrderAddressTypeId: 2
+                        OrderAddressTypeName: Informações de Entrega
+                        CustomerAddressId: 311
+                        CustomerId: 285
+                        CreatedAt: /Date(1600454840577)/
+                        Destination: Cobrança
+                        DeliveryTo: ANDERSON SILVA DE MIRANDA
+                        Address:
+                          StreetTypeId: 1
+                          StreetName: Avenida General Ataliba Leonel
+                          StreetNumber: '123'
+                          Neighborhood: Santana
+                          ZipCode: '02033000'
+                          CityId: '3550308'
+                          CityName: São Paulo
+                          StateId: SP
+                        PhoneNumbers:
+                          - PhoneType: Home
+                            RegionCode: '11'
+                            LocalNumber: '999999999'
+                          - PhoneType: Mobile
+                            RegionCode: '11'
+                            LocalNumber: '999999999'
+                      - IdCity: '3550308'
+                        IdState: SP
+                        IdAddressType: 1
+                        DsAddress: Avenida General Ataliba Leonel
+                        DsNumber: '123'
+                        DsDistrict: Santana
+                        NuZip: '02033000'
+                        DsCity: São Paulo
+                        NuPhoneDDD: '11'
+                        NuPhone: '999999999'
+                        NuMobilePhoneDDD: '11'
+                        NuMobilePhone: '999999999'
+                        NuPhone2: ''
+                        IdCompany: 0
+                        OrderId: 476
+                        OrderAddressTypeId: 3
+                        OrderAddressTypeName: Informações de Cobrança
+                        CustomerAddressId: 311
+                        CustomerId: 285
+                        CreatedAt: /Date(1600454840577)/
+                        Destination: Cobrança
+                        DeliveryTo: ANDERSON SILVA DE MIRANDA
+                        Address:
+                          StreetTypeId: 1
+                          StreetName: Avenida General Ataliba Leonel
+                          StreetNumber: '123'
+                          Neighborhood: Santana
+                          ZipCode: '02033000'
+                          CityId: '3550308'
+                          CityName: São Paulo
+                          StateId: SP
+                        PhoneNumbers:
+                          - PhoneType: Home
+                            RegionCode: '11'
+                            LocalNumber: '999999999'
+                          - PhoneType: Mobile
+                            RegionCode: '11'
+                            LocalNumber: '999999999'
+                  PaymentData:
+                    IdCity: '3550308'
+                    IdState: SP
+                    IdAddressType: 1
+                    DsAddress: Avenida General Ataliba Leonel
+                    DsNumber: '123'
+                    DsDistrict: Santana
+                    NuZip: '02033000'
+                    DsCity: São Paulo
+                    NuPhoneDDD: '11'
+                    NuPhone: '999999999'
+                    NuMobilePhoneDDD: '11'
+                    NuMobilePhone: '999999999'
+                    NuPhone2: ''
+                    IdCompany: 0
+                    OrderId: 476
+                    OrderAddressTypeId: 3
+                    OrderAddressTypeName: Informações de Cobrança
+                    CustomerAddressId: 311
+                    CustomerId: 285
+                    CreatedAt: /Date(1600454840577)/
+                    Destination: Cobrança
+                    DeliveryTo: ANDERSON SILVA DE MIRANDA
+                    Address:
+                      StreetTypeId: 1
+                      StreetName: Avenida General Ataliba Leonel
+                      StreetNumber: '123'
+                      Neighborhood: Santana
+                      ZipCode: '02033000'
+                      CityId: '3550308'
+                      CityName: São Paulo
+                      StateId: SP
+                    PhoneNumbers:
+                      - PhoneType: Home
+                        RegionCode: '11'
+                        LocalNumber: '999999999'
+                      - PhoneType: Mobile
+                        RegionCode: '11'
+                        LocalNumber: '999999999'
+                  BillingData:
+                    IdCity: '3550308'
+                    IdState: SP
+                    IdAddressType: 1
+                    DsAddress: Avenida General Ataliba Leonel
+                    DsNumber: '123'
+                    DsDistrict: Santana
+                    NuZip: '02033000'
+                    DsCity: São Paulo
+                    NuPhoneDDD: '11'
+                    NuPhone: '999999999'
+                    NuMobilePhoneDDD: '11'
+                    NuMobilePhone: '999999999'
+                    NuPhone2: ''
+                    IdCompany: 0
+                    OrderId: 476
+                    OrderAddressTypeId: 3
+                    OrderAddressTypeName: Informações de Cobrança
+                    CustomerAddressId: 311
+                    CustomerId: 285
+                    CreatedAt: /Date(1600454840577)/
+                    Destination: Cobrança
+                    DeliveryTo: ANDERSON SILVA DE MIRANDA
+                    Address:
+                      StreetTypeId: 1
+                      StreetName: Avenida General Ataliba Leonel
+                      StreetNumber: '123'
+                      Neighborhood: Santana
+                      ZipCode: '02033000'
+                      CityId: '3550308'
+                      CityName: São Paulo
+                      StateId: SP
+                    PhoneNumbers:
+                      - PhoneType: Home
+                        RegionCode: '11'
+                        LocalNumber: '999999999'
+                      - PhoneType: Mobile
+                        RegionCode: '11'
+                        LocalNumber: '999999999'
+                  ShippingData:
+                    IdCity: '3550308'
+                    IdState: SP
+                    IdAddressType: 1
+                    DsAddress: Avenida General Ataliba Leonel
+                    DsNumber: '123'
+                    DsDistrict: Santana
+                    NuZip: '02033000'
+                    DsCity: São Paulo
+                    NuPhoneDDD: '11'
+                    NuPhone: '999999999'
+                    NuMobilePhoneDDD: '11'
+                    NuMobilePhone: '999999999'
+                    NuPhone2: ''
+                    IdCompany: 0
+                    OrderId: 476
+                    OrderAddressTypeId: 2
+                    OrderAddressTypeName: Informações de Entrega
+                    CustomerAddressId: 311
+                    CustomerId: 285
+                    CreatedAt: /Date(1600454840577)/
+                    Destination: Cobrança
+                    DeliveryTo: ANDERSON SILVA DE MIRANDA
+                    Address:
+                      StreetTypeId: 1
+                      StreetName: Avenida General Ataliba Leonel
+                      StreetNumber: '123'
+                      Neighborhood: Santana
+                      ZipCode: '02033000'
+                      CityId: '3550308'
+                      CityName: São Paulo
+                      StateId: SP
+                    PhoneNumbers:
+                      - PhoneType: Home
+                        RegionCode: '11'
+                        LocalNumber: '999999999'
+                      - PhoneType: Mobile
+                        RegionCode: '11'
+                        LocalNumber: '999999999'
+                  CurrentPaymentDetails:
+                    OrderId: 476
+                    OrderPaymentStatusId: 1
+                    OrderPaymentStatusText: Aguardando confirmação de pagamento
+                    PaymentMethodId: 6
+                    PaymentMethodTypeId: 2
+                    PaymentMethodTypeName: Cartão de Crédito
+                    PaymentMethodName: VISA
+                    PaymentMethodImageFilename: visa-48px.png
+                    BillingDays: ''
+                    PaymentProviderCode: payment.braspag.rest
+                    CreditCardBrand: Visa
+                    CreditCardNumber: cV0CKWpyCN+vK8yllJbOJ21HzirHlFAb
+                    CreditCardComp: Hs+tunZTOjk=
+                    CreditCardMonthExpiration: '4'
+                    CreditCardYearExpiration: '2024'
+                    CreditCardOwnerName: TESTE FAST CHANNEL
+                    CreditCardOwnerFederalRegistry: 093.427.717-69
+                    Parcels: 6
+                    ParcelValue: 2261
+                    InterestRate: 299
+                    InstallmentCost: 1316
+                    TransactionDate: /Date(1600458226440)/
+                    BankValidation: ''
+                    PaymentExpirationDays: 0
+                    RiskAnalysisExecutionType: 0
+                    DiscountPolicyId: 0
+                    DiscountPolicyName: ''
+                    DiscountAmountValue: 0
+                    DiscountAmountTypeFlag: 0
+                    HasPaymentTransactions: false
+                    TransactionsHistory: [ ]
+                  OriginChannel:
+                    OrderId: 476
+                    SaleChannelId: 1
+                    CustomerProfileId: 1
+                    CatalogId: 1
+                    PriceTableId: 1
+                    SaleChannelName: Padrão
+                    CustomerProfileName: Padrão
+                    CatalogName: Padrão
+                    PriceTableName: Padrão
+                    CustomerProfileTypeId: 1
+                    CurrentSaleTypeId: 3
+                    IsBackorderAllowed: false
+                    IsTaxationRequired: false
+                  SourceStorage:
+                    OrderId: 476
+                    StorageId: 1
+                    StorageName: Loja Confecção A
+                    IsActive: true
+                    IsDefault: true
+                    OrderingNumber: 0
+                    MinDaysForWithdrawal: 5
+                    MaxDaysForWithdrawal: 20
+                    MaxItemsPerDelivery: 0
+                    SellsVirtualProducts: false
+                    CreatedAt: /Date(1457492400000)/
+                    FederalRegistry: '18615342000181'
+                    StateRegistry: ISENTO
+                    MainAddress:
+                      StreetTypeId: 1
+                      StreetName: Rua Júlio Ribeiro
+                      StreetNumber: '13'
+                      Neighborhood: Brás
+                      ZipCode: '03010030'
+                      CityId: '3550308'
+                      CityName: São Paulo
+                      StateId: SP
+                  Items:
+                    - OrderId: 476
+                      ProductId: TESTE-CONFECCAO-A-G
+                      ParentId: ''
+                      ProductName: Produto de Teste - Confecção A - Grande
+                      Quantity: 1
+                      ListPrice: 0
+                      SalePrice: 10000
+                      ShippingCost: 2250
+                      AssociationDiscount: 0
+                      ManualDiscount: 0
+                      CatalogDiscount: 0
+                      QuotaDiscount: 0
+                      CouponDiscount: 0
+                      PaymentDiscount: 0
+                      InstallmentCost: 1316
+                      IpiPercentage: 0
+                      IpiBaseValue: 0
+                      IpiCost: 0
+                      IcmsPercentage: 0
+                      IcmsBaseValue: 0
+                      IcmsCost: 0
+                      IcmsStPercentage: 0
+                      IcmsStBaseValue: 0
+                      IcmsStCost: 0
+                      SubtotalUnit: 10000
+                      SubtotalItem: 10000
+                      TotalProductCost: 10000
+                      MonogramText: ''
+                      GiftPackPrice: 0
+                      CategoryId: 4155
+                      TypeId: 3
+                      BrandId: 2
+                      LineId: 1
+                      DefinitionId: 1
+                      CatalogId: 1
+                      PriceTableId: 0
+                      DeliveryDays: 0
+                      DiscountPolicyId: 0
+                      DiscountPolicyName: ''
+                      DiscountAmountValue: 0
+                      DiscountAmountTypeFlag: 0
+                      IsSynched: false
+                  StatusHistory:
+                    - OrderId: 476
+                      OrderStatusId: 100
+                      OrderStatusHistoryId: 2518
+                      Removed: false
+                      CreatedAt: /Date(1600458226887)/
+                      ResponsibleUserId: 1
+                      ResponsibleUserName: Sistema (WebStore)
+                      OrderStatusName: Pendente
+                      OrderStatusDescription: 'Pedido recebido, em análise'
+                      IsActive: true
+                      Priority: 1
+                      PreviousOrderStatusIds: ''
+                      ManagerStatusTypeId: 1
+                      ManagerStatusTypeName: Pendente
+                      ManagerStatusTypePriority: 1
+                      CustomerStatusTypeId: 5
+                      CustomerStatusTypeName: Pedido Recebido
+                      CustomerStatusTypePriority: 1
+                      IsRemovable: false
+                      PossibleNextStatuses:
+                        - OrderStatusId: 101
+                          OrderStatusName: Pendente
+                          OrderStatusDescription: 'Pedido pendente, aguardando documentos'
+                          ManagerStatusTypeId: 1
+                          CustomerStatusTypeId: 5
+                          IsActive: true
+                          Priority: 1
+                          PreviousStatusIds: '100'
+                        - OrderStatusId: 102
+                          OrderStatusName: Pendente (aprovado pela análise de risco)
+                          OrderStatusDescription: 'Pedido pendente, aguardando confirmação de pagamento'
+                          ManagerStatusTypeId: 1
+                          CustomerStatusTypeId: 5
+                          IsActive: true
+                          Priority: 1
+                          PreviousStatusIds: '100,101'
+                        - OrderStatusId: 200
+                          OrderStatusName: Pendente (Aguardando confirmação de pagamento)
+                          OrderStatusDescription: Pedido aguardando confirmação de pagamento
+                          ManagerStatusTypeId: 1
+                          CustomerStatusTypeId: 5
+                          IsActive: true
+                          Priority: 1
+                          PreviousStatusIds: '100,101'
+                        - OrderStatusId: 401
+                          OrderStatusName: Cancelado
+                          OrderStatusDescription: Pedido cancelado pela operadora de cartão de crédito
+                          ManagerStatusTypeId: 2
+                          CustomerStatusTypeId: 2
+                          IsActive: true
+                          Priority: 1
+                          PreviousStatusIds: '100,101,200'
+                        - OrderStatusId: 402
+                          OrderStatusName: Cancelado
+                          OrderStatusDescription: Pedido cancelado por análise
+                          ManagerStatusTypeId: 2
+                          CustomerStatusTypeId: 2
+                          IsActive: true
+                          Priority: 1
+                          PreviousStatusIds: '100,101,200'
+                        - OrderStatusId: 403
+                          OrderStatusName: Cancelado
+                          OrderStatusDescription: Pedido cancelado pelo cliente
+                          ManagerStatusTypeId: 2
+                          CustomerStatusTypeId: 2
+                          IsActive: true
+                          Priority: 1
+                          PreviousStatusIds: '100,101,102,200,201,300,303'
+                        - OrderStatusId: 404
+                          OrderStatusName: Cancelado
+                          OrderStatusDescription: Pedido cancelado por motivos diversos
+                          ManagerStatusTypeId: 2
+                          CustomerStatusTypeId: 2
+                          IsActive: true
+                          Priority: 1
+                          PreviousStatusIds: '100,101,102,200,201,300,303'
+                  PaymentDetailsHistory:
+                    - OrderId: 476
+                      OrderPaymentStatusId: 1
+                      OrderPaymentStatusText: Aguardando confirmação de pagamento
+                      PaymentMethodId: 6
+                      PaymentMethodTypeId: 2
+                      PaymentMethodTypeName: Cartão de Crédito
+                      PaymentMethodName: VISA
+                      PaymentMethodImageFilename: visa-48px.png
+                      BillingDays: ''
+                      PaymentProviderCode: payment.braspag.rest
+                      CreditCardBrand: Visa
+                      CreditCardNumber: cV0CKWpyCN+vK8yllJbOJ21HzirHlFAb
+                      CreditCardComp: Hs+tunZTOjk=
+                      CreditCardMonthExpiration: '4'
+                      CreditCardYearExpiration: '2024'
+                      CreditCardOwnerName: TESTE FAST CHANNEL
+                      CreditCardOwnerFederalRegistry: 093.427.717-69
+                      Parcels: 6
+                      ParcelValue: 2261
+                      InterestRate: 299
+                      InstallmentCost: 1316
+                      TransactionDate: /Date(1600458226440)/
+                      BankValidation: ''
+                      PaymentExpirationDays: 0
+                      RiskAnalysisExecutionType: 0
+                      DiscountPolicyId: 0
+                      DiscountPolicyName: ''
+                      DiscountAmountValue: 0
+                      DiscountAmountTypeFlag: 0
+                      HasPaymentTransactions: false
+                      TransactionsHistory: [ ]
+                  Documents: [ ]
+  '/orders/{OrderId}/status':
+    get:
+      tags:
+        - Fluxo de Status
+      summary: GetOrderCurrentStatus
+      description: Retorna as informações detalhadas do status atual de um determinado pedido.
+      operationId: getordercurrentstatus
+      parameters:
+        - name: OrderId
+          in: path
+          description: Identificador único do pedido para se obter as informações de status
+          required: true
+          schema:
+            type: integer
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: String
+            default: application/json
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrderCurrentStatus_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 499
+                Payload:
+                  OrderId: 499
+                  OrderStatusId: 200
+                  OrderStatusHistoryId: 2561
+                  Removed: false
+                  CreatedAt: /Date(1601167436220)/
+                  ResponsibleUserId: 0
+                  ResponsibleUserName: Sistema (WebStore)
+                  OrderStatusName: Pendente (Aguardando confirmação de pagamento)
+                  OrderStatusDescription: Pedido aguardando confirmação de pagamento
+                  IsActive: true
+                  Priority: 1
+                  PreviousOrderStatusIds: '100,101'
+                  ManagerStatusTypeId: 1
+                  ManagerStatusTypeName: Pendente
+                  ManagerStatusTypePriority: 1
+                  CustomerStatusTypeId: 5
+                  CustomerStatusTypeName: Pedido Recebido
+                  CustomerStatusTypePriority: 1
+                  IsRemovable: false
+                  PossibleNextStatuses:
+                    - OrderStatusId: 201
+                      OrderStatusName: Pago
+                      OrderStatusDescription: Pagamento recebido
+                      ManagerStatusTypeId: 3
+                      CustomerStatusTypeId: 6
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '200'
+                    - OrderStatusId: 400
+                      OrderStatusName: Cancelado
+                      OrderStatusDescription: Pedido cancelado por falta de pagamento
+                      ManagerStatusTypeId: 2
+                      CustomerStatusTypeId: 2
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '200'
+                    - OrderStatusId: 401
+                      OrderStatusName: Cancelado
+                      OrderStatusDescription: Pedido cancelado pela operadora de cartão de crédito
+                      ManagerStatusTypeId: 2
+                      CustomerStatusTypeId: 2
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100,101,200'
+                    - OrderStatusId: 402
+                      OrderStatusName: Cancelado
+                      OrderStatusDescription: Pedido cancelado por análise
+                      ManagerStatusTypeId: 2
+                      CustomerStatusTypeId: 2
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100,101,200'
+                    - OrderStatusId: 403
+                      OrderStatusName: Cancelado
+                      OrderStatusDescription: Pedido cancelado pelo cliente
+                      ManagerStatusTypeId: 2
+                      CustomerStatusTypeId: 2
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100,101,102,200,201,300,303'
+                    - OrderStatusId: 404
+                      OrderStatusName: Cancelado
+                      OrderStatusDescription: Pedido cancelado por motivos diversos
+                      ManagerStatusTypeId: 2
+                      CustomerStatusTypeId: 2
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100,101,102,200,201,300,303'
+    put:
+      tags:
+        - Fluxo de Status
+      summary: SetOrderCurrentStatus
+      description: Atualiza o status atual de um determinado pedido.
+      operationId: setordercurrentstatus
+      parameters:
+        - name: OrderId
+          in: path
+          required: true
+          schema:
+            type: ''
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: String
+            default: application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetOrderCurrentStatus_Request'
+            example:
+              OrderId: 0
+              OrderStatusId: 0
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetOrderCurrentStatus_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 479
+                Payload:
+                  OrderId: 479
+                  OrderStatusId: 100
+                  OrderStatusHistoryId: 2521
+                  Removed: false
+                  CreatedAt: /Date(1600458516907)/
+                  ResponsibleUserId: 1
+                  ResponsibleUserName: Sistema (WebStore)
+                  OrderStatusName: Pendente
+                  OrderStatusDescription: 'Pedido recebido, em análise'
+                  IsActive: true
+                  Priority: 1
+                  PreviousOrderStatusIds: ''
+                  ManagerStatusTypeId: 1
+                  ManagerStatusTypeName: Pendente
+                  ManagerStatusTypePriority: 1
+                  CustomerStatusTypeId: 5
+                  CustomerStatusTypeName: Pedido Recebido
+                  CustomerStatusTypePriority: 1
+                  IsRemovable: false
+                  PossibleNextStatuses:
+                    - OrderStatusId: 101
+                      OrderStatusName: Pendente
+                      OrderStatusDescription: 'Pedido pendente, aguardando documentos'
+                      ManagerStatusTypeId: 1
+                      CustomerStatusTypeId: 5
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100'
+                    - OrderStatusId: 102
+                      OrderStatusName: Pendente (aprovado pela análise de risco)
+                      OrderStatusDescription: 'Pedido pendente, aguardando confirmação de pagamento'
+                      ManagerStatusTypeId: 1
+                      CustomerStatusTypeId: 5
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100,101'
+                    - OrderStatusId: 200
+                      OrderStatusName: Pendente (Aguardando confirmação de pagamento)
+                      OrderStatusDescription: Pedido aguardando confirmação de pagamento
+                      ManagerStatusTypeId: 1
+                      CustomerStatusTypeId: 5
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100,101'
+                    - OrderStatusId: 401
+                      OrderStatusName: Cancelado
+                      OrderStatusDescription: Pedido cancelado pela operadora de cartão de crédito
+                      ManagerStatusTypeId: 2
+                      CustomerStatusTypeId: 2
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100,101,200'
+                    - OrderStatusId: 402
+                      OrderStatusName: Cancelado
+                      OrderStatusDescription: Pedido cancelado por análise
+                      ManagerStatusTypeId: 2
+                      CustomerStatusTypeId: 2
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100,101,200'
+                    - OrderStatusId: 403
+                      OrderStatusName: Cancelado
+                      OrderStatusDescription: Pedido cancelado pelo cliente
+                      ManagerStatusTypeId: 2
+                      CustomerStatusTypeId: 2
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100,101,102,200,201,300,303'
+                    - OrderStatusId: 404
+                      OrderStatusName: Cancelado
+                      OrderStatusDescription: Pedido cancelado por motivos diversos
+                      ManagerStatusTypeId: 2
+                      CustomerStatusTypeId: 2
+                      IsActive: true
+                      Priority: 1
+                      PreviousStatusIds: '100,101,102,200,201,300,303'
+    delete:
+      tags:
+        - Fluxo de Status
+      summary: 'DeleteOrderCurrentStatus '
+      description: 'Remove o status atual de um determinado pedido, retornando tal pedido para o status anterior ao status em que o mesmo se encontra.'
+      operationId: deleteordercurrentstatus
+      parameters:
+        - name: OrderId
+          in: path
+          required: true
+          schema:
+            type: ''
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: String
+            default: application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteOrderCurrentStatus_Request'
+            example:
+              OrderId: 0
+      responses:
+        '200':
+          description: ''
+  '/orders/{OrderId}/sync':
+    get:
+      tags:
+        - Sincronização de Pedidos
+      summary: GetOrderSyncStatus
+      description: ' Retorna a situação de sincronização de um determinado pedido.'
+      operationId: getordersyncstatus
+      parameters:
+        - name: OrderId
+          in: path
+          description: Identificador único do pedido para consulta da situação de sincronização
+          required: true
+          schema:
+            type: integer
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: String
+            default: application/json
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrderSyncStatus_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 499
+                Payload:
+                  OrderId: 499
+                  IsSynched: false
+                  LastSynchedAt: /Date(1609177587717)/
+    put:
+      tags:
+        - Sincronização de Pedidos
+      summary: 'SetOrderSyncStatus '
+      description: Atualiza a situação de sincronização de um determinado pedido.
+      operationId: setordersyncstatus
+      parameters:
+        - name: OrderId
+          in: path
+          required: true
+          schema:
+            type: ''
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: String
+            default: application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetOrderSyncStatus_Request'
+            example:
+              IsSynched: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetOrderSyncStatus_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 999
+                Payload:
+                  OrderId: 999
+                  IsSynched: true
+                  LastSynchedAt: /Date(1609177587717)/
+  '/orders/{OrderId}/tracking/{TrackingCode}':
+    get:
+      tags:
+        - Tracking/Rastreamento
+      summary: GetOrderTracking
+      description: Retorna os dados de um código de rastreio específico.
+      operationId: getordertracking
+      parameters:
+        - name: OrderId
+          in: path
+          description: Id do pedido a ser filtrado.
+          required: true
+          schema:
+            type: Integer
+        - name: TrackingCode
+          in: path
+          description: Código de rastreamento a ser filtrado.
+          required: true
+          schema:
+            type: String
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: String
+            default: application/json
+      responses:
+        '200':
+          description: "Dados de rastreio do código informado.\n\n_Esta operação requer tanto o Identificador Único do pedido quanto o respectivo código de rastreio desejado._"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrderTracking_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 2
+                  TrackingCode: AA123456789BR
+                Payload:
+                  OrderId: 2
+                  TrackingCode: AA123456789BR
+                  TrackingUrl: https://www2.correios.com.br/sistemas/rastreamento/default.cfm
+                  CreatedAt: '2022-01-26T20:14:49.9870000+00:00'
+                  ResponsibleId: 0
+                  ResponsibleName: Integration
+                  IsValid: true
+    delete:
+      tags:
+        - Tracking/Rastreamento
+      summary: DeleteOrderTracking
+      description: Remove os Dados de Rastreio de código **`TrackingCode`** para o pedido especificado por **`OrderId`**
+      operationId: deleteordertracking
+      parameters:
+        - name: OrderId
+          in: path
+          description: Id do pedido a ter as informações de rastreio removidas.
+          required: true
+          schema:
+            type: Integer
+        - name: TrackingCode
+          in: path
+          description: Código de rastreio a ser removido do pedido.
+          required: true
+          schema:
+            type: String
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+            type: String
+            default: application/json
+      responses:
+        '200':
+          description: 'Para fins de validação, os dados de rastreio relativos ao código de rastreio removido serão retornados como resposta da operação.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteOrderTracking_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 2
+                  TrackingCode: AA123456789BR
+                Payload:
+                  OrderId: 2
+                  TrackingCode: AA123456789BR
+                  TrackingUrl: https://www2.correios.com.br/sistemas/rastreamento/default.cfm
+                  CreatedAt: '2022-01-26T13:55:41.2230000+00:00'
+                  LastUpdateAt: '2022-01-26T13:56:18.1330000+00:00'
+                  ResponsibleId: 0
+                  ResponsibleName: Integration
+                  IsValid: true
+  '/orders/{OrderId}/invoices':
+    get:
+      tags:
+        - Notas Fiscais
+      summary: ListOrderInvoices
+      description: Retorna as informações detalhadas de todas as Notas Fiscais relacionadas a um pedido qualquer.
+      operationId: listorderinvoices
+      parameters:
+        - name: OrderId
+          in: path
+          description: Id do pedido a ser filtrado.
+          required: true
+          schema:
+            type: Integer
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: String
+            default: application/json
+      responses:
+        '200':
+          description: "Lista de todas as Notas Fiscais existentes para o pedido.\n\n_**Observação:** um único pedido pode ter N Notas Fiscais diferentes vinculadas ao mesmo tempo, quantas forem necessárias._"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOrderInvoices_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                TotalRecords: 1
+                TotalPages: 1
+                RequestParams:
+                  OrderId: 2
+                Payload:
+                  - OrderId: 2
+                    InvoiceNumber: NF98700123BR
+                    Description: 'Informação descritiva qualquer, relacionada com a NF em questão (até 500 caracteres)'
+                    IssuanceDate: '2022-01-25T03:00:00.0000000+00:00'
+    put:
+      tags:
+        - Notas Fiscais
+      summary: SetOrderInvoice
+      description: Salva as informações de uma Nota Fiscal para um determinado pedido.
+      operationId: setorderinvoice
+      parameters:
+        - name: OrderId
+          in: path
+          description: Id do pedido que será atualizado com as informações da Nota Fiscal.
+          required: true
+          schema:
+            type: Integer
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: String
+            default: application/json
+      requestBody:
+        description: "* **InvoiceNumber**: número da Nota Fiscal (alfanumérico, com até 25 caracteres);\n* **Description**: Texto descritivo qualquer, relacionado à Nota Fiscal. Suporta até 500 caracteres;\n* **IssuanceDate**: Data de emissão da Nota Fiscal. Pode ser enviado no formato ISO-8601. Exemplo: 2022-01-25T00:00:00-03:00 corresponde à meia-noite do dia 25 de janeiro de 2022, considerando o fuso-horário GMT-3;\n\n_Esta operação pode ser utilizada para se modificar o valor das propriedades `Description` e/ou `IssuanceDate` sempre que necessário._"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetOrderInvoice_Request'
+            example:
+              InvoiceNumber: NF98700123BR
+              Description: 'Informação descritiva qualquer, relacionada com a NF em questão (até 500 caracteres)'
+              IssuanceDate: '2022-01-25T03:00:00.0000000+00:00'
+      responses:
+        '200':
+          description: Dados da Nota Fiscal recém atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetOrderInvoice_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 2
+                  InvoiceNumber: NF98700123BR
+                  Description: 'Informação descritiva qualquer, relacionada com a NF em questão (até 500 caracteres)'
+                  IssuanceDate: '2022-01-25T03:00:00.0000000+00:00'
+                Payload:
+                  OrderId: 2
+                  InvoiceNumber: NF98700123BR
+                  Description: 'Informação descritiva qualquer, relacionada com a NF em questão (até 500 caracteres)'
+                  IssuanceDate: '2022-01-25T03:00:00.0000000+00:00'
+  '/orders/{OrderId}/tracking':
+    put:
+      tags:
+        - Tracking/Rastreamento
+      summary: SetOrderTracking
+      description: "Salva os dados de rastreio relacionados a um determinado pedido.\n\n_**Observação:** esta operação pode ser utilizada tanto para se vincular um determinado código de rastreio com o pedido quanto também para se atualizar a propriedade `TrackingUrl` do respectivo código._"
+      operationId: setordertracking
+      parameters:
+        - name: OrderId
+          in: path
+          description: Id do pedido a ser atualizado com as informações de Rastreio.
+          required: true
+          schema:
+            type: Integer
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: String
+      requestBody:
+        description: "* **`TrackingCode`**: Código para rastreamento do pedido\n* **`TrackingUrl`**: Url do site onde o código de rastreio `TrackingCode` poderá ser utilizado\n\n_Esta operação pode ser utilizada para se modificar o valor da propriedade `TrackingUrl` sempre que necessário._"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetOrderTracking_Request'
+            example:
+              TrackingCode: AA123456789BR
+              TrackingUrl: https://www2.correios.com.br/sistemas/rastreamento/default.cfm
+      responses:
+        '200':
+          description: Dados de rastreio do código recém atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetOrderTracking_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 2
+                  TrackingCode: AA123456789BR
+                  TrackingUrl: https://www2.correios.com.br/sistemas/rastreamento/default.cfm
+                Payload:
+                  OrderId: 2
+                  TrackingCode: AA123456789BR
+                  TrackingUrl: https://www2.correios.com.br/sistemas/rastreamento/default.cfm
+                  CreatedAt: '2022-01-26T20:14:49.9860000+00:00'
+                  ResponsibleId: 0
+                  ResponsibleName: Integration
+                  IsValid: true
+    get:
+      tags:
+        - Tracking/Rastreamento
+      summary: ListOrderTracking
+      description: "Retorna as informações detalhadas de todos os Dados de Rastreio relacionados a um determinado pedido.\n\n"
+      operationId: listordertracking
+      parameters:
+        - name: OrderId
+          in: path
+          description: Id do pedido a ser filtrado.
+          required: true
+          schema:
+            type: Integer
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          schema:
+            enum:
+              - application/json
+            type: String
+            default: application/json
+      responses:
+        '200':
+          description: "Lista de todos os Dados de Rastreio existentes para o pedido.\n\n_**Observação:** um único pedido pode ter N dados de rastreio diferentes vinculados ao mesmo tempo, quantos forem necessários._"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOrderTracking_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                TotalRecords: 1
+                TotalPages: 1
+                RequestParams:
+                  OrderId: 2
+                Payload:
+                  - OrderId: 2
+                    TrackingCode: AA123456789BR
+                    TrackingUrl: https://www2.correios.com.br/sistemas/rastreamento/default.cfm
+                    CreatedAt: '2022-01-26T20:14:49.9870000+00:00'
+                    ResponsibleId: 0
+                    ResponsibleName: Integration
+                    IsValid: true
+  '/orders/{OrderId}/invoices/{InvoiceNumber}':
+    delete:
+      tags:
+        - Notas Fiscais
+      summary: DeleteOrderInvoice
+      description: Remove as informações da Nota Fiscal **`InvoiceNumber`** para o pedido especificado por **`OrderId`**.
+      operationId: deleteorderinvoice
+      parameters:
+        - name: OrderId
+          in: path
+          description: Id do pedido a ter a nota fiscal removida
+          required: true
+          schema:
+            type: Integer
+        - name: InvoiceNumber
+          in: path
+          description: Número da Nota Fiscal a ser removida
+          required: true
+          schema:
+            type: String
+        - name: Accept
+          in: header
+          description: Tipo de conteúdo aceito como resposta
+          required: true
+          schema:
+            enum:
+              - application/json
+              - text/xml
+            type: String
+            default: application/json
+      responses:
+        '200':
+          description: 'Para fins de validação, os dados da nota fiscal removida serão retornados como resposta da operação.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteOrderInvoice_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 2
+                  InvoiceNumber: NF98700123BR
+                Payload:
+                  OrderId: 2
+                  InvoiceNumber: NF98700123BR
+                  Description: 'Informação descritiva qualquer, relacionada com a NF em questão (até 500 caracteres)'
+                  IssuanceDate: '2022-01-25T03:00:00.0000000+00:00'
+    get:
+      tags:
+        - Notas Fiscais
+      summary: GetOrderInvoice
+      description: Retorna as informações detalhadas de uma determinada Nota Fiscal relacionada ao pedido.
+      operationId: getorderinvoice
+      parameters:
+        - name: OrderId
+          in: path
+          description: Id do pedido a ser filtrado.
+          required: true
+          schema:
+            type: Integer
+        - name: InvoiceNumber
+          in: path
+          description: Número da Nota Fiscal a ser filtrada.
+          required: true
+          schema:
+            type: String
+      responses:
+        '200':
+          description: "Nota Fiscal com o número informado.\n\n_Esta operação requer tanto o Identificador Único do pedido quanto o respectivo número da Nota Fiscal._"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrderInvoice_Success'
+              example:
+                Success: true
+                HttpStatusCode: 200
+                RequestParams:
+                  OrderId: 2
+                  InvoiceNumber: NF98700123BR
+                Payload:
+                  OrderId: 2
+                  InvoiceNumber: NF98700123BR
+                  Description: 'Informação descritiva qualquer, relacionada com a NF em questão (até 500 caracteres)'
+                  IssuanceDate: '2022-01-25T03:00:00.0000000+00:00'
+components:
+  schemas:
+    Listagem_de_Pedidos_-_Sucesso:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            OrderType:
+              type: string
+            OrderCode:
+              type: string
+            CreatedAt:
+              type: string
+            IsSynched:
+              type: boolean
+            SalesUserId:
+              type: integer
+            ResellerId:
+              type: integer
+            SourceIpAddress:
+              type: string
+            BuyerRemarks:
+              type: string
+            HasScheduledWithdrawal:
+              type: boolean
+            TotalDeliveryDays:
+              type: integer
+            DeliveryDateLimit:
+              type: string
+            ShippingMethodId:
+              type: integer
+            ShippingMethodName:
+              type: string
+            ShippingDiscountId:
+              type: integer
+            ShippingDiscountName:
+              type: string
+            ShippingDiscountType:
+              type: integer
+            ShippingDiscountAmount:
+              type: integer
+            ProductCost:
+              type: integer
+            ProductDiscount:
+              type: integer
+            ProductDiscountQuota:
+              type: integer
+            ProductDiscountCoupon:
+              type: integer
+            ProductDiscountManual:
+              type: integer
+            ProductDiscountPayment:
+              type: integer
+            ProductDiscountAssociation:
+              type: integer
+            ShippingCost:
+              type: integer
+            ShippingDiscount:
+              type: integer
+            ShippingDiscountCoupon:
+              type: integer
+            ShippingDiscountManual:
+              type: integer
+            PaymentInstallmentCost:
+              type: integer
+            SubtotalProducts:
+              type: integer
+            SubtotalShipping:
+              type: integer
+            IpiBaseValue:
+              type: integer
+            IpiTotalCost:
+              type: integer
+            IcmsBaseValue:
+              type: integer
+            IcmsTotalCost:
+              type: integer
+            IcmsStBaseValue:
+              type: integer
+            IcmsStTotalCost:
+              type: integer
+            TotalOrderValue:
+              type: integer
+            CurrentStatus:
+              type: object
+              properties:
+                OrderId:
+                  type: integer
+                OrderStatusId:
+                  type: integer
+                OrderStatusHistoryId:
+                  type: integer
+                Removed:
+                  type: boolean
+                CreatedAt:
+                  type: string
+                ResponsibleUserId:
+                  type: integer
+                ResponsibleUserName:
+                  type: string
+                OrderStatusName:
+                  type: string
+                OrderStatusDescription:
+                  type: string
+                IsActive:
+                  type: boolean
+                Priority:
+                  type: integer
+                PreviousOrderStatusIds:
+                  type: string
+                ManagerStatusTypeId:
+                  type: integer
+                ManagerStatusTypeName:
+                  type: string
+                ManagerStatusTypePriority:
+                  type: integer
+                CustomerStatusTypeId:
+                  type: integer
+                CustomerStatusTypeName:
+                  type: string
+                CustomerStatusTypePriority:
+                  type: integer
+                IsRemovable:
+                  type: boolean
+                PossibleNextStatuses:
+                  type: array
+                  items:
+                    required:
+                      - OrderStatusId
+                      - OrderStatusName
+                      - OrderStatusDescription
+                      - ManagerStatusTypeId
+                      - CustomerStatusTypeId
+                      - IsActive
+                      - Priority
+                      - PreviousStatusIds
+                    type: object
+                    properties:
+                      OrderStatusId:
+                        type: integer
+                      OrderStatusName:
+                        type: string
+                      OrderStatusDescription:
+                        type: string
+                      ManagerStatusTypeId:
+                        type: integer
+                      CustomerStatusTypeId:
+                        type: integer
+                      IsActive:
+                        type: boolean
+                      Priority:
+                        type: integer
+                      PreviousStatusIds:
+                        type: string
+            Customer:
+              type: object
+              properties:
+                OrderId:
+                  type: integer
+                CustomerId:
+                  type: integer
+                CustomerTypeFlag:
+                  type: string
+                CustomerTypeName:
+                  type: string
+                CurrentProfileId:
+                  type: integer
+                CurrentStatusId:
+                  type: integer
+                CurrentStatusDescription:
+                  type: string
+                EmailAddress:
+                  type: string
+                FullName:
+                  type: string
+                PersonFederalRegistry:
+                  type: string
+                PersonDocument:
+                  type: string
+                CreatedAt:
+                  type: string
+                LastLoginAt:
+                  type: string
+                Birthdate:
+                  type: string
+                GenderName:
+                  type: string
+                IsMailingEnabled:
+                  type: boolean
+                IsBlacklisted:
+                  type: boolean
+                Addresses:
+                  type: array
+                  items:
+                    required:
+                      - IdCity
+                      - IdState
+                      - IdAddressType
+                      - DsAddress
+                      - DsNumber
+                      - DsDistrict
+                      - NuZip
+                      - DsCity
+                      - NuPhoneDDD
+                      - NuPhone
+                      - NuMobilePhoneDDD
+                      - NuMobilePhone
+                      - NuPhone2
+                      - IdCompany
+                      - OrderId
+                      - OrderAddressTypeId
+                      - OrderAddressTypeName
+                      - CustomerAddressId
+                      - CustomerId
+                      - CreatedAt
+                      - Destination
+                      - DeliveryTo
+                      - Address
+                      - PhoneNumbers
+                    type: object
+                    properties:
+                      IdCity:
+                        type: string
+                      IdState:
+                        type: string
+                      IdAddressType:
+                        type: integer
+                      DsAddress:
+                        type: string
+                      DsNumber:
+                        type: string
+                      DsDistrict:
+                        type: string
+                      NuZip:
+                        type: string
+                      DsCity:
+                        type: string
+                      NuPhoneDDD:
+                        type: string
+                      NuPhone:
+                        type: string
+                      NuMobilePhoneDDD:
+                        type: string
+                      NuMobilePhone:
+                        type: string
+                      NuPhone2:
+                        type: string
+                      IdCompany:
+                        type: integer
+                      OrderId:
+                        type: integer
+                      OrderAddressTypeId:
+                        type: integer
+                      OrderAddressTypeName:
+                        type: string
+                      CustomerAddressId:
+                        type: integer
+                      CustomerId:
+                        type: integer
+                      CreatedAt:
+                        type: string
+                      Destination:
+                        type: string
+                      DeliveryTo:
+                        type: string
+                      Address:
+                        type: object
+                        properties:
+                          StreetTypeId:
+                            type: integer
+                          StreetName:
+                            type: string
+                          StreetNumber:
+                            type: string
+                          Neighborhood:
+                            type: string
+                          ZipCode:
+                            type: string
+                          CityId:
+                            type: string
+                          CityName:
+                            type: string
+                          StateId:
+                            type: string
+                      PhoneNumbers:
+                        type: array
+                        items:
+                          required:
+                            - PhoneType
+                            - RegionCode
+                            - LocalNumber
+                          type: object
+                          properties:
+                            PhoneType:
+                              type: string
+                            RegionCode:
+                              type: string
+                            LocalNumber:
+                              type: string
+            PaymentData:
+              type: object
+              properties:
+                IdCity:
+                  type: string
+                IdState:
+                  type: string
+                IdAddressType:
+                  type: integer
+                DsAddress:
+                  type: string
+                DsNumber:
+                  type: string
+                DsDistrict:
+                  type: string
+                NuZip:
+                  type: string
+                DsCity:
+                  type: string
+                NuPhoneDDD:
+                  type: string
+                NuPhone:
+                  type: string
+                NuMobilePhoneDDD:
+                  type: string
+                NuMobilePhone:
+                  type: string
+                NuPhone2:
+                  type: string
+                IdCompany:
+                  type: integer
+                OrderId:
+                  type: integer
+                OrderAddressTypeId:
+                  type: integer
+                OrderAddressTypeName:
+                  type: string
+                CustomerAddressId:
+                  type: integer
+                CustomerId:
+                  type: integer
+                CreatedAt:
+                  type: string
+                Destination:
+                  type: string
+                DeliveryTo:
+                  type: string
+                Address:
+                  type: object
+                  properties:
+                    StreetTypeId:
+                      type: integer
+                    StreetName:
+                      type: string
+                    StreetNumber:
+                      type: string
+                    Neighborhood:
+                      type: string
+                    ZipCode:
+                      type: string
+                    CityId:
+                      type: string
+                    CityName:
+                      type: string
+                    StateId:
+                      type: string
+                PhoneNumbers:
+                  type: array
+                  items:
+                    required:
+                      - PhoneType
+                      - RegionCode
+                      - LocalNumber
+                    type: object
+                    properties:
+                      PhoneType:
+                        type: string
+                      RegionCode:
+                        type: string
+                      LocalNumber:
+                        type: string
+            BillingData:
+              type: object
+              properties:
+                IdCity:
+                  type: string
+                IdState:
+                  type: string
+                IdAddressType:
+                  type: integer
+                DsAddress:
+                  type: string
+                DsNumber:
+                  type: string
+                DsDistrict:
+                  type: string
+                NuZip:
+                  type: string
+                DsCity:
+                  type: string
+                NuPhoneDDD:
+                  type: string
+                NuPhone:
+                  type: string
+                NuMobilePhoneDDD:
+                  type: string
+                NuMobilePhone:
+                  type: string
+                NuPhone2:
+                  type: string
+                IdCompany:
+                  type: integer
+                OrderId:
+                  type: integer
+                OrderAddressTypeId:
+                  type: integer
+                OrderAddressTypeName:
+                  type: string
+                CustomerAddressId:
+                  type: integer
+                CustomerId:
+                  type: integer
+                CreatedAt:
+                  type: string
+                Destination:
+                  type: string
+                DeliveryTo:
+                  type: string
+                Address:
+                  type: object
+                  properties:
+                    StreetTypeId:
+                      type: integer
+                    StreetName:
+                      type: string
+                    StreetNumber:
+                      type: string
+                    Neighborhood:
+                      type: string
+                    ZipCode:
+                      type: string
+                    CityId:
+                      type: string
+                    CityName:
+                      type: string
+                    StateId:
+                      type: string
+                PhoneNumbers:
+                  type: array
+                  items:
+                    required:
+                      - PhoneType
+                      - RegionCode
+                      - LocalNumber
+                    type: object
+                    properties:
+                      PhoneType:
+                        type: string
+                      RegionCode:
+                        type: string
+                      LocalNumber:
+                        type: string
+            ShippingData:
+              type: object
+              properties:
+                IdCity:
+                  type: string
+                IdState:
+                  type: string
+                IdAddressType:
+                  type: integer
+                DsAddress:
+                  type: string
+                DsNumber:
+                  type: string
+                DsDistrict:
+                  type: string
+                NuZip:
+                  type: string
+                DsCity:
+                  type: string
+                NuPhoneDDD:
+                  type: string
+                NuPhone:
+                  type: string
+                NuMobilePhoneDDD:
+                  type: string
+                NuMobilePhone:
+                  type: string
+                NuPhone2:
+                  type: string
+                IdCompany:
+                  type: integer
+                OrderId:
+                  type: integer
+                OrderAddressTypeId:
+                  type: integer
+                OrderAddressTypeName:
+                  type: string
+                CustomerAddressId:
+                  type: integer
+                CustomerId:
+                  type: integer
+                CreatedAt:
+                  type: string
+                Destination:
+                  type: string
+                DeliveryTo:
+                  type: string
+                Address:
+                  type: object
+                  properties:
+                    StreetTypeId:
+                      type: integer
+                    StreetName:
+                      type: string
+                    StreetNumber:
+                      type: string
+                    Neighborhood:
+                      type: string
+                    ZipCode:
+                      type: string
+                    CityId:
+                      type: string
+                    CityName:
+                      type: string
+                    StateId:
+                      type: string
+                PhoneNumbers:
+                  type: array
+                  items:
+                    required:
+                      - PhoneType
+                      - RegionCode
+                      - LocalNumber
+                    type: object
+                    properties:
+                      PhoneType:
+                        type: string
+                      RegionCode:
+                        type: string
+                      LocalNumber:
+                        type: string
+            CurrentPaymentDetails:
+              type: object
+              properties:
+                OrderId:
+                  type: integer
+                OrderPaymentStatusId:
+                  type: integer
+                OrderPaymentStatusText:
+                  type: string
+                PaymentMethodId:
+                  type: integer
+                PaymentMethodTypeId:
+                  type: integer
+                PaymentMethodTypeName:
+                  type: string
+                PaymentMethodName:
+                  type: string
+                PaymentMethodImageFilename:
+                  type: string
+                BillingDays:
+                  type: string
+                PaymentProviderCode:
+                  type: string
+                CreditCardBrand:
+                  type: string
+                CreditCardNumber:
+                  type: string
+                CreditCardComp:
+                  type: string
+                CreditCardMonthExpiration:
+                  type: string
+                CreditCardYearExpiration:
+                  type: string
+                CreditCardOwnerName:
+                  type: string
+                CreditCardOwnerFederalRegistry:
+                  type: string
+                Parcels:
+                  type: integer
+                ParcelValue:
+                  type: integer
+                InterestRate:
+                  type: integer
+                InstallmentCost:
+                  type: integer
+                TransactionDate:
+                  type: string
+                BankValidation:
+                  type: string
+                PaymentExpirationDays:
+                  type: integer
+                RiskAnalysisExecutionType:
+                  type: integer
+                DiscountPolicyId:
+                  type: integer
+                DiscountPolicyName:
+                  type: string
+                DiscountAmountValue:
+                  type: integer
+                DiscountAmountTypeFlag:
+                  type: integer
+                HasPaymentTransactions:
+                  type: boolean
+                TransactionsHistory:
+                  type: array
+            OriginChannel:
+              type: object
+              properties:
+                OrderId:
+                  type: integer
+                SaleChannelId:
+                  type: integer
+                CustomerProfileId:
+                  type: integer
+                CatalogId:
+                  type: integer
+                PriceTableId:
+                  type: integer
+                SaleChannelName:
+                  type: string
+                CustomerProfileName:
+                  type: string
+                CatalogName:
+                  type: string
+                PriceTableName:
+                  type: string
+                CustomerProfileTypeId:
+                  type: integer
+                CurrentSaleTypeId:
+                  type: integer
+                IsBackorderAllowed:
+                  type: boolean
+                IsTaxationRequired:
+                  type: boolean
+            SourceStorage:
+              type: object
+              properties:
+                OrderId:
+                  type: integer
+                StorageId:
+                  type: integer
+                StorageName:
+                  type: string
+                IsActive:
+                  type: boolean
+                IsDefault:
+                  type: boolean
+                OrderingNumber:
+                  type: integer
+                MinDaysForWithdrawal:
+                  type: integer
+                MaxDaysForWithdrawal:
+                  type: integer
+                MaxItemsPerDelivery:
+                  type: integer
+                SellsVirtualProducts:
+                  type: boolean
+                CreatedAt:
+                  type: string
+                FederalRegistry:
+                  type: string
+                StateRegistry:
+                  type: string
+                MainAddress:
+                  type: object
+                  properties:
+                    StreetTypeId:
+                      type: integer
+                    StreetName:
+                      type: string
+                    StreetNumber:
+                      type: string
+                    Neighborhood:
+                      type: string
+                    ZipCode:
+                      type: string
+                    CityId:
+                      type: string
+                    CityName:
+                      type: string
+                    StateId:
+                      type: string
+            Items:
+              type: array
+              items:
+                required:
+                  - OrderId
+                  - ProductId
+                  - ParentId
+                  - ProductName
+                  - Quantity
+                  - ListPrice
+                  - SalePrice
+                  - ShippingCost
+                  - AssociationDiscount
+                  - ManualDiscount
+                  - CatalogDiscount
+                  - QuotaDiscount
+                  - CouponDiscount
+                  - PaymentDiscount
+                  - InstallmentCost
+                  - IpiPercentage
+                  - IpiBaseValue
+                  - IpiCost
+                  - IcmsPercentage
+                  - IcmsBaseValue
+                  - IcmsCost
+                  - IcmsStPercentage
+                  - IcmsStBaseValue
+                  - IcmsStCost
+                  - SubtotalUnit
+                  - SubtotalItem
+                  - TotalProductCost
+                  - MonogramText
+                  - GiftPackPrice
+                  - CategoryId
+                  - TypeId
+                  - BrandId
+                  - LineId
+                  - DefinitionId
+                  - CatalogId
+                  - PriceTableId
+                  - DeliveryDays
+                  - DiscountPolicyId
+                  - DiscountPolicyName
+                  - DiscountAmountValue
+                  - DiscountAmountTypeFlag
+                  - IsSynched
+                type: object
+                properties:
+                  OrderId:
+                    type: integer
+                  ProductId:
+                    type: string
+                  ParentId:
+                    type: string
+                  ProductName:
+                    type: string
+                  Quantity:
+                    type: integer
+                  ListPrice:
+                    type: integer
+                  SalePrice:
+                    type: integer
+                  ShippingCost:
+                    type: integer
+                  AssociationDiscount:
+                    type: integer
+                  ManualDiscount:
+                    type: integer
+                  CatalogDiscount:
+                    type: integer
+                  QuotaDiscount:
+                    type: integer
+                  CouponDiscount:
+                    type: integer
+                  PaymentDiscount:
+                    type: integer
+                  InstallmentCost:
+                    type: integer
+                  IpiPercentage:
+                    type: integer
+                  IpiBaseValue:
+                    type: integer
+                  IpiCost:
+                    type: integer
+                  IcmsPercentage:
+                    type: integer
+                  IcmsBaseValue:
+                    type: integer
+                  IcmsCost:
+                    type: integer
+                  IcmsStPercentage:
+                    type: integer
+                  IcmsStBaseValue:
+                    type: integer
+                  IcmsStCost:
+                    type: integer
+                  SubtotalUnit:
+                    type: integer
+                  SubtotalItem:
+                    type: integer
+                  TotalProductCost:
+                    type: integer
+                  MonogramText:
+                    type: string
+                  GiftPackPrice:
+                    type: integer
+                  CategoryId:
+                    type: integer
+                  TypeId:
+                    type: integer
+                  BrandId:
+                    type: integer
+                  LineId:
+                    type: integer
+                  DefinitionId:
+                    type: integer
+                  CatalogId:
+                    type: integer
+                  PriceTableId:
+                    type: integer
+                  DeliveryDays:
+                    type: integer
+                  DiscountPolicyId:
+                    type: integer
+                  DiscountPolicyName:
+                    type: string
+                  DiscountAmountValue:
+                    type: integer
+                  DiscountAmountTypeFlag:
+                    type: integer
+                  IsSynched:
+                    type: boolean
+            StatusHistory:
+              type: array
+              items:
+                required:
+                  - OrderId
+                  - OrderStatusId
+                  - OrderStatusHistoryId
+                  - Removed
+                  - CreatedAt
+                  - ResponsibleUserId
+                  - ResponsibleUserName
+                  - OrderStatusName
+                  - OrderStatusDescription
+                  - IsActive
+                  - Priority
+                  - PreviousOrderStatusIds
+                  - ManagerStatusTypeId
+                  - ManagerStatusTypeName
+                  - ManagerStatusTypePriority
+                  - CustomerStatusTypeId
+                  - CustomerStatusTypeName
+                  - CustomerStatusTypePriority
+                  - IsRemovable
+                  - PossibleNextStatuses
+                type: object
+                properties:
+                  OrderId:
+                    type: integer
+                  OrderStatusId:
+                    type: integer
+                  OrderStatusHistoryId:
+                    type: integer
+                  Removed:
+                    type: boolean
+                  CreatedAt:
+                    type: string
+                  ResponsibleUserId:
+                    type: integer
+                  ResponsibleUserName:
+                    type: string
+                  OrderStatusName:
+                    type: string
+                  OrderStatusDescription:
+                    type: string
+                  IsActive:
+                    type: boolean
+                  Priority:
+                    type: integer
+                  PreviousOrderStatusIds:
+                    type: string
+                  ManagerStatusTypeId:
+                    type: integer
+                  ManagerStatusTypeName:
+                    type: string
+                  ManagerStatusTypePriority:
+                    type: integer
+                  CustomerStatusTypeId:
+                    type: integer
+                  CustomerStatusTypeName:
+                    type: string
+                  CustomerStatusTypePriority:
+                    type: integer
+                  IsRemovable:
+                    type: boolean
+                  PossibleNextStatuses:
+                    type: array
+                    items:
+                      required:
+                        - OrderStatusId
+                        - OrderStatusName
+                        - OrderStatusDescription
+                        - ManagerStatusTypeId
+                        - CustomerStatusTypeId
+                        - IsActive
+                        - Priority
+                        - PreviousStatusIds
+                      type: object
+                      properties:
+                        OrderStatusId:
+                          type: integer
+                        OrderStatusName:
+                          type: string
+                        OrderStatusDescription:
+                          type: string
+                        ManagerStatusTypeId:
+                          type: integer
+                        CustomerStatusTypeId:
+                          type: integer
+                        IsActive:
+                          type: boolean
+                        Priority:
+                          type: integer
+                        PreviousStatusIds:
+                          type: string
+            PaymentDetailsHistory:
+              type: array
+              items:
+                required:
+                  - OrderId
+                  - OrderPaymentStatusId
+                  - OrderPaymentStatusText
+                  - PaymentMethodId
+                  - PaymentMethodTypeId
+                  - PaymentMethodTypeName
+                  - PaymentMethodName
+                  - PaymentMethodImageFilename
+                  - BillingDays
+                  - PaymentProviderCode
+                  - CreditCardBrand
+                  - CreditCardNumber
+                  - CreditCardComp
+                  - CreditCardMonthExpiration
+                  - CreditCardYearExpiration
+                  - CreditCardOwnerName
+                  - CreditCardOwnerFederalRegistry
+                  - Parcels
+                  - ParcelValue
+                  - InterestRate
+                  - InstallmentCost
+                  - TransactionDate
+                  - BankValidation
+                  - PaymentExpirationDays
+                  - RiskAnalysisExecutionType
+                  - DiscountPolicyId
+                  - DiscountPolicyName
+                  - DiscountAmountValue
+                  - DiscountAmountTypeFlag
+                  - HasPaymentTransactions
+                  - TransactionsHistory
+                type: object
+                properties:
+                  OrderId:
+                    type: integer
+                  OrderPaymentStatusId:
+                    type: integer
+                  OrderPaymentStatusText:
+                    type: string
+                  PaymentMethodId:
+                    type: integer
+                  PaymentMethodTypeId:
+                    type: integer
+                  PaymentMethodTypeName:
+                    type: string
+                  PaymentMethodName:
+                    type: string
+                  PaymentMethodImageFilename:
+                    type: string
+                  BillingDays:
+                    type: string
+                  PaymentProviderCode:
+                    type: string
+                  CreditCardBrand:
+                    type: string
+                  CreditCardNumber:
+                    type: string
+                  CreditCardComp:
+                    type: string
+                  CreditCardMonthExpiration:
+                    type: string
+                  CreditCardYearExpiration:
+                    type: string
+                  CreditCardOwnerName:
+                    type: string
+                  CreditCardOwnerFederalRegistry:
+                    type: string
+                  Parcels:
+                    type: integer
+                  ParcelValue:
+                    type: integer
+                  InterestRate:
+                    type: integer
+                  InstallmentCost:
+                    type: integer
+                  TransactionDate:
+                    type: string
+                  BankValidation:
+                    type: string
+                  PaymentExpirationDays:
+                    type: integer
+                  RiskAnalysisExecutionType:
+                    type: integer
+                  DiscountPolicyId:
+                    type: integer
+                  DiscountPolicyName:
+                    type: string
+                  DiscountAmountValue:
+                    type: integer
+                  DiscountAmountTypeFlag:
+                    type: integer
+                  HasPaymentTransactions:
+                    type: boolean
+                  TransactionsHistory:
+                    type: array
+            Documents:
+              type: array
+      x-apim-schema-name: Listagem de Pedidos - Sucesso
+    Listagem_de_Pedidos_-_Sem_Conte_do:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        TotalRecords:
+          type: integer
+        TotalPages:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            CreatedAfter:
+              type: string
+            ResellerIds:
+              type: array
+              items:
+                type: integer
+        Payload:
+          type: array
+      x-apim-schema-name: Listagem de Pedidos - Sem Conteúdo
+    GetOrderDetails_Sucess:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            OrderType:
+              type: string
+            OrderCode:
+              type: string
+            CreatedAt:
+              type: string
+            IsSynched:
+              type: boolean
+            SalesUserId:
+              type: integer
+            SourceIpAddress:
+              type: string
+            BuyerRemarks:
+              type: string
+            HasScheduledWithdrawal:
+              type: boolean
+            TotalDeliveryDays:
+              type: integer
+            DeliveryDateLimit:
+              type: string
+            ShippingMethodId:
+              type: integer
+            ShippingMethodName:
+              type: string
+            ShippingDiscountId:
+              type: integer
+            ShippingDiscountName:
+              type: string
+            ShippingDiscountType:
+              type: integer
+            ShippingDiscountAmount:
+              type: integer
+            ProductCost:
+              type: integer
+            ProductDiscount:
+              type: integer
+            ProductDiscountQuota:
+              type: integer
+            ProductDiscountCoupon:
+              type: integer
+            ProductDiscountManual:
+              type: integer
+            ProductDiscountPayment:
+              type: integer
+            ProductDiscountAssociation:
+              type: integer
+            ShippingCost:
+              type: integer
+            ShippingDiscount:
+              type: integer
+            ShippingDiscountCoupon:
+              type: integer
+            ShippingDiscountManual:
+              type: integer
+            PaymentInstallmentCost:
+              type: integer
+            SubtotalProducts:
+              type: integer
+            SubtotalShipping:
+              type: integer
+            IpiBaseValue:
+              type: integer
+            IpiTotalCost:
+              type: integer
+            IcmsBaseValue:
+              type: integer
+            IcmsTotalCost:
+              type: integer
+            IcmsStBaseValue:
+              type: integer
+            IcmsStTotalCost:
+              type: integer
+            TotalOrderValue:
+              type: integer
+            CurrentStatus:
+              type: object
+              properties:
+                OrderId:
+                  type: integer
+                OrderStatusId:
+                  type: integer
+                OrderStatusHistoryId:
+                  type: integer
+                Removed:
+                  type: boolean
+                CreatedAt:
+                  type: string
+                ResponsibleUserId:
+                  type: integer
+                ResponsibleUserName:
+                  type: string
+                OrderStatusName:
+                  type: string
+                OrderStatusDescription:
+                  type: string
+                IsActive:
+                  type: boolean
+                Priority:
+                  type: integer
+                PreviousOrderStatusIds:
+                  type: string
+                ManagerStatusTypeId:
+                  type: integer
+                ManagerStatusTypeName:
+                  type: string
+                ManagerStatusTypePriority:
+                  type: integer
+                CustomerStatusTypeId:
+                  type: integer
+                CustomerStatusTypeName:
+                  type: string
+                CustomerStatusTypePriority:
+                  type: integer
+                IsRemovable:
+                  type: boolean
+                PossibleNextStatuses:
+                  type: array
+                  items:
+                    required:
+                      - OrderStatusId
+                      - OrderStatusName
+                      - OrderStatusDescription
+                      - ManagerStatusTypeId
+                      - CustomerStatusTypeId
+                      - IsActive
+                      - Priority
+                      - PreviousStatusIds
+                    type: object
+                    properties:
+                      OrderStatusId:
+                        type: integer
+                      OrderStatusName:
+                        type: string
+                      OrderStatusDescription:
+                        type: string
+                      ManagerStatusTypeId:
+                        type: integer
+                      CustomerStatusTypeId:
+                        type: integer
+                      IsActive:
+                        type: boolean
+                      Priority:
+                        type: integer
+                      PreviousStatusIds:
+                        type: string
+            Customer:
+              type: object
+              properties:
+                OrderId:
+                  type: integer
+                CustomerId:
+                  type: integer
+                CustomerTypeFlag:
+                  type: string
+                CustomerTypeName:
+                  type: string
+                CurrentProfileId:
+                  type: integer
+                CurrentStatusId:
+                  type: integer
+                CurrentStatusDescription:
+                  type: string
+                EmailAddress:
+                  type: string
+                FullName:
+                  type: string
+                PersonFederalRegistry:
+                  type: string
+                PersonDocument:
+                  type: string
+                CreatedAt:
+                  type: string
+                LastLoginAt:
+                  type: string
+                Birthdate:
+                  type: string
+                GenderName:
+                  type: string
+                IsMailingEnabled:
+                  type: boolean
+                IsBlacklisted:
+                  type: boolean
+                Addresses:
+                  type: array
+                  items:
+                    required:
+                      - IdCity
+                      - IdState
+                      - IdAddressType
+                      - DsAddress
+                      - DsNumber
+                      - DsDistrict
+                      - NuZip
+                      - DsCity
+                      - NuPhoneDDD
+                      - NuPhone
+                      - NuMobilePhoneDDD
+                      - NuMobilePhone
+                      - NuPhone2
+                      - IdCompany
+                      - OrderId
+                      - OrderAddressTypeId
+                      - OrderAddressTypeName
+                      - CustomerAddressId
+                      - CustomerId
+                      - CreatedAt
+                      - Destination
+                      - DeliveryTo
+                      - Address
+                      - PhoneNumbers
+                    type: object
+                    properties:
+                      IdCity:
+                        type: string
+                      IdState:
+                        type: string
+                      IdAddressType:
+                        type: integer
+                      DsAddress:
+                        type: string
+                      DsNumber:
+                        type: string
+                      DsDistrict:
+                        type: string
+                      NuZip:
+                        type: string
+                      DsCity:
+                        type: string
+                      NuPhoneDDD:
+                        type: string
+                      NuPhone:
+                        type: string
+                      NuMobilePhoneDDD:
+                        type: string
+                      NuMobilePhone:
+                        type: string
+                      NuPhone2:
+                        type: string
+                      IdCompany:
+                        type: integer
+                      OrderId:
+                        type: integer
+                      OrderAddressTypeId:
+                        type: integer
+                      OrderAddressTypeName:
+                        type: string
+                      CustomerAddressId:
+                        type: integer
+                      CustomerId:
+                        type: integer
+                      CreatedAt:
+                        type: string
+                      Destination:
+                        type: string
+                      DeliveryTo:
+                        type: string
+                      Address:
+                        type: object
+                        properties:
+                          StreetTypeId:
+                            type: integer
+                          StreetName:
+                            type: string
+                          StreetNumber:
+                            type: string
+                          Neighborhood:
+                            type: string
+                          ZipCode:
+                            type: string
+                          CityId:
+                            type: string
+                          CityName:
+                            type: string
+                          StateId:
+                            type: string
+                      PhoneNumbers:
+                        type: array
+                        items:
+                          required:
+                            - PhoneType
+                            - RegionCode
+                            - LocalNumber
+                          type: object
+                          properties:
+                            PhoneType:
+                              type: string
+                            RegionCode:
+                              type: string
+                            LocalNumber:
+                              type: string
+            PaymentData:
+              type: object
+              properties:
+                IdCity:
+                  type: string
+                IdState:
+                  type: string
+                IdAddressType:
+                  type: integer
+                DsAddress:
+                  type: string
+                DsNumber:
+                  type: string
+                DsDistrict:
+                  type: string
+                NuZip:
+                  type: string
+                DsCity:
+                  type: string
+                NuPhoneDDD:
+                  type: string
+                NuPhone:
+                  type: string
+                NuMobilePhoneDDD:
+                  type: string
+                NuMobilePhone:
+                  type: string
+                NuPhone2:
+                  type: string
+                IdCompany:
+                  type: integer
+                OrderId:
+                  type: integer
+                OrderAddressTypeId:
+                  type: integer
+                OrderAddressTypeName:
+                  type: string
+                CustomerAddressId:
+                  type: integer
+                CustomerId:
+                  type: integer
+                CreatedAt:
+                  type: string
+                Destination:
+                  type: string
+                DeliveryTo:
+                  type: string
+                Address:
+                  type: object
+                  properties:
+                    StreetTypeId:
+                      type: integer
+                    StreetName:
+                      type: string
+                    StreetNumber:
+                      type: string
+                    Neighborhood:
+                      type: string
+                    ZipCode:
+                      type: string
+                    CityId:
+                      type: string
+                    CityName:
+                      type: string
+                    StateId:
+                      type: string
+                PhoneNumbers:
+                  type: array
+                  items:
+                    required:
+                      - PhoneType
+                      - RegionCode
+                      - LocalNumber
+                    type: object
+                    properties:
+                      PhoneType:
+                        type: string
+                      RegionCode:
+                        type: string
+                      LocalNumber:
+                        type: string
+            BillingData:
+              type: object
+              properties:
+                IdCity:
+                  type: string
+                IdState:
+                  type: string
+                IdAddressType:
+                  type: integer
+                DsAddress:
+                  type: string
+                DsNumber:
+                  type: string
+                DsDistrict:
+                  type: string
+                NuZip:
+                  type: string
+                DsCity:
+                  type: string
+                NuPhoneDDD:
+                  type: string
+                NuPhone:
+                  type: string
+                NuMobilePhoneDDD:
+                  type: string
+                NuMobilePhone:
+                  type: string
+                NuPhone2:
+                  type: string
+                IdCompany:
+                  type: integer
+                OrderId:
+                  type: integer
+                OrderAddressTypeId:
+                  type: integer
+                OrderAddressTypeName:
+                  type: string
+                CustomerAddressId:
+                  type: integer
+                CustomerId:
+                  type: integer
+                CreatedAt:
+                  type: string
+                Destination:
+                  type: string
+                DeliveryTo:
+                  type: string
+                Address:
+                  type: object
+                  properties:
+                    StreetTypeId:
+                      type: integer
+                    StreetName:
+                      type: string
+                    StreetNumber:
+                      type: string
+                    Neighborhood:
+                      type: string
+                    ZipCode:
+                      type: string
+                    CityId:
+                      type: string
+                    CityName:
+                      type: string
+                    StateId:
+                      type: string
+                PhoneNumbers:
+                  type: array
+                  items:
+                    required:
+                      - PhoneType
+                      - RegionCode
+                      - LocalNumber
+                    type: object
+                    properties:
+                      PhoneType:
+                        type: string
+                      RegionCode:
+                        type: string
+                      LocalNumber:
+                        type: string
+            ShippingData:
+              type: object
+              properties:
+                IdCity:
+                  type: string
+                IdState:
+                  type: string
+                IdAddressType:
+                  type: integer
+                DsAddress:
+                  type: string
+                DsNumber:
+                  type: string
+                DsDistrict:
+                  type: string
+                NuZip:
+                  type: string
+                DsCity:
+                  type: string
+                NuPhoneDDD:
+                  type: string
+                NuPhone:
+                  type: string
+                NuMobilePhoneDDD:
+                  type: string
+                NuMobilePhone:
+                  type: string
+                NuPhone2:
+                  type: string
+                IdCompany:
+                  type: integer
+                OrderId:
+                  type: integer
+                OrderAddressTypeId:
+                  type: integer
+                OrderAddressTypeName:
+                  type: string
+                CustomerAddressId:
+                  type: integer
+                CustomerId:
+                  type: integer
+                CreatedAt:
+                  type: string
+                Destination:
+                  type: string
+                DeliveryTo:
+                  type: string
+                Address:
+                  type: object
+                  properties:
+                    StreetTypeId:
+                      type: integer
+                    StreetName:
+                      type: string
+                    StreetNumber:
+                      type: string
+                    Neighborhood:
+                      type: string
+                    ZipCode:
+                      type: string
+                    CityId:
+                      type: string
+                    CityName:
+                      type: string
+                    StateId:
+                      type: string
+                PhoneNumbers:
+                  type: array
+                  items:
+                    required:
+                      - PhoneType
+                      - RegionCode
+                      - LocalNumber
+                    type: object
+                    properties:
+                      PhoneType:
+                        type: string
+                      RegionCode:
+                        type: string
+                      LocalNumber:
+                        type: string
+            CurrentPaymentDetails:
+              type: object
+              properties:
+                OrderId:
+                  type: integer
+                OrderPaymentStatusId:
+                  type: integer
+                OrderPaymentStatusText:
+                  type: string
+                PaymentMethodId:
+                  type: integer
+                PaymentMethodTypeId:
+                  type: integer
+                PaymentMethodTypeName:
+                  type: string
+                PaymentMethodName:
+                  type: string
+                PaymentMethodImageFilename:
+                  type: string
+                BillingDays:
+                  type: string
+                PaymentProviderCode:
+                  type: string
+                CreditCardBrand:
+                  type: string
+                CreditCardNumber:
+                  type: string
+                CreditCardComp:
+                  type: string
+                CreditCardMonthExpiration:
+                  type: string
+                CreditCardYearExpiration:
+                  type: string
+                CreditCardOwnerName:
+                  type: string
+                CreditCardOwnerFederalRegistry:
+                  type: string
+                Parcels:
+                  type: integer
+                ParcelValue:
+                  type: integer
+                InterestRate:
+                  type: integer
+                InstallmentCost:
+                  type: integer
+                TransactionDate:
+                  type: string
+                BankValidation:
+                  type: string
+                PaymentExpirationDays:
+                  type: integer
+                RiskAnalysisExecutionType:
+                  type: integer
+                DiscountPolicyId:
+                  type: integer
+                DiscountPolicyName:
+                  type: string
+                DiscountAmountValue:
+                  type: integer
+                DiscountAmountTypeFlag:
+                  type: integer
+                HasPaymentTransactions:
+                  type: boolean
+                MostRecentTransaction:
+                  type: object
+                  properties:
+                    TransactionGuid:
+                      type: string
+                    Timestamp:
+                      type: string
+                    Username:
+                      type: string
+                    HasErrors:
+                      type: boolean
+                    TransactionData:
+                      type: array
+                      items:
+                        required:
+                          - TransactionKey
+                          - TransactionValue
+                          - TransactionInfo
+                          - TransactionId
+                          - TransactionGuid
+                          - TransactionTimestamp
+                          - TransactionUsername
+                          - TransactionIsError
+                        type: object
+                        properties:
+                          TransactionKey:
+                            type: string
+                          TransactionValue:
+                            type: string
+                          TransactionInfo:
+                            type: string
+                          TransactionId:
+                            type: integer
+                          TransactionGuid:
+                            type: string
+                          TransactionTimestamp:
+                            type: string
+                          TransactionUsername:
+                            type: string
+                          TransactionIsError:
+                            type: boolean
+                TransactionsHistory:
+                  type: array
+                  items:
+                    required:
+                      - TransactionGuid
+                      - Timestamp
+                      - Username
+                      - HasErrors
+                      - TransactionData
+                    type: object
+                    properties:
+                      TransactionGuid:
+                        type: string
+                      Timestamp:
+                        type: string
+                      Username:
+                        type: string
+                      HasErrors:
+                        type: boolean
+                      TransactionData:
+                        type: array
+                        items:
+                          required:
+                            - TransactionKey
+                            - TransactionValue
+                            - TransactionInfo
+                            - TransactionId
+                            - TransactionGuid
+                            - TransactionTimestamp
+                            - TransactionUsername
+                            - TransactionIsError
+                          type: object
+                          properties:
+                            TransactionKey:
+                              type: string
+                            TransactionValue:
+                              type: string
+                            TransactionInfo:
+                              type: string
+                            TransactionId:
+                              type: integer
+                            TransactionGuid:
+                              type: string
+                            TransactionTimestamp:
+                              type: string
+                            TransactionUsername:
+                              type: string
+                            TransactionIsError:
+                              type: boolean
+            OriginChannel:
+              type: object
+              properties:
+                OrderId:
+                  type: integer
+                SaleChannelId:
+                  type: integer
+                CustomerProfileId:
+                  type: integer
+                CatalogId:
+                  type: integer
+                PriceTableId:
+                  type: integer
+                SaleChannelName:
+                  type: string
+                CustomerProfileName:
+                  type: string
+                CatalogName:
+                  type: string
+                PriceTableName:
+                  type: string
+                CustomerProfileTypeId:
+                  type: integer
+                CurrentSaleTypeId:
+                  type: integer
+                IsBackorderAllowed:
+                  type: boolean
+                IsTaxationRequired:
+                  type: boolean
+            SourceStorage:
+              type: object
+              properties:
+                OrderId:
+                  type: integer
+                StorageId:
+                  type: integer
+                StorageName:
+                  type: string
+                IsActive:
+                  type: boolean
+                IsDefault:
+                  type: boolean
+                OrderingNumber:
+                  type: integer
+                MinDaysForWithdrawal:
+                  type: integer
+                MaxDaysForWithdrawal:
+                  type: integer
+                MaxItemsPerDelivery:
+                  type: integer
+                SellsVirtualProducts:
+                  type: boolean
+                CreatedAt:
+                  type: string
+                FederalRegistry:
+                  type: string
+                StateRegistry:
+                  type: string
+                MainAddress:
+                  type: object
+                  properties:
+                    StreetTypeId:
+                      type: integer
+                    StreetName:
+                      type: string
+                    StreetNumber:
+                      type: string
+                    Neighborhood:
+                      type: string
+                    ZipCode:
+                      type: string
+                    CityId:
+                      type: string
+                    CityName:
+                      type: string
+                    StateId:
+                      type: string
+            Items:
+              type: array
+              items:
+                required:
+                  - OrderId
+                  - ProductId
+                  - ParentId
+                  - ProductName
+                  - Quantity
+                  - ListPrice
+                  - SalePrice
+                  - ShippingCost
+                  - AssociationDiscount
+                  - ManualDiscount
+                  - CatalogDiscount
+                  - QuotaDiscount
+                  - CouponDiscount
+                  - PaymentDiscount
+                  - InstallmentCost
+                  - IpiPercentage
+                  - IpiBaseValue
+                  - IpiCost
+                  - IcmsPercentage
+                  - IcmsBaseValue
+                  - IcmsCost
+                  - IcmsStPercentage
+                  - IcmsStBaseValue
+                  - IcmsStCost
+                  - SubtotalUnit
+                  - SubtotalItem
+                  - TotalProductCost
+                  - MonogramText
+                  - GiftPackPrice
+                  - CategoryId
+                  - TypeId
+                  - BrandId
+                  - LineId
+                  - DefinitionId
+                  - CatalogId
+                  - PriceTableId
+                  - DeliveryDays
+                  - DiscountPolicyId
+                  - DiscountPolicyName
+                  - DiscountAmountValue
+                  - DiscountAmountTypeFlag
+                  - IsSynched
+                type: object
+                properties:
+                  OrderId:
+                    type: integer
+                  ProductId:
+                    type: string
+                  ParentId:
+                    type: string
+                  ProductName:
+                    type: string
+                  Quantity:
+                    type: integer
+                  ListPrice:
+                    type: integer
+                  SalePrice:
+                    type: integer
+                  ShippingCost:
+                    type: integer
+                  AssociationDiscount:
+                    type: integer
+                  ManualDiscount:
+                    type: integer
+                  CatalogDiscount:
+                    type: integer
+                  QuotaDiscount:
+                    type: integer
+                  CouponDiscount:
+                    type: integer
+                  PaymentDiscount:
+                    type: integer
+                  InstallmentCost:
+                    type: integer
+                  IpiPercentage:
+                    type: integer
+                  IpiBaseValue:
+                    type: integer
+                  IpiCost:
+                    type: integer
+                  IcmsPercentage:
+                    type: integer
+                  IcmsBaseValue:
+                    type: integer
+                  IcmsCost:
+                    type: integer
+                  IcmsStPercentage:
+                    type: integer
+                  IcmsStBaseValue:
+                    type: integer
+                  IcmsStCost:
+                    type: integer
+                  SubtotalUnit:
+                    type: integer
+                  SubtotalItem:
+                    type: integer
+                  TotalProductCost:
+                    type: integer
+                  MonogramText:
+                    type: string
+                  GiftPackPrice:
+                    type: integer
+                  CategoryId:
+                    type: integer
+                  TypeId:
+                    type: integer
+                  BrandId:
+                    type: integer
+                  LineId:
+                    type: integer
+                  DefinitionId:
+                    type: integer
+                  CatalogId:
+                    type: integer
+                  PriceTableId:
+                    type: integer
+                  DeliveryDays:
+                    type: integer
+                  DiscountPolicyId:
+                    type: integer
+                  DiscountPolicyName:
+                    type: string
+                  DiscountAmountValue:
+                    type: integer
+                  DiscountAmountTypeFlag:
+                    type: integer
+                  IsSynched:
+                    type: boolean
+            StatusHistory:
+              type: array
+              items:
+                required:
+                  - OrderId
+                  - OrderStatusId
+                  - OrderStatusHistoryId
+                  - Removed
+                  - CreatedAt
+                  - ResponsibleUserId
+                  - ResponsibleUserName
+                  - OrderStatusName
+                  - OrderStatusDescription
+                  - IsActive
+                  - Priority
+                  - PreviousOrderStatusIds
+                  - ManagerStatusTypeId
+                  - ManagerStatusTypeName
+                  - ManagerStatusTypePriority
+                  - CustomerStatusTypeId
+                  - CustomerStatusTypeName
+                  - CustomerStatusTypePriority
+                  - IsRemovable
+                type: object
+                properties:
+                  OrderId:
+                    type: integer
+                  OrderStatusId:
+                    type: integer
+                  OrderStatusHistoryId:
+                    type: integer
+                  Removed:
+                    type: boolean
+                  CreatedAt:
+                    type: string
+                  ResponsibleUserId:
+                    type: integer
+                  ResponsibleUserName:
+                    type: string
+                  OrderStatusName:
+                    type: string
+                  OrderStatusDescription:
+                    type: string
+                  IsActive:
+                    type: boolean
+                  Priority:
+                    type: integer
+                  PreviousOrderStatusIds:
+                    type: string
+                  ManagerStatusTypeId:
+                    type: integer
+                  ManagerStatusTypeName:
+                    type: string
+                  ManagerStatusTypePriority:
+                    type: integer
+                  CustomerStatusTypeId:
+                    type: integer
+                  CustomerStatusTypeName:
+                    type: string
+                  CustomerStatusTypePriority:
+                    type: integer
+                  IsRemovable:
+                    type: boolean
+                  PossibleNextStatuses:
+                    type: array
+                    items:
+                      required:
+                        - OrderStatusId
+                        - OrderStatusName
+                        - OrderStatusDescription
+                        - ManagerStatusTypeId
+                        - CustomerStatusTypeId
+                        - IsActive
+                        - Priority
+                        - PreviousStatusIds
+                      type: object
+                      properties:
+                        OrderStatusId:
+                          type: integer
+                        OrderStatusName:
+                          type: string
+                        OrderStatusDescription:
+                          type: string
+                        ManagerStatusTypeId:
+                          type: integer
+                        CustomerStatusTypeId:
+                          type: integer
+                        IsActive:
+                          type: boolean
+                        Priority:
+                          type: integer
+                        PreviousStatusIds:
+                          type: string
+            PaymentDetailsHistory:
+              type: array
+              items:
+                required:
+                  - OrderId
+                  - OrderPaymentStatusId
+                  - OrderPaymentStatusText
+                  - PaymentMethodId
+                  - PaymentMethodTypeId
+                  - PaymentMethodTypeName
+                  - PaymentMethodName
+                  - PaymentMethodImageFilename
+                  - BillingDays
+                  - PaymentProviderCode
+                  - CreditCardBrand
+                  - CreditCardNumber
+                  - CreditCardComp
+                  - CreditCardMonthExpiration
+                  - CreditCardYearExpiration
+                  - CreditCardOwnerName
+                  - CreditCardOwnerFederalRegistry
+                  - Parcels
+                  - ParcelValue
+                  - InterestRate
+                  - InstallmentCost
+                  - TransactionDate
+                  - BankValidation
+                  - PaymentExpirationDays
+                  - RiskAnalysisExecutionType
+                  - DiscountPolicyId
+                  - DiscountPolicyName
+                  - DiscountAmountValue
+                  - DiscountAmountTypeFlag
+                  - HasPaymentTransactions
+                  - MostRecentTransaction
+                  - TransactionsHistory
+                type: object
+                properties:
+                  OrderId:
+                    type: integer
+                  OrderPaymentStatusId:
+                    type: integer
+                  OrderPaymentStatusText:
+                    type: string
+                  PaymentMethodId:
+                    type: integer
+                  PaymentMethodTypeId:
+                    type: integer
+                  PaymentMethodTypeName:
+                    type: string
+                  PaymentMethodName:
+                    type: string
+                  PaymentMethodImageFilename:
+                    type: string
+                  BillingDays:
+                    type: string
+                  PaymentProviderCode:
+                    type: string
+                  CreditCardBrand:
+                    type: string
+                  CreditCardNumber:
+                    type: string
+                  CreditCardComp:
+                    type: string
+                  CreditCardMonthExpiration:
+                    type: string
+                  CreditCardYearExpiration:
+                    type: string
+                  CreditCardOwnerName:
+                    type: string
+                  CreditCardOwnerFederalRegistry:
+                    type: string
+                  Parcels:
+                    type: integer
+                  ParcelValue:
+                    type: integer
+                  InterestRate:
+                    type: integer
+                  InstallmentCost:
+                    type: integer
+                  TransactionDate:
+                    type: string
+                  BankValidation:
+                    type: string
+                  PaymentExpirationDays:
+                    type: integer
+                  RiskAnalysisExecutionType:
+                    type: integer
+                  DiscountPolicyId:
+                    type: integer
+                  DiscountPolicyName:
+                    type: string
+                  DiscountAmountValue:
+                    type: integer
+                  DiscountAmountTypeFlag:
+                    type: integer
+                  HasPaymentTransactions:
+                    type: boolean
+                  MostRecentTransaction:
+                    type: object
+                    properties:
+                      TransactionGuid:
+                        type: string
+                      Timestamp:
+                        type: string
+                      Username:
+                        type: string
+                      HasErrors:
+                        type: boolean
+                      TransactionData:
+                        type: array
+                        items:
+                          required:
+                            - TransactionKey
+                            - TransactionValue
+                            - TransactionInfo
+                            - TransactionId
+                            - TransactionGuid
+                            - TransactionTimestamp
+                            - TransactionUsername
+                            - TransactionIsError
+                          type: object
+                          properties:
+                            TransactionKey:
+                              type: string
+                            TransactionValue:
+                              type: string
+                            TransactionInfo:
+                              type: string
+                            TransactionId:
+                              type: integer
+                            TransactionGuid:
+                              type: string
+                            TransactionTimestamp:
+                              type: string
+                            TransactionUsername:
+                              type: string
+                            TransactionIsError:
+                              type: boolean
+                  TransactionsHistory:
+                    type: array
+                    items:
+                      required:
+                        - TransactionGuid
+                        - Timestamp
+                        - Username
+                        - HasErrors
+                        - TransactionData
+                      type: object
+                      properties:
+                        TransactionGuid:
+                          type: string
+                        Timestamp:
+                          type: string
+                        Username:
+                          type: string
+                        HasErrors:
+                          type: boolean
+                        TransactionData:
+                          type: array
+                          items:
+                            required:
+                              - TransactionKey
+                              - TransactionValue
+                              - TransactionInfo
+                              - TransactionId
+                              - TransactionGuid
+                              - TransactionTimestamp
+                              - TransactionUsername
+                              - TransactionIsError
+                            type: object
+                            properties:
+                              TransactionKey:
+                                type: string
+                              TransactionValue:
+                                type: string
+                              TransactionInfo:
+                                type: string
+                              TransactionId:
+                                type: integer
+                              TransactionGuid:
+                                type: string
+                              TransactionTimestamp:
+                                type: string
+                              TransactionUsername:
+                                type: string
+                              TransactionIsError:
+                                type: boolean
+            Documents:
+              type: array
+      x-apim-schema-name: GetOrderDetails Sucess
+    SetOrderCurrentStatus_Request:
+      type: object
+      properties:
+        OrderId:
+          type: integer
+        OrderStatusId:
+          type: integer
+      x-apim-schema-name: SetOrderCurrentStatus Request
+    DeleteOrderCurrentStatus_Request:
+      type: object
+      properties:
+        OrderId:
+          type: integer
+      x-apim-schema-name: DeleteOrderCurrentStatus Request
+    GetOrderCurrentStatus_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            OrderStatusId:
+              type: integer
+            OrderStatusHistoryId:
+              type: integer
+            Removed:
+              type: boolean
+            CreatedAt:
+              type: string
+            ResponsibleUserId:
+              type: integer
+            ResponsibleUserName:
+              type: string
+            OrderStatusName:
+              type: string
+            OrderStatusDescription:
+              type: string
+            IsActive:
+              type: boolean
+            Priority:
+              type: integer
+            PreviousOrderStatusIds:
+              type: string
+            ManagerStatusTypeId:
+              type: integer
+            ManagerStatusTypeName:
+              type: string
+            ManagerStatusTypePriority:
+              type: integer
+            CustomerStatusTypeId:
+              type: integer
+            CustomerStatusTypeName:
+              type: string
+            CustomerStatusTypePriority:
+              type: integer
+            IsRemovable:
+              type: boolean
+            PossibleNextStatuses:
+              type: array
+              items:
+                required:
+                  - OrderStatusId
+                  - OrderStatusName
+                  - OrderStatusDescription
+                  - ManagerStatusTypeId
+                  - CustomerStatusTypeId
+                  - IsActive
+                  - Priority
+                  - PreviousStatusIds
+                type: object
+                properties:
+                  OrderStatusId:
+                    type: integer
+                  OrderStatusName:
+                    type: string
+                  OrderStatusDescription:
+                    type: string
+                  ManagerStatusTypeId:
+                    type: integer
+                  CustomerStatusTypeId:
+                    type: integer
+                  IsActive:
+                    type: boolean
+                  Priority:
+                    type: integer
+                  PreviousStatusIds:
+                    type: string
+      x-apim-schema-name: GetOrderCurrentStatus Success
+    SetOrderCurrentStatus_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            OrderStatusId:
+              type: integer
+            OrderStatusHistoryId:
+              type: integer
+            Removed:
+              type: boolean
+            CreatedAt:
+              type: string
+            ResponsibleUserId:
+              type: integer
+            ResponsibleUserName:
+              type: string
+            OrderStatusName:
+              type: string
+            OrderStatusDescription:
+              type: string
+            IsActive:
+              type: boolean
+            Priority:
+              type: integer
+            PreviousOrderStatusIds:
+              type: string
+            ManagerStatusTypeId:
+              type: integer
+            ManagerStatusTypeName:
+              type: string
+            ManagerStatusTypePriority:
+              type: integer
+            CustomerStatusTypeId:
+              type: integer
+            CustomerStatusTypeName:
+              type: string
+            CustomerStatusTypePriority:
+              type: integer
+            IsRemovable:
+              type: boolean
+            PossibleNextStatuses:
+              type: array
+              items:
+                required:
+                  - OrderStatusId
+                  - OrderStatusName
+                  - OrderStatusDescription
+                  - ManagerStatusTypeId
+                  - CustomerStatusTypeId
+                  - IsActive
+                  - Priority
+                  - PreviousStatusIds
+                type: object
+                properties:
+                  OrderStatusId:
+                    type: integer
+                  OrderStatusName:
+                    type: string
+                  OrderStatusDescription:
+                    type: string
+                  ManagerStatusTypeId:
+                    type: integer
+                  CustomerStatusTypeId:
+                    type: integer
+                  IsActive:
+                    type: boolean
+                  Priority:
+                    type: integer
+                  PreviousStatusIds:
+                    type: string
+      x-apim-schema-name: SetOrderCurrentStatus Success
+    GetOrderSyncStatus_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            IsSynched:
+              type: boolean
+            LastSynchedAt:
+              type: string
+      example:
+        Success: true
+        HttpStatusCode: 200
+        RequestParams:
+          OrderId: 14
+        Payload:
+          OrderId: 14
+          IsSynched: false
+      x-apim-schema-name: GetOrderSyncStatus Success
+    SetOrderSyncStatus_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            IsSynched:
+              type: boolean
+            LastSynchedAt:
+              type: string
+      example:
+        Success: true
+        HttpStatusCode: 200
+        RequestParams:
+          OrderId: 14
+        Payload:
+          OrderId: 14
+          IsSynched: true
+          LastSynchedAt: '2020-12-28T17:46:27.717Z'
+      x-apim-schema-name: SetOrderSyncStatus Success
+    SetOrderSyncStatus_Request:
+      type: object
+      properties:
+        IsSynched:
+          type: boolean
+      example:
+        IsSynched: true
+      x-apim-schema-name: SetOrderSyncStatus Request
+    Listagem_de_Pedidos_-_Com_Conte_do:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        TotalRecords:
+          type: integer
+        TotalPages:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            CreatedAfter:
+              type: string
+            ResellerIds:
+              type: array
+              items:
+                type: integer
+        Payload:
+          type: array
+          items:
+            required:
+              - OrderId
+              - OrderCode
+              - IsSynched
+              - CreatedAt
+              - CurrentStatusId
+              - CurrentStatusDescription
+              - CurrentStatusTypeId
+              - CurrentStatusTypeDescription
+              - CustomerId
+              - CustomerName
+              - StorageId
+              - StorageName
+              - StorageCityId
+              - StorageCityName
+              - StorageStateId
+              - ResellerId
+              - ResellerName
+              - PaymentOption
+              - OrderTotal
+            type: object
+            properties:
+              OrderId:
+                type: integer
+              OrderCode:
+                type: string
+              IsSynched:
+                type: boolean
+              CreatedAt:
+                type: string
+              CurrentStatusId:
+                type: integer
+              CurrentStatusDescription:
+                type: string
+              CurrentStatusTypeId:
+                type: integer
+              CurrentStatusTypeDescription:
+                type: string
+              CustomerId:
+                type: integer
+              CustomerName:
+                type: string
+              CustomerDocument:
+                type: string
+              CustomerType:
+                type: string
+              StorageId:
+                type: integer
+              StorageName:
+                type: string
+              StorageCityId:
+                type: string
+              StorageCityName:
+                type: string
+              StorageStateId:
+                type: string
+              ResellerId:
+                type: integer
+              ResellerName:
+                type: string
+              PaymentOption:
+                type: string
+              OrderTotal:
+                type: number
+      x-apim-schema-name: Listagem de Pedidos - Com Conteúdo
+    ListOrderTracking_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        TotalRecords:
+          type: integer
+        TotalPages:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+        Payload:
+          type: array
+          items:
+            required:
+              - OrderId
+              - TrackingCode
+              - TrackingUrl
+              - CreatedAt
+              - ResponsibleId
+              - ResponsibleName
+              - IsValid
+            type: object
+            properties:
+              OrderId:
+                type: integer
+              TrackingCode:
+                type: string
+              TrackingUrl:
+                type: string
+              CreatedAt:
+                type: string
+              ResponsibleId:
+                type: integer
+              ResponsibleName:
+                type: string
+              IsValid:
+                type: boolean
+      x-apim-schema-name: ListOrderTracking Success
+    GetOrderTracking_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            TrackingCode:
+              type: string
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            TrackingCode:
+              type: string
+            TrackingUrl:
+              type: string
+            CreatedAt:
+              type: string
+            ResponsibleId:
+              type: integer
+            ResponsibleName:
+              type: string
+            IsValid:
+              type: boolean
+      x-apim-schema-name: GetOrderTracking Success
+    SetOrderTracking_Request:
+      type: object
+      properties:
+        TrackingCode:
+          type: string
+        TrackingUrl:
+          type: string
+      x-apim-schema-name: SetOrderTracking Request
+    SetOrderTracking_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            TrackingCode:
+              type: string
+            TrackingUrl:
+              type: string
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            TrackingCode:
+              type: string
+            TrackingUrl:
+              type: string
+            CreatedAt:
+              type: string
+            ResponsibleId:
+              type: integer
+            ResponsibleName:
+              type: string
+            IsValid:
+              type: boolean
+      x-apim-schema-name: SetOrderTracking Success
+    DeleteOrderTracking_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            TrackingCode:
+              type: string
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            TrackingCode:
+              type: string
+            TrackingUrl:
+              type: string
+            CreatedAt:
+              type: string
+            LastUpdateAt:
+              type: string
+            ResponsibleId:
+              type: integer
+            ResponsibleName:
+              type: string
+            IsValid:
+              type: boolean
+      x-apim-schema-name: DeleteOrderTracking Success
+    ListOrderInvoices_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        TotalRecords:
+          type: integer
+        TotalPages:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+        Payload:
+          type: array
+          items:
+            required:
+              - OrderId
+              - InvoiceNumber
+              - Description
+              - IssuanceDate
+            type: object
+            properties:
+              OrderId:
+                type: integer
+              InvoiceNumber:
+                type: string
+              Description:
+                type: string
+              IssuanceDate:
+                type: string
+      x-apim-schema-name: ListOrderInvoices Success
+    GetOrderInvoice_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            InvoiceNumber:
+              type: string
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            InvoiceNumber:
+              type: string
+            Description:
+              type: string
+            IssuanceDate:
+              type: string
+      x-apim-schema-name: GetOrderInvoice Success
+    SetOrderInvoice_Request:
+      type: object
+      properties:
+        InvoiceNumber:
+          type: string
+        Description:
+          type: string
+        IssuanceDate:
+          type: string
+      x-apim-schema-name: SetOrderInvoice Request
+    SetOrderInvoice_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            InvoiceNumber:
+              type: string
+            Description:
+              type: string
+            IssuanceDate:
+              type: string
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            InvoiceNumber:
+              type: string
+            Description:
+              type: string
+            IssuanceDate:
+              type: string
+      x-apim-schema-name: SetOrderInvoice Success
+    DeleteOrderInvoice_Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+        HttpStatusCode:
+          type: integer
+        RequestParams:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            InvoiceNumber:
+              type: string
+        Payload:
+          type: object
+          properties:
+            OrderId:
+              type: integer
+            InvoiceNumber:
+              type: string
+            Description:
+              type: string
+            IssuanceDate:
+              type: string
+      x-apim-schema-name: DeleteOrderInvoice Success
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      name: Subscription-Key
+      in: header
+    apiKeyQuery:
+      type: apiKey
+      name: subscription-key
+      in: query
+security:
+  - apiKeyHeader: [ ]
+  - apiKeyQuery: [ ]

@@ -1,9 +1,9 @@
 package br.com.bellube.fastchannel.config;
 
 /**
- * Constantes para integração Fastchannel Commerce.
+ * Constantes para integracao Fastchannel Commerce.
  *
- * Centraliza URLs, endpoints, e configurações estáticas.
+ * Centraliza URLs, endpoints, e configuracoes estaticas.
  * Baseado no legado gbi-app-integrador.
  */
 public final class FastchannelConstants {
@@ -14,7 +14,7 @@ public final class FastchannelConstants {
 
     // ==================== URLS BASE ====================
 
-    /** URL de autenticação Azure AD para Fastchannel */
+    /** URL de autenticacao Azure AD para Fastchannel */
     public static final String AUTH_URL = "https://login.microsoftonline.com/fastchannel.com/oauth2/v2.0/token";
 
     /** URL base da API de Order Management */
@@ -65,7 +65,17 @@ public final class FastchannelConstants {
     public static final int DEFAULT_MAX_RETRIES = 3;
     public static final int DEFAULT_TIMEOUT_SECONDS = 30;
     public static final int DEFAULT_RATE_LIMIT_PER_MINUTE = 30;
+    public static final int DEFAULT_ORDER_IMPORT_CLAIM_TIMEOUT_MINUTES = 10;
     public static final int TOKEN_REFRESH_BUFFER_SECONDS = 300; // 5 minutos antes de expirar
+    public static final java.math.BigDecimal DEFAULT_CODVEND_PADRAO = new java.math.BigDecimal("281");
+    public static final java.math.BigDecimal DEFAULT_TOP_PEDIDO = new java.math.BigDecimal("403");
+
+    // ==================== STATUS DE IMPORTACAO DE PEDIDOS ====================
+
+    public static final String ORDER_IMPORT_STATUS_PENDENTE = "PENDENTE";
+    public static final String ORDER_IMPORT_STATUS_PROCESSANDO = "PROCESSANDO";
+    public static final String ORDER_IMPORT_STATUS_SUCESSO = "SUCESSO";
+    public static final String ORDER_IMPORT_STATUS_ERRO = "ERRO";
 
     // ==================== TIPOS DE ENTIDADE (FILA) ====================
 
@@ -74,6 +84,7 @@ public final class FastchannelConstants {
     public static final String ENTITY_PRECO = "PRECO";
     public static final String ENTITY_PEDIDO_STATUS = "PEDIDO_STATUS";
     public static final String ENTITY_PARCEIRO = "PARCEIRO";
+    public static final String ENTITY_TRACKING = "TRACKING";
 
     // ==================== STATUS DA FILA ====================
 
@@ -84,7 +95,7 @@ public final class FastchannelConstants {
     public static final String QUEUE_STATUS_ERRO_FATAL = "ERRO_FATAL";
     public static final String QUEUE_STATUS_CANCELADO = "CANCELADO";
 
-    // ==================== OPERAÇÕES ====================
+    // ==================== OPERACOES ====================
 
     public static final String OPERATION_CREATE = "CREATE";
     public static final String OPERATION_UPDATE = "UPDATE";

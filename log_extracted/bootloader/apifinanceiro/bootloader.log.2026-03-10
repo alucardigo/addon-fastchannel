@@ -1,0 +1,8 @@
+10/03/2026 06:08:46 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+10/03/2026 06:08:46 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+10/03/2026 06:08:47 WARN  br.com.sankhya.module.bootloader.ObjectRegistryManager - Nenhum pacote informado para registrar os ObjectRegistryEntrySupplier do módulo apifinanceiro
+10/03/2026 06:08:47 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apifinanceiro'...
+10/03/2026 06:08:47 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 1.
+10/03/2026 06:08:47 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Script de inicialização 'br.com.sankhya.apifinanceiro.model.scripts.CriaOrdemCargaPadrao' será executado: false.
+10/03/2026 06:08:47 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [apifinanceiro] finalizando inicialização...
+10/03/2026 06:08:47 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

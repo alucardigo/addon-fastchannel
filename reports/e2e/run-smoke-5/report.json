@@ -1,0 +1,38 @@
+{
+  "startedAt": "2026-02-23T19:32:17.003Z",
+  "status": "failed",
+  "config": {
+    "baseUrl": "http://100.72.97.11:8080/mge/",
+    "user": "sup",
+    "headless": true,
+    "slowMoMs": 0,
+    "actionTimeoutMs": 30000,
+    "longTimeoutMs": 360000,
+    "outDir": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke-5"
+  },
+  "steps": [
+    {
+      "name": "login-mge",
+      "startedAt": "2026-02-23T19:32:17.231Z",
+      "status": "passed",
+      "data": {
+        "url": "http://100.72.97.11:8080/mge/system.jsp"
+      },
+      "finishedAt": "2026-02-23T19:32:34.247Z",
+      "durationMs": 17016,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke-5\\screenshots\\01-login-mge.png"
+    },
+    {
+      "name": "open-addon-through-menu-search",
+      "startedAt": "2026-02-23T19:32:34.339Z",
+      "status": "failed",
+      "error": "Nao foi possivel abrir o Addon pelo menu de pesquisa",
+      "finishedAt": "2026-02-23T19:33:07.404Z",
+      "durationMs": 33065,
+      "screenshot": "X:\\IntegracaoFastchannel\\APPFASTCHANNEL\\.worktrees\\merge-unify\\reports\\e2e\\run-smoke-5\\screenshots\\02-open-addon-through-menu-search-failed.png"
+    }
+  ],
+  "dialogs": [],
+  "fatalError": "Nao foi possivel abrir o Addon pelo menu de pesquisa",
+  "finishedAt": "2026-02-23T19:33:07.404Z"
+}

@@ -1,0 +1,26 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "serverMode": "production",
+  "localEndpoint": "http://127.0.0.1:18080/mge/",
+  "loginUser": "sup",
+  "loginPassword": "Azsxdc",
+  "scope": "codebase",
+  "executionArgs": {
+    "projectName": "APPFASTCHANNEL-homologacao",
+    "projectPath": "X:/IntegracaoFastchannel/APPFASTCHANNEL/.worktrees/merge-unify",
+    "testIds": [],
+    "additionalInstruction": "Execute um QA senior, minucioso e profissional na interface Fastchannel. Priorize bugs confirmados, severidade, impacto funcional, regressao, falhas de feedback, estados vazios, loading, overflow, contraste, mensagens confusas, duplo clique, filtros quebrados e inconsistencias entre tela e resultado real. Use o login fornecido quando necessario e valide as paginas dashboard, configuracao, pedidos, estoque, precos, fila e logs.",
+    "serverMode": "production",
+    "envs": {
+      "API_KEY": "USE_USER_ENV",
+      "TESTSPRITE_URL": null,
+      "API_URL": null,
+      "TUNNEL_PROXY": null,
+      "TS_API_ENDPOINT": null,
+      "TS_TUNNEL_ENDPOINT": null
+    }
+  },
+  "serverPort": 12626,
+  "proxy": "http://75cd5eb2-fd39-4f65-a4d0-a79d9f8fde42:iQn2QKrqhhJmKoZEA7b6GMGQo3NhrSkp@tun.testsprite.com:8080"
+}

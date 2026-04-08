@@ -111,7 +111,7 @@
             border-radius: 6px;
             color: var(--text);
             font-size: 14px;
-            min-width: 150px;
+            min-width: 180px;
         }
 
         .form-input:focus { outline: none; border-color: var(--accent); }
@@ -131,10 +131,12 @@
             gap: 8px;
         }
 
-        .btn-primary { background: var(--accent); color: var(--bg); }
+        .btn-primary { background: var(--accent); color: var(--bg); font-weight: 600; }
         .btn-primary:hover { background: #00b8d9; }
-        .btn-secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
-        .btn-secondary:hover { border-color: var(--accent); }
+        .btn-secondary { background: #1e3a5f; border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { background: #254a73; border-color: var(--accent); }
+        .btn-filter { background: #0ea5e9; color: #fff; font-weight: 600; }
+        .btn-filter:hover { background: #0284c7; }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -148,6 +150,10 @@
             border-bottom: 1px solid var(--border);
         }
 
+        .text-center {
+            text-align: center;
+        }
+
         th {
             color: var(--muted);
             font-size: 12px;
@@ -156,6 +162,12 @@
             letter-spacing: 0.5px;
             background: var(--bg);
         }
+
+        th.sortable { cursor: pointer; user-select: none; }
+        th.sortable:hover { color: var(--accent); }
+        th.sortable::after { content: ' \2195'; opacity: 0.4; }
+        th.sortable.asc::after { content: ' \2191'; opacity: 1; }
+        th.sortable.desc::after { content: ' \2193'; opacity: 1; }
 
         td { font-size: 14px; }
 
@@ -256,6 +268,16 @@
 
         .detail-label { color: var(--muted); }
         .detail-value { font-weight: 500; }
+
+        @media (max-width: 768px) {
+            .container { padding: 12px; }
+            .filters { flex-direction: column; }
+            .nav-tabs { gap: 4px; }
+            .nav-tab { padding: 8px 12px; font-size: 12px; }
+            .card { padding: 16px; }
+            th, td { padding: 8px; font-size: 12px; }
+            .text-center { text-align: center; }
+        }
     </style>
 </head>
 <body>
@@ -268,7 +290,10 @@
         <nav class="nav-tabs">
             <a class="nav-tab" href="dashboard.html">Dashboard</a>
             <a class="nav-tab" href="config.html">Configuracao</a>
+            <a class="nav-tab" href="depara.html">De-Para</a>
             <a class="nav-tab active" href="pedidos.html">Pedidos</a>
+            <a class="nav-tab" href="estoque.html">Estoque</a>
+            <a class="nav-tab" href="precos.html">Precos</a>
             <a class="nav-tab" href="fila.html">Fila de Sincronizacao</a>
             <a class="nav-tab" href="logs.html">Logs</a>
         </nav>
@@ -284,20 +309,21 @@
             <div class="filters">
                 <div class="filter-group">
                     <span class="filter-label">Status</span>
-                    <select id="filterStatus" class="form-input" onchange="loadPedidos()">
+                    <select id="filterStatus" class="form-input" onchange="loadPedidos(true)">
                         <option value="">Todos</option>
                         <option value="PENDENTE">Pendente</option>
-                        <option value="IMPORTADO">Importado</option>
+                        <option value="PROCESSANDO">Processando</option>
+                        <option value="IMPORTADO">Sucesso</option>
                         <option value="ERRO">Com Erro</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Data Inicio</span>
-                    <input type="date" id="filterDataInicio" class="form-input" onchange="loadPedidos()">
+                    <input type="date" id="filterDataInicio" class="form-input" onchange="loadPedidos(true)">
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Data Fim</span>
-                    <input type="date" id="filterDataFim" class="form-input" onchange="loadPedidos()">
+                    <input type="date" id="filterDataFim" class="form-input" onchange="loadPedidos(true)">
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Order ID</span>
@@ -305,7 +331,7 @@
                            onkeyup="debounceSearch()">
                 </div>
                 <div class="filter-group" style="justify-content: flex-end;">
-                    <button class="btn btn-secondary" onclick="loadPedidos()">
+                    <button class="btn btn-filter" onclick="loadPedidos()">
                         Filtrar
                     </button>
                 </div>
@@ -315,14 +341,14 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Order ID</th>
-                            <th>Data Pedido</th>
-                            <th>Cliente</th>
-                            <th>Valor Total</th>
-                            <th>Status FC</th>
-                            <th>Status Import</th>
-                            <th>NUNOTA</th>
-                            <th>Acoes</th>
+                            <th class="sortable" data-col="orderId" onclick="sortBy('orderId')">Order ID</th>
+                            <th class="sortable" data-col="dataPedido" onclick="sortBy('dataPedido','date')">Data Pedido</th>
+                            <th class="sortable" data-col="nomeCliente" onclick="sortBy('nomeCliente')">Cliente</th>
+                            <th class="sortable" data-col="valorTotal" onclick="sortBy('valorTotal','num')">Valor Total</th>
+                            <th class="sortable" data-col="statusFc" onclick="sortBy('statusFc')">Status FC</th>
+                            <th class="sortable" data-col="statusImport" onclick="sortBy('statusImport')">Status Import</th>
+                            <th class="sortable" data-col="nunota" onclick="sortBy('nunota','num')">NUNOTA</th>
+                            <th class="text-center">Acoes</th>
                         </tr>
                     </thead>
                     <tbody id="pedidosTable">
@@ -364,11 +390,12 @@
     </div>
 
     <script>
-        function resolveAddonContexts() {
+                                function resolveAddonContexts() {
             const origin = window.location.origin || '';
             const path = window.location.pathname || '';
             const search = window.location.search || '';
             const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
 
             function add(ctx) {
                 if (!ctx) return;
@@ -376,20 +403,25 @@
                 if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
             }
 
-            function addIfAddon(ctx) {
-                if (!ctx) return;
-                if (ctx.startsWith('/mge/') && ctx.indexOf('/addon-fastchannel') > 0) {
-                    ctx = ctx.replace(/^\/mge/, '');
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
                 }
-                if (ctx.indexOf('/addon-fastchannel') === -1) return;
-                add(ctx);
+                return null;
             }
 
             const htmlIdx = path.indexOf('/html5/');
-            if (htmlIdx > 0) addIfAddon(path.substring(0, htmlIdx));
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
 
-            const addonIdx = path.indexOf('/addon-fastchannel');
-            if (addonIdx >= 0) add(path.substring(0, addonIdx + '/addon-fastchannel'.length));
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
 
             if (search) {
                 try {
@@ -398,7 +430,10 @@
                     if (rawUrl) {
                         const decoded = decodeURIComponent(rawUrl);
                         const decodedHtmlIdx = decoded.indexOf('/html5/');
-                        if (decodedHtmlIdx > 0) addIfAddon(decoded.substring(0, decodedHtmlIdx));
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
                     }
                 } catch (e) {
                     // ignore
@@ -415,6 +450,72 @@
         let pageSize = 20;
         let searchTimeout = null;
         let selectedOrderId = null;
+        let currentItems = [];
+        let sortCol = null;
+        let sortDir = 'asc';
+
+        function sortBy(col, type) {
+            type = type || 'str';
+            if (sortCol === col) {
+                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortCol = col;
+                sortDir = 'asc';
+            }
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('asc', 'desc');
+                if (th.dataset.col === col) th.classList.add(sortDir);
+            });
+            if (!currentItems.length) return;
+            currentItems.sort((a, b) => {
+                let va = a[col], vb = b[col];
+                if (va == null) va = '';
+                if (vb == null) vb = '';
+                if (type === 'num') {
+                    va = parseFloat(va) || 0;
+                    vb = parseFloat(vb) || 0;
+                } else if (type === 'date') {
+                    va = va ? new Date(va).getTime() : 0;
+                    vb = vb ? new Date(vb).getTime() : 0;
+                } else {
+                    va = String(va).toLowerCase();
+                    vb = String(vb).toLowerCase();
+                }
+                if (va < vb) return sortDir === 'asc' ? -1 : 1;
+                if (va > vb) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
+            renderItems(currentItems);
+        }
+
+        function escapeHtml(text) {
+            return (text || '').toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderItems(items) {
+            const tbody = document.getElementById('pedidosTable');
+            tbody.innerHTML = items.map((p, idx) => `
+                <tr>
+                    <td><strong>${escapeHtml(p.orderId || '--')}</strong></td>
+                    <td>${formatDate(p.dataPedido)}</td>
+                    <td>${escapeHtml(p.nomeCliente || '--')}</td>
+                    <td>${formatMoney(p.valorTotal)}</td>
+                    <td>${getStatusPill(p.statusFc)}</td>
+                    <td>${getStatusPill(p.statusImport)}</td>
+                    <td>${p.nunota || '--'}</td>
+                    <td class="text-center">
+                        <button class="btn btn-secondary btn-sm" onclick="showDetails(${idx})">
+                            Detalhes
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
         function getMgeSession() {
             try {
@@ -467,9 +568,28 @@
             throw new Error(lastErr || 'Nenhum endpoint respondeu');
         }
 
+        function parseBackendDate(dateStr) {
+            if (!dateStr) return null;
+            const match = typeof dateStr === 'string'
+                ? dateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/)
+                : null;
+            if (match) {
+                return new Date(
+                    Number(match[1]),
+                    Number(match[2]) - 1,
+                    Number(match[3]),
+                    Number(match[4]),
+                    Number(match[5]),
+                    Number(match[6])
+                );
+            }
+            const parsed = new Date(dateStr);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
         function formatDate(dateStr) {
-            if (!dateStr) return '--';
-            return new Date(dateStr).toLocaleString('pt-BR');
+            const parsed = parseBackendDate(dateStr);
+            return parsed ? parsed.toLocaleString('pt-BR') : (dateStr || '--');
         }
 
         function formatMoney(value) {
@@ -492,7 +612,8 @@
             searchTimeout = setTimeout(() => loadPedidos(), 500);
         }
 
-        async function loadPedidos() {
+        async function loadPedidos(resetPage) {
+            if (resetPage) currentPage = 1;
             const tbody = document.getElementById('pedidosTable');
             tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
 
@@ -509,22 +630,8 @@
                 const data = await callService('FCPedidosSP.list', filters);
 
                 if (data.items && data.items.length > 0) {
-                    tbody.innerHTML = data.items.map(p => `
-                        <tr>
-                            <td><strong>${p.orderId || '--'}</strong></td>
-                            <td>${formatDate(p.dataPedido)}</td>
-                            <td>${p.nomeCliente || '--'}</td>
-                            <td>${formatMoney(p.valorTotal)}</td>
-                            <td>${getStatusPill(p.statusFc)}</td>
-                            <td>${getStatusPill(p.statusImport)}</td>
-                            <td>${p.nunota || '--'}</td>
-                            <td>
-                                <button class="btn btn-secondary btn-sm" onclick="showDetails('${p.orderId}')">
-                                    Detalhes
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
+                    currentItems = data.items;
+                    renderItems(currentItems);
 
                     totalPages = Math.ceil((data.total || 0) / pageSize);
                     updatePagination(data.total || 0);
@@ -538,8 +645,10 @@
         }
 
         function updatePagination(total) {
+            const start = total > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+            const end = Math.min(currentPage * pageSize, total);
             document.getElementById('paginationInfo').textContent =
-                `Mostrando ${Math.min(pageSize, total)} de ${total}`;
+                `Mostrando ${start}-${end} de ${total}`;
             document.getElementById('btnPrev').disabled = currentPage <= 1;
             document.getElementById('btnNext').disabled = currentPage >= totalPages;
         }
@@ -552,30 +661,32 @@
             if (currentPage < totalPages) { currentPage++; loadPedidos(); }
         }
 
-        async function showDetails(orderId) {
-            selectedOrderId = orderId;
+        async function showDetails(idx) {
+            const item = currentItems[idx];
+            if (!item) return;
+            selectedOrderId = item.orderId;
             const modal = document.getElementById('modalDetails');
             const body = document.getElementById('modalBody');
             body.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
             modal.classList.add('show');
 
             try {
-                const data = await callService('FCPedidosSP.get', { orderId });
+                const data = await callService('FCPedidosSP.get', { orderId: selectedOrderId });
                 body.innerHTML = `
-                    <div class="detail-row"><span class="detail-label">Order ID</span><span class="detail-value">${data.orderId || '--'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Order ID</span><span class="detail-value">${escapeHtml(data.orderId || '--')}</span></div>
                     <div class="detail-row"><span class="detail-label">Data Pedido</span><span class="detail-value">${formatDate(data.dataPedido)}</span></div>
-                    <div class="detail-row"><span class="detail-label">Cliente</span><span class="detail-value">${data.nomeCliente || '--'}</span></div>
-                    <div class="detail-row"><span class="detail-label">CPF/CNPJ</span><span class="detail-value">${data.cpfCnpj || '--'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Cliente</span><span class="detail-value">${escapeHtml(data.nomeCliente || '--')}</span></div>
+                    <div class="detail-row"><span class="detail-label">CPF/CNPJ</span><span class="detail-value">${escapeHtml(data.cpfCnpj || '--')}</span></div>
                     <div class="detail-row"><span class="detail-label">Valor Total</span><span class="detail-value">${formatMoney(data.valorTotal)}</span></div>
                     <div class="detail-row"><span class="detail-label">Frete</span><span class="detail-value">${formatMoney(data.frete)}</span></div>
                     <div class="detail-row"><span class="detail-label">Status FC</span><span class="detail-value">${getStatusPill(data.statusFc)}</span></div>
                     <div class="detail-row"><span class="detail-label">Status Import</span><span class="detail-value">${getStatusPill(data.statusImport)}</span></div>
                     <div class="detail-row"><span class="detail-label">NUNOTA</span><span class="detail-value">${data.nunota || '--'}</span></div>
                     <div class="detail-row"><span class="detail-label">CODPARC</span><span class="detail-value">${data.codparc || '--'}</span></div>
-                    ${data.erro ? `<div class="detail-row"><span class="detail-label">Erro</span><span class="detail-value" style="color: var(--danger);">${data.erro}</span></div>` : ''}
+                    ${data.erro ? `<div class="detail-row"><span class="detail-label">Erro</span><span class="detail-value" style="color: var(--danger);">${escapeHtml(data.erro)}</span></div>` : ''}
                 `;
             } catch (e) {
-                body.innerHTML = `<div class="empty-state">Erro: ${e.message}</div>`;
+                body.innerHTML = `<div class="empty-state">Erro: ${escapeHtml(e.message)}</div>`;
             }
         }
 
@@ -584,20 +695,46 @@
             selectedOrderId = null;
         }
 
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        document.getElementById('modalDetails').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        function setButtonLoading(btn, loading) {
+            if (!btn) return;
+            if (loading) {
+                btn.disabled = true;
+                btn._origHTML = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner"></span> Aguarde...';
+            } else {
+                btn.disabled = false;
+                if (btn._origHTML) btn.innerHTML = btn._origHTML;
+            }
+        }
+
         async function importarPedidos() {
             if (!confirm('Deseja importar novos pedidos do Fastchannel?')) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
             try {
                 const result = await callService('FCAdminSP.importarPedidos', {});
                 alert(result.message || 'Importacao concluida');
                 loadPedidos();
             } catch (e) {
                 alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
             }
         }
 
         async function reprocessarPedido() {
             if (!selectedOrderId) return;
             if (!confirm(`Reprocessar pedido ${selectedOrderId}?`)) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
             try {
                 const result = await callService('FCPedidosSP.reprocessar', { orderId: selectedOrderId });
                 alert(result.message || 'Reprocessamento solicitado');
@@ -605,16 +742,26 @@
                 loadPedidos();
             } catch (e) {
                 alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
             }
         }
 
         async function consultarFC() {
             if (!selectedOrderId) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
             try {
                 const result = await callService('FCPedidosSP.consultarFC', { orderId: selectedOrderId });
-                alert(JSON.stringify(result, null, 2));
+                const body = document.getElementById('modalBody');
+                body.innerHTML += `
+                    <h4 style="margin: 16px 0 8px; color: var(--muted);">Dados Fastchannel</h4>
+                    <pre style="background: var(--bg); border-radius: 8px; padding: 16px; font-size: 13px; white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto;">${escapeHtml(JSON.stringify(result, null, 2))}</pre>
+                `;
             } catch (e) {
                 alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
             }
         }
 

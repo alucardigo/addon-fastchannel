@@ -1,0 +1,64 @@
+14/01/2026 06:08:35 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+14/01/2026 06:08:35 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+14/01/2026 06:08:35 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apiservicostomados'...
+14/01/2026 06:08:35 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+14/01/2026 06:08:35 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [apiservicostomados]...
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'instance-logs-mm'.
+14/01/2026 23:03:22 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+14/01/2026 23:03:22 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgecontab'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mon-api'.
+14/01/2026 23:03:22 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'placemm'.
+14/01/2026 23:03:22 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+14/01/2026 23:03:22 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'integracaoasis'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgeprod'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'api'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apilogistica'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.BootModuleServletContextListener - Não encontramos AsyncTask pendentes no contexto 'secmm'.
+14/01/2026 23:03:22 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'fintech'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'bia-studio-mm'.
+14/01/2026 23:03:22 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'sasserver'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apifinanceiro'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apiservicostomados'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mitra'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'conectividademm'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgeliv'.
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'app-builder-api'.
+14/01/2026 23:03:22 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+14/01/2026 23:03:22 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+14/01/2026 23:03:22 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgewms'.
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Foram canceladas AsyncTask pendentes no contexto 'mgepes'.
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgefin have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgebase have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:03:52 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgecom have been unregistered
+14/01/2026 23:06:47 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: config.BootModuleListener.
+14/01/2026 23:06:47 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe config.BootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+14/01/2026 23:06:48 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'apiservicostomados'...
+14/01/2026 23:06:48 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+14/01/2026 23:06:48 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 

@@ -10,8 +10,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Ação para forçar importação de pedidos do Fastchannel.
- * Executa o job de importação imediatamente.
+ * Acao para forcar importacao de pedidos do Fastchannel.
+ * Executa o job de importacao imediatamente.
  */
 public class ImportarPedidosAction implements AcaoRotinaJava {
 
@@ -22,50 +22,50 @@ public class ImportarPedidosAction implements AcaoRotinaJava {
         StringBuilder resultado = new StringBuilder();
 
         try {
-            resultado.append("=== Importação Manual de Pedidos ===\n\n");
+            resultado.append("=== Importacao Manual de Pedidos ===\n\n");
 
-            // Verificar se integração está ativa
+            // Verificar se integracao esta ativa
             FastchannelConfig config = FastchannelConfig.getInstance();
             if (!config.isAtivo()) {
-                resultado.append("[ERRO] Integração não está ativa!\n");
-                resultado.append("Ative a integração na configuração antes de importar pedidos.");
+                resultado.append("[ERRO] Integracao nao esta ativa!\n");
+                resultado.append("Ative a integracao na configuracao antes de importar pedidos.");
                 contexto.setMensagemRetorno(resultado.toString());
                 return;
             }
 
-            resultado.append("Iniciando importação de pedidos...\n\n");
+            resultado.append("Iniciando importacao de pedidos...\n\n");
 
-            // Criar e executar o job de importação
+            // Criar e executar o job de importacao
             OrderImportJob importJob = new OrderImportJob();
 
-            // Log de início
+            // Log de inicio
             LogService.getInstance().info(LogService.OP_ORDER_IMPORT,
-                    "Importação manual iniciada", "Ação do usuário");
+                    "Importacao manual iniciada", "Acao do usuario");
 
             long startTime = System.currentTimeMillis();
 
-            // Executar importação
+            // Executar importacao
             importJob.executeScheduler();
 
             long endTime = System.currentTimeMillis();
             long duration = (endTime - startTime) / 1000;
 
-            resultado.append("[SUCESSO] Importação concluída!\n\n");
-            resultado.append("Tempo de execução: ").append(duration).append(" segundos\n");
+            resultado.append("[SUCESSO] Importacao concluida!\n\n");
+            resultado.append("Tempo de execucao: ").append(duration).append(" segundos\n");
             resultado.append("\nVerifique a tela de Logs para detalhes dos pedidos importados.\n");
             resultado.append("Verifique a tela de Pedidos Fastchannel para ver os pedidos criados.");
 
             // Log de sucesso
             LogService.getInstance().info(LogService.OP_ORDER_IMPORT,
-                    "Importação manual concluída", "Duração: " + duration + "s");
+                    "Importacao manual concluida", "Duracao: " + duration + "s");
 
         } catch (Exception e) {
-            resultado.append("\n[ERRO] Falha na importação: ").append(e.getMessage()).append("\n");
+            resultado.append("\n[ERRO] Falha na importacao: ").append(e.getMessage()).append("\n");
             resultado.append("\nVerifique a tela de Logs para mais detalhes do erro.");
 
-            log.log(Level.SEVERE, "Erro na importação manual de pedidos", e);
+            log.log(Level.SEVERE, "Erro na importacao manual de pedidos", e);
             LogService.getInstance().error(LogService.OP_ORDER_IMPORT,
-                    "Falha na importação manual", e);
+                    "Falha na importacao manual", e);
         }
 
         contexto.setMensagemRetorno(resultado.toString());

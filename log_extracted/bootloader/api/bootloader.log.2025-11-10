@@ -1,0 +1,464 @@
+10/11/2025 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+10/11/2025 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts não encontrados.
+10/11/2025 06:09:16 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Scripts ignorados, pois já foram processados
+10/11/2025 06:09:16 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [api - ddmigration] - Iniciando importacao do dicionario de dados
+10/11/2025 06:09:16 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.easyapi.config.APIBootModuleListener.
+10/11/2025 06:09:16 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.easyapi.config.APIBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+10/11/2025 06:09:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'api'...
+10/11/2025 06:09:16 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Scripts carregados: 0.
+10/11/2025 06:09:19 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAICEMP.TAICEMP ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIDOCINT.TAIDOCINT ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIOBGINT.TAIOBGINT ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAICEMP.INTEGRARAUTOMATICO ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script CONSTRAINT TAIOBGINT.CKC_TPESCRIT_TAIOBGINT...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script CONSTRAINT TAIOBGINT.CKC_TPESCRIT_TAIOBGINT executado com sucesso!
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script CONSTRAINT TAIOBGINT.CKC_TPESCRIT_TAIOBGINT...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script CONSTRAINT TAIOBGINT.CKC_TPESCRIT_TAIOBGINT executado com sucesso!
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.STATUSNFE ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIDOCINT.MENSAGEM...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.MENSAGEM executado com sucesso!
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.NUARQUIVO ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIDOCAUDIT.TAIDOCAUDIT ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIOBGAUDIT.TAIOBGAUDIT ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.DTNEG ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIAPURREF.TAIAPURREF ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIAPURREFCD.TAIAPURREFCD ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIAPURREFATUAL.TAIAPURREFATUAL ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIAPURREFCOMP.TAIAPURREFCOMP ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIOBGINT.ARQUIVO...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGINT.ARQUIVO executado com sucesso!
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script PRIMARY KEY TAIOBGINT.PK_TAIOBGINT...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script PRIMARY KEY TAIOBGINT.PK_TAIOBGINT executado com sucesso!
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script PRIMARY KEY TAIOBGINT.PK_TAIOBGINT...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script PRIMARY KEY TAIOBGINT.PK_TAIOBGINT executado com sucesso!
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIALTERP.TAIALTERP ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCAUDIT.ALTERADOERP ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIHCEMP.TAIHCEMP ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.TIPMOV ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCAUDIT.JSONAUDITORIA ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCAUDIT.NIVELAUDITORIA ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAICEMP.DTPINTEG ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script CONSTRAINT TAICEMP.CKC_DTPINTEG_TAICEMP ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script CONSTRAINT TAICEMP.CKC_DTPINTEG_TAICEMP...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - INICIO - Scripts executados.
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - 
+
+ALTER TABLE TAICEMP ADD CONSTRAINT CKC_TAICEMP_DTPINTEG CHECK (DTPINTEG IN ('N','M','E'))
+
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - FIM - Scripts executados.
+10/11/2025 06:09:19 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Erro na execuÃ§Ã£o do script.
+Nro: null
+Objeto: CKC_DTPINTEG_TAICEMP
+com.microsoft.sqlserver.jdbc.SQLServerException: Já existe um objeto com nome 'CKC_TAICEMP_DTPINTEG' no banco de dados.
+	at com.microsoft.sqlserver.jdbc.SQLServerException.makeFromDatabaseError(SQLServerException.java:216)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.getNextResult(SQLServerStatement.java:1522)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.doExecuteStatement(SQLServerStatement.java:799)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement$StmtExecCmd.doExecute(SQLServerStatement.java:696)
+	at com.microsoft.sqlserver.jdbc.TDSCommand.execute(IOBuffer.java:5696)
+	at com.microsoft.sqlserver.jdbc.SQLServerConnection.executeCommand(SQLServerConnection.java:1716)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeCommand(SQLServerStatement.java:180)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeStatement(SQLServerStatement.java:155)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.execute(SQLServerStatement.java:669)
+	at org.jboss.jca.adapters.jdbc.WrappedStatement.execute(WrappedStatement.java:198)
+	at br.com.sankhya.skw.environment.upd.db.ScriptRunner.executeDBScripts(ScriptRunner.java:417)
+	at br.com.sankhya.addonmodule.AddonModuleServletContextListener.executeScriptAddon(r:215)
+	at br.com.sankhya.addonmodule.MicroModuleServletContextListener.runMigrations(j:40)
+	at br.com.sankhya.module.BootModuleServletContextListener.contextInitialized(BootModuleServletContextListener.java:86)
+	at io.undertow.servlet.core.ApplicationListeners.contextInitialized(ApplicationListeners.java:187)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:219)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:187)
+	at io.undertow.servlet.core.ServletRequestContextThreadSetupAction$1.call(ServletRequestContextThreadSetupAction.java:42)
+	at io.undertow.servlet.core.ContextClassLoaderSetupAction$1.call(ContextClassLoaderSetupAction.java:43)
+	at org.wildfly.extension.undertow.security.SecurityContextThreadSetupAction.lambda$create$0(SecurityContextThreadSetupAction.java:105)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at io.undertow.servlet.core.DeploymentManagerImpl.deploy(DeploymentManagerImpl.java:255)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService.startContext(UndertowDeploymentService.java:96)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService$1.run(UndertowDeploymentService.java:78)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at org.jboss.threads.ContextClassLoaderSavingRunnable.run(ContextClassLoaderSavingRunnable.java:35)
+	at org.jboss.threads.EnhancedQueueExecutor.safeRun(EnhancedQueueExecutor.java:1990)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.doRunTask(EnhancedQueueExecutor.java:1486)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1377)
+	at java.lang.Thread.run(Thread.java:748)
+	at org.jboss.threads.JBossThread.run(JBossThread.java:513)
+
+10/11/2025 06:09:19 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script AUTOMATICAMENTE IGNORADO: (FORCED_IGNORE) CONSTRAINT TAICEMP.CKC_DTPINTEG_TAICEMP
+Nome do objeto: CKC_DTPINTEG_TAICEMP
+Tipo do objeto: CONSTRAINT
+Nome da tabela: TAICEMP
+      Executar: SE_NAO_EXISTIR
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGAUDIT.JSONAUDITORIA ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGAUDIT.NIVELAUDITORIA ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCINT.AUDITORIACONSULTADA ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGINT.AUDITORIACONSULTADA ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIDOCAUDIT.JSONAUDITORIA...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIDOCAUDIT.JSONAUDITORIA executado com sucesso!
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIOBGAUDIT.JSONAUDITORIA...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGAUDIT.JSONAUDITORIA executado com sucesso!
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIOBGINT.MENSAGEM...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script COLUMN TAIOBGINT.MENSAGEM executado com sucesso!
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script TABLE TAIMONITORIA.TAIMONITORIA ignorado por condição de execução
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Processando script COLUMN TAIMONITORIA.TIPOTRIB, DHMON...
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - INICIO - Scripts executados.
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - 
+
+ALTER TABLE TAIMONITORIA
+ADD TIPOTRIB VARCHAR(50) NOT NULL,
+    DHMON DATETIME;
+
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - FIM - Scripts executados.
+10/11/2025 06:09:19 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Erro na execuÃ§Ã£o do script.
+Nro: null
+Objeto: TIPOTRIB, DHMON
+com.microsoft.sqlserver.jdbc.SQLServerException: Os nomes de colunas em cada tabela devem ser exclusivos. O nome da coluna 'TIPOTRIB' na tabela 'TAIMONITORIA' foi especificado mais de uma vez.
+	at com.microsoft.sqlserver.jdbc.SQLServerException.makeFromDatabaseError(SQLServerException.java:216)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.getNextResult(SQLServerStatement.java:1522)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.doExecuteStatement(SQLServerStatement.java:799)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement$StmtExecCmd.doExecute(SQLServerStatement.java:696)
+	at com.microsoft.sqlserver.jdbc.TDSCommand.execute(IOBuffer.java:5696)
+	at com.microsoft.sqlserver.jdbc.SQLServerConnection.executeCommand(SQLServerConnection.java:1716)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeCommand(SQLServerStatement.java:180)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeStatement(SQLServerStatement.java:155)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.execute(SQLServerStatement.java:669)
+	at org.jboss.jca.adapters.jdbc.WrappedStatement.execute(WrappedStatement.java:198)
+	at br.com.sankhya.skw.environment.upd.db.ScriptRunner.executeDBScripts(ScriptRunner.java:417)
+	at br.com.sankhya.addonmodule.AddonModuleServletContextListener.executeScriptAddon(r:215)
+	at br.com.sankhya.addonmodule.MicroModuleServletContextListener.runMigrations(j:40)
+	at br.com.sankhya.module.BootModuleServletContextListener.contextInitialized(BootModuleServletContextListener.java:86)
+	at io.undertow.servlet.core.ApplicationListeners.contextInitialized(ApplicationListeners.java:187)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:219)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:187)
+	at io.undertow.servlet.core.ServletRequestContextThreadSetupAction$1.call(ServletRequestContextThreadSetupAction.java:42)
+	at io.undertow.servlet.core.ContextClassLoaderSetupAction$1.call(ContextClassLoaderSetupAction.java:43)
+	at org.wildfly.extension.undertow.security.SecurityContextThreadSetupAction.lambda$create$0(SecurityContextThreadSetupAction.java:105)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at io.undertow.servlet.core.DeploymentManagerImpl.deploy(DeploymentManagerImpl.java:255)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService.startContext(UndertowDeploymentService.java:96)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService$1.run(UndertowDeploymentService.java:78)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at org.jboss.threads.ContextClassLoaderSavingRunnable.run(ContextClassLoaderSavingRunnable.java:35)
+	at org.jboss.threads.EnhancedQueueExecutor.safeRun(EnhancedQueueExecutor.java:1990)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.doRunTask(EnhancedQueueExecutor.java:1486)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1377)
+	at java.lang.Thread.run(Thread.java:748)
+	at org.jboss.threads.JBossThread.run(JBossThread.java:513)
+
+10/11/2025 06:09:19 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Script AUTOMATICAMENTE IGNORADO: (FORCED_IGNORE) COLUMN TAIMONITORIA.TIPOTRIB, DHMON
+Nome do objeto: TIPOTRIB, DHMON
+Tipo do objeto: COLUMN
+Nome da tabela: TAIMONITORIA
+      Executar: SE_NAO_EXISTIR
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Fim do processamento dos scripts.....
+10/11/2025 06:09:19 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [integracaoasis - ddmigration] - Iniciando importacao do dicionario de dados
+10/11/2025 06:09:28 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Iniciando processo de execução de scripts do Add-on.
+10/11/2025 06:09:28 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKREGRA.TTKREGRA ignorado por condição de execução
+10/11/2025 06:09:28 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script TABLE TTKREGRA.TTKREGRA...
+10/11/2025 06:09:28 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKREGRA.TTKREGRA executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKPROC.TTKPROC ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKPITC.TTKPITC ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKPITD.TTKPITD ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKPITI.TTKPITI ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKPITRI.TTKPITRI ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKDIT.TTKDIT ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ASISMVA ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ASISALIQICMS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ASISPERREDBCICMS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.VALIDASIS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ASISVALORMVA ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ASISVALORALIQICMS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ASISVALORPERREDBCICMS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.CSTIPI ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ALIQIPI ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.CSTPIS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ALIQPIS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.VALIQPIS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ALIQPISST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.VALIQPISST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.CSTCOFINS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ALIQCOFINS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.VALIQCOFINS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ALIQCOFINSST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.VALIQCOFINSST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.IDDEST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.INDFINAL ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.FINNFE ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.CHAVE ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKNOTALIG.TTKNOTALIG ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.TPIMPOSTO ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.ALIQ ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.CFOP ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.OPERACAO ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.CST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.REGRAGERAL ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKSTPPE.TTKSTPPE ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROC.DHALTER ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKREGTEMP.TTKREGTEMP ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKPITD.UNQ_TTKPITD_CHAVE...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKPITD.UNQ_TTKPITD_CHAVE executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKPITD.UNQ_TTKPITD_CHAVE...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKPITD.UNQ_TTKPITD_CHAVE executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKPROTEMP.TTKPROTEMP ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROTEMP.CODVOL ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROTEMP.VOLUMEALTERNATIVO ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROTEMP.QUANTIDADE ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROTEMP.DIVIDEMULTIPLICA ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROTEMP.UNIDADECOMPRA ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROTEMP.CODVOLCOMPRA ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKEMP.TTKEMP ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITD.CNPJGERENCIADO ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKPITI.FK_TTKPITI_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKPITI.FK_TTKPITI_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKPITI.FK_TTKPITI_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKPITI.FK_TTKPITI_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKNOTALIG.FK_TTKNOTALIG_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKNOTALIG.FK_TTKNOTALIG_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKNOTALIG.FK_TTKNOTALIG_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKNOTALIG.FK_TTKNOTALIG_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKPITRI.FK_TTKPITRI_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKPITRI.FK_TTKPITRI_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKPITRI.FK_TTKPITRI_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKPITRI.FK_TTKPITRI_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKPROTEMP.FK_TTKPROTEMP_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKPROTEMP.FK_TTKPROTEMP_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKPROTEMP.FK_TTKPROTEMP_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKPROTEMP.FK_TTKPROTEMP_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKSTPPE.FK_TTKSTPPE_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKSTPPE.FK_TTKSTPPE_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKSTPPE.FK_TTKSTPPE_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKSTPPE.FK_TTKSTPPE_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKDIT.FK_TTKDIT_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKDIT.FK_TTKDIT_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKDIT.FK_TTKDIT_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKDIT.FK_TTKDIT_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKPITD.FK_TTKPITD_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKPITD.FK_TTKPITD_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKPITD.FK_TTKPITD_TTKPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKPITD.FK_TTKPITD_TTKPROC executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROC.TIPOEXECUCAO ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKEVT.TTKEVT ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKNOT.TTKNOT ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKNOT.DTCANC ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKEVT.UNQ_TTKEVT_NOMEARQUIVO...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKEVT.UNQ_TTKEVT_NOMEARQUIVO executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script COLUMN TTKEVT.NOMEARQUIVO...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKEVT.NOMEARQUIVO executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKEVT.UNQ_TTKEVT_NOMEARQUIVO...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKEVT.UNQ_TTKEVT_NOMEARQUIVO executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.CPFCNPJORIG ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.ALIQSUBTRIB ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.PERREDBCST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.ALIQFCPST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ALIQSUBTRIB ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.PERREDBCST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ALIQFCPST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.ALIQICMSFCP ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.ALIQICMSST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.MODBCICMSST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.MODBCICMS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.MODBCICMS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.CBENEFUF ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.ORIGEM ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.CPAISDEST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.CODPAISDEST ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.GRUPOPISCOFINS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKEVT.CHK_TTKEVT_STATUS...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKEVT.CHK_TTKEVT_STATUS executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script CONSTRAINT TTKEVT.CHK_TTKEVT_STATUS...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script CONSTRAINT TTKEVT.CHK_TTKEVT_STATUS executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.ISUF ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.MOTDESICMS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.CODMOTDESONERAICMS ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script INDEX TTKPITI.IDX_TTKPITI_CHAVE ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script INDEX TTKNOTALIG.IDX_TTKNOTALIG_NUPROC_CHAVE ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script INDEX TGFNFE.IDX_TGFNFE_CHAVENFE ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script COLUMN TTKPITI.NUPROC...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - INICIO - Scripts executados.
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - 
+ALTER TABLE TTKPITI MODIFY NUPROC INT NULL
+
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - FIM - Scripts executados.
+10/11/2025 06:09:30 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Erro na execuÃ§Ã£o do script.
+Nro: null
+Objeto: NUPROC
+com.microsoft.sqlserver.jdbc.SQLServerException: Sintaxe incorreta próxima a 'MODIFY'.
+	at com.microsoft.sqlserver.jdbc.SQLServerException.makeFromDatabaseError(SQLServerException.java:216)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.getNextResult(SQLServerStatement.java:1522)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.doExecuteStatement(SQLServerStatement.java:799)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement$StmtExecCmd.doExecute(SQLServerStatement.java:696)
+	at com.microsoft.sqlserver.jdbc.TDSCommand.execute(IOBuffer.java:5696)
+	at com.microsoft.sqlserver.jdbc.SQLServerConnection.executeCommand(SQLServerConnection.java:1716)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeCommand(SQLServerStatement.java:180)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeStatement(SQLServerStatement.java:155)
+	at com.microsoft.sqlserver.jdbc.SQLServerStatement.execute(SQLServerStatement.java:669)
+	at org.jboss.jca.adapters.jdbc.WrappedStatement.execute(WrappedStatement.java:198)
+	at br.com.sankhya.skw.environment.upd.db.ScriptRunner.executeDBScripts(ScriptRunner.java:417)
+	at br.com.sankhya.addonmodule.AddonModuleServletContextListener.executeScriptAddon(r:215)
+	at br.com.sankhya.addonmodule.MicroModuleServletContextListener.runMigrations(j:40)
+	at br.com.sankhya.module.BootModuleServletContextListener.contextInitialized(BootModuleServletContextListener.java:80)
+	at io.undertow.servlet.core.ApplicationListeners.contextInitialized(ApplicationListeners.java:187)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:219)
+	at io.undertow.servlet.core.DeploymentManagerImpl$1.call(DeploymentManagerImpl.java:187)
+	at io.undertow.servlet.core.ServletRequestContextThreadSetupAction$1.call(ServletRequestContextThreadSetupAction.java:42)
+	at io.undertow.servlet.core.ContextClassLoaderSetupAction$1.call(ContextClassLoaderSetupAction.java:43)
+	at org.wildfly.extension.undertow.security.SecurityContextThreadSetupAction.lambda$create$0(SecurityContextThreadSetupAction.java:105)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentInfoService$UndertowThreadSetupAction.lambda$create$0(UndertowDeploymentInfoService.java:1530)
+	at io.undertow.servlet.core.DeploymentManagerImpl.deploy(DeploymentManagerImpl.java:255)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService.startContext(UndertowDeploymentService.java:96)
+	at org.wildfly.extension.undertow.deployment.UndertowDeploymentService$1.run(UndertowDeploymentService.java:78)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at org.jboss.threads.ContextClassLoaderSavingRunnable.run(ContextClassLoaderSavingRunnable.java:35)
+	at org.jboss.threads.EnhancedQueueExecutor.safeRun(EnhancedQueueExecutor.java:1990)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.doRunTask(EnhancedQueueExecutor.java:1486)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1377)
+	at java.lang.Thread.run(Thread.java:748)
+	at org.jboss.threads.JBossThread.run(JBossThread.java:513)
+
+10/11/2025 06:09:30 WARN  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script AUTOMATICAMENTE IGNORADO: (FORCED_IGNORE) COLUMN TTKPITI.NUPROC
+Nome do objeto: NUPROC
+Tipo do objeto: COLUMN
+Nome da tabela: TTKPITI
+      Executar: SE_EXISTIR
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TTKERNOT.TTKERNOT ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script INDEX TTKERNOT.IDX_TTKERNOT_CHAVE ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITD.NOMEARQUIVO ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.INSCESTAD ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script COLUMN TTKPROTEMP.CODVOL...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROTEMP.CODVOL executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script COLUMN TTKPROTEMP.VOLUMEALTERNATIVO...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROTEMP.VOLUMEALTERNATIVO executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Processando script COLUMN TTKPROTEMP.CODVOLCOMPRA...
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Ajustando script para execução no sqlserver 
+Usuário: 
+Database:
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPROTEMP.CODVOLCOMPRA executado com sucesso!
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITI.DHPROC ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TFTCTA.TFTCTA ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script TABLE TGFCFA.TGFCFA ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.CATALOGO ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.OPERCATALOGO ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.OPERCATALOGOPAR ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Script COLUMN TTKPITRI.CODPROD ignorado por condição de execução
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Fim do processamento dos scripts.....
+10/11/2025 06:09:30 INFO  br.com.sankhya.addonmodule.MicroModuleServletContextListener - [turnkey - ddmigration] - Iniciando importacao do dicionario de dados

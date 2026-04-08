@@ -9,22 +9,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Servi?o de Log para integra??o Fastchannel.
+ * Servico de Log para integracao Fastchannel.
  *
- * Registra opera??es na tabela AD_FCLOG para auditoria.
+ * Registra operacoes na tabela AD_FCLOG para auditoria.
  */
 public class LogService {
 
     private static final Logger log = Logger.getLogger(LogService.class.getName());
     private static LogService instance;
 
-    // N?veis de log
+    // Niveis de log
     public static final String LEVEL_INFO = "INFO";
     public static final String LEVEL_WARNING = "WARNING";
     public static final String LEVEL_ERROR = "ERROR";
     public static final String LEVEL_DEBUG = "DEBUG";
 
-    // Tipos de opera??o
+    // Tipos de operacao
     public static final String OP_ORDER_IMPORT = "ORDER_IMPORT";
     public static final String OP_STOCK_SYNC = "STOCK_SYNC";
     public static final String OP_PRICE_SYNC = "PRICE_SYNC";
@@ -45,14 +45,14 @@ public class LogService {
     }
 
     /**
-     * Registra log de informa??o.
+     * Registra log de informacao.
      */
     public void info(String operation, String message) {
         logEntry(LEVEL_INFO, operation, message, null, null);
     }
 
     /**
-     * Registra log de informa??o com refer?ncia.
+     * Registra log de informacao com referencia.
      */
     public void info(String operation, String message, String reference) {
         logEntry(LEVEL_INFO, operation, message, reference, null);
@@ -66,7 +66,7 @@ public class LogService {
     }
 
     /**
-     * Registra log de aviso com refer?ncia.
+     * Registra log de aviso com referencia.
      */
     public void warning(String operation, String message, String reference) {
         logEntry(LEVEL_WARNING, operation, message, reference, null);
@@ -81,7 +81,7 @@ public class LogService {
     }
 
     /**
-     * Registra log de erro com refer?ncia.
+     * Registra log de erro com referencia.
      */
     public void error(String operation, String message, String reference, Throwable exception) {
         String stackTrace = exception != null ? getStackTrace(exception) : null;
@@ -96,7 +96,7 @@ public class LogService {
     }
 
     /**
-     * Registra importa??o de pedido.
+     * Registra importacao de pedido.
      */
     public void logOrderImport(String orderId, BigDecimal nuNota, boolean success, String details) {
         String message = success ?
@@ -106,7 +106,15 @@ public class LogService {
     }
 
     /**
-     * Registra sincroniza??o de estoque.
+     * Registra pedido pulado no retry por concorrencia legitima (PROCESSANDO recente).
+     */
+    public void logOrderRetrySkipped(String orderId, String reason) {
+        String message = "Retry ignorado para pedido " + orderId + ": " + reason;
+        logEntry(LEVEL_INFO, OP_ORDER_IMPORT, message, orderId, null);
+    }
+
+    /**
+     * Registra sincronizacao de estoque.
      */
     public void logStockSync(String sku, BigDecimal quantity, boolean success, String details) {
         String message = success ?
@@ -116,17 +124,17 @@ public class LogService {
     }
 
     /**
-     * Registra sincroniza??o de pre?o.
+     * Registra sincronizacao de preco.
      */
     public void logPriceSync(String sku, boolean success, String details) {
         String message = success ?
-                "Pre?o do SKU " + sku + " atualizado" :
-                "Falha ao atualizar pre?o do SKU " + sku;
+                "Preco do SKU " + sku + " atualizado" :
+                "Falha ao atualizar preco do SKU " + sku;
         logEntry(success ? LEVEL_INFO : LEVEL_ERROR, OP_PRICE_SYNC, message, sku, details);
     }
 
     /**
-     * Registra requisi??o HTTP.
+     * Registra requisicao HTTP.
      */
     public void logHttpRequest(String method, String url, int statusCode, String responseBody) {
         String level = statusCode >= 200 && statusCode < 300 ? LEVEL_DEBUG : LEVEL_ERROR;
@@ -148,8 +156,9 @@ public class LogService {
         }
 
         // Persistir na tabela
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("INSERT INTO AD_FCLOG ");
@@ -165,8 +174,13 @@ public class LogService {
             sql.executeUpdate();
 
         } catch (Exception e) {
-            // N?o propagar erro de log
-            log.log(Level.WARNING, "Erro ao persistir log: " + e.getMessage());
+            // Nao propagar erro de log, mas logar com stack trace completo para diagnostico
+            log.log(Level.SEVERE, "ERRO CRITICO ao persistir log na AD_FCLOG (operacao=" + operation +
+                    ", referencia=" + reference + "): " + e.getMessage() +
+                    ". Verifique se a tabela AD_FCLOG existe e tem as colunas corretas: " +
+                    "NIVEL, OPERACAO, MENSAGEM, REFERENCIA, DETALHES, DH_REGISTRO", e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -192,8 +206,9 @@ public class LogService {
      * Limpa logs antigos.
      */
     public int cleanupOldLogs(int daysToKeep) {
+        JdbcWrapper jdbc = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = openJdbc();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("DELETE FROM AD_FCLOG ");
@@ -203,8 +218,8 @@ public class LogService {
 
             boolean success = sql.executeUpdate();
             if (success) {
-                log.info("Remo??o de logs antigos executada com sucesso");
-                // Contagem n?o dispon?vel na assinatura atual
+                log.info("Remocao de logs antigos executada com sucesso");
+                // Contagem nao disponivel na assinatura atual
                 return 1;
             }
             return 0;
@@ -212,6 +227,24 @@ public class LogService {
         } catch (Exception e) {
             log.log(Level.WARNING, "Erro ao limpar logs antigos", e);
             return 0;
+        } finally {
+            closeJdbc(jdbc);
+        }
+    }
+
+    private JdbcWrapper openJdbc() throws Exception {
+        JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+        jdbc.openSession();
+        return jdbc;
+    }
+
+    private void closeJdbc(JdbcWrapper jdbc) {
+        if (jdbc != null) {
+            try {
+                jdbc.closeSession();
+            } catch (Exception e) {
+                log.log(Level.FINE, "Erro ao fechar JdbcWrapper", e);
+            }
         }
     }
 }

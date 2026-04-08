@@ -1,0 +1,36 @@
+04/11/2025 06:08:19 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+04/11/2025 06:08:19 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/11/2025 06:08:19 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+04/11/2025 06:08:19 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'bia-studio-mm' no pacote 'br.com.sankhya.bia-studio-mm.model.scripts'.
+04/11/2025 06:08:19 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [bia-studio-mm] finalizando inicialização...
+04/11/2025 06:08:19 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
+04/11/2025 19:50:33 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Finalizando módulo [bia-studio-mm]...
+04/11/2025 19:50:33 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'instance-logs-mm'.
+04/11/2025 19:50:34 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+04/11/2025 19:50:34 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgecom-bff'.
+04/11/2025 19:50:34 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apiservicostomados'.
+04/11/2025 19:50:34 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mitra'.
+04/11/2025 19:50:34 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+04/11/2025 19:50:34 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'conectividademm'.
+04/11/2025 19:50:34 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'sasserver'.
+04/11/2025 19:50:34 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'apifinanceiro'.
+04/11/2025 19:50:34 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'api'.
+04/11/2025 19:50:35 ERROR br.com.sankhya.module.bootloader.ThreadPoolManager - java.lang.NullPointerException
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'placemm'.
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgeprod'.
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgefin-bff'.
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mon-api'.
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mge-bff'.
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'bia-studio-mm'.
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgecontab'.
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgewms'.
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.bootloader.AsyncTasksManager - Não encontramos AsyncTask pendentes no contexto 'mgeliv'.
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered 
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered 
+04/11/2025 19:50:35 INFO  br.com.sankhya.module.service.ServiceManager - Services for module mgeliv have been unregistered 
+04/11/2025 19:53:03 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Carregando jobs do BootModuleListener: br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener.
+04/11/2025 19:53:03 INFO  br.com.sankhya.module.bootloader.JobsModuleBootLoader - Classe br.com.sankhya.bia.studio.mm.servlet.MMBootModuleListener não possui método declarado com assinatura [public Map<String, EmbeddedJobConfig> getModuleJobs()].
+04/11/2025 19:53:03 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Carregando scripts de inicialização do módulo 'bia-studio-mm'...
+04/11/2025 19:53:03 INFO  br.com.sankhya.module.script.initialization.InitializationScriptsRunner - Nenhum script de inicialização encontrado para o módulo 'bia-studio-mm' no pacote 'br.com.sankhya.bia-studio-mm.model.scripts'.
+04/11/2025 19:53:03 INFO  br.com.sankhya.module.BootModuleServletContextListener - [SANMODULE] - Módulo [bia-studio-mm] finalizando inicialização...
+04/11/2025 19:53:03 INFO  br.com.sankhya.module.util.Log4jConfig - Resource log4j não encontrado, favor verifique o caminho [/WEB-INF/resources/log4j.properties] 
