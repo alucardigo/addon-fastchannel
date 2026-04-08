@@ -8,9 +8,7 @@ import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -97,6 +95,65 @@ public class PriceTableResolver {
             }
         }
         return tipos;
+    }
+
+    /**
+     * Retorna mapa FC PriceTableId -> ultimo NUTAB (1 NUTAB por tabela FC).
+     * Para cada tabela FC configurada, pega o ULTIMO de-para ativo e resolve o NUTAB mais recente.
+     * Garante exatamente 1 PUT por tabela FC no sync.
+     */
+    public Map<String, BigDecimal> resolveTableToNuTabMap() {
+        String raw = config.getPriceTableIds();
+        if (raw == null || raw.trim().isEmpty()) return Collections.emptyMap();
+
+        Map<String, BigDecimal> result = new LinkedHashMap<>();
+        String[] parts = raw.split("[;,\\s]+");
+        for (String part : parts) {
+            String fcTableId = part.trim();
+            if (fcTableId.isEmpty()) continue;
+            // Para cada FC table ID, pegar o ULTIMO NUTAB ativo (mais recente por DTVIGOR)
+            BigDecimal latestNuTab = findLatestNuTabForFcTable(fcTableId);
+            if (latestNuTab != null) {
+                result.put(fcTableId, latestNuTab);
+                log.info("resolveTableToNuTabMap: FC " + fcTableId + " -> NUTAB " + latestNuTab);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Para uma FC PriceTableId, encontra o ULTIMO de-para (por DH_CRIACAO ou DH_ALTERACAO DESC)
+     * e resolve o NUTAB mais recente do CODTAB correspondente.
+     */
+    private BigDecimal findLatestNuTabForFcTable(String fcTableId) {
+        ResultSet rs = null;
+        try {
+            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            NativeSql sql = new NativeSql(jdbc);
+            // Pega o de-para mais recente para esta FC table
+            // Resolve CODTAB → ultimo NUTAB (por DTVIGOR DESC)
+            sql.appendSql("SELECT TOP 1 ULT.NUTAB ");
+            sql.appendSql("FROM AD_FCDEPARA D ");
+            sql.appendSql("INNER JOIN TGFTAB REF ON REF.NUTAB = CAST(D.COD_SANKHYA AS INT) ");
+            sql.appendSql("INNER JOIN ( ");
+            sql.appendSql("  SELECT CODTAB, MAX(DTVIGOR) AS MAX_DT FROM TGFTAB GROUP BY CODTAB ");
+            sql.appendSql(") MX ON MX.CODTAB = REF.CODTAB ");
+            sql.appendSql("INNER JOIN TGFTAB ULT ON ULT.CODTAB = MX.CODTAB AND ULT.DTVIGOR = MX.MAX_DT ");
+            sql.appendSql("WHERE D.TIPO_ENTIDADE = 'TABELA_PRECO' ");
+            sql.appendSql("AND D.COD_EXTERNO = :fcId ");
+            sql.appendSql("AND (D.INTEGRA_AUTO IS NULL OR D.INTEGRA_AUTO = 'S') ");
+            sql.appendSql("ORDER BY ISNULL(D.DH_ALTERACAO, D.DH_CRIACAO) DESC, ULT.NUTAB DESC");
+            sql.setNamedParameter("fcId", fcTableId);
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("NUTAB");
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao resolver NUTAB para FC table " + fcTableId, e);
+        } finally {
+            closeQuietly(rs);
+        }
+        return null;
     }
 
     List<BigDecimal> parseTableIds(String raw) {

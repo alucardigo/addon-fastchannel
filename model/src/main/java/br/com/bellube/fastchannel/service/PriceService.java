@@ -10,9 +10,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,15 +51,36 @@ public class PriceService {
         }
 
         FastchannelPriceClient.Channel channel = determineChannel(codProd, sku);
-        List<BigDecimal> tables = priceTableResolver.resolveEligibleTables();
-        if (tables.isEmpty()) {
-            tables = Collections.singletonList(BigDecimal.ZERO);
+
+        // Abordagem orientada por TABELA FC: para cada tabela configurada,
+        // encontrar o NUTAB correto e enviar o preco correspondente.
+        // Isso evita duplicatas e garante 1 PUT por tabela FC.
+        Map<String, BigDecimal> fcTableToNuTab = priceTableResolver.resolveTableToNuTabMap();
+
+        if (fcTableToNuTab.isEmpty()) {
+            // Fallback: usar resolveEligibleTables antigo
+            List<BigDecimal> tables = priceTableResolver.resolveEligibleTables();
+            for (BigDecimal nuTab : tables) {
+                BigDecimal tableId = resolvePriceTableId(nuTab);
+                if (tableId != null) {
+                    fcTableToNuTab.put(tableId.toPlainString(), nuTab);
+                }
+            }
         }
 
-        for (BigDecimal nuTab : tables) {
+        for (Map.Entry<String, BigDecimal> entry : fcTableToNuTab.entrySet()) {
+            BigDecimal tableId = new BigDecimal(entry.getKey());
+            BigDecimal nuTab = entry.getValue();
+
+            // Verificar se o produto EXISTE explicitamente na TGFEXC para esta NUTAB
+            if (!productExistsInTable(codProd, nuTab)) {
+                log.fine("Skip fcTable " + tableId + " nuTab " + nuTab + ": produto " + codProd + " nao existe em TGFEXC");
+                continue;
+            }
             PriceResolver.PriceResult result = priceResolver.resolve(codProd, nuTab);
             if (result == null || result.getPriceCentavos() == null
                     || result.getPriceCentavos().compareTo(BigDecimal.ZERO) <= 0) {
+                log.fine("Skip fcTable " + tableId + " nuTab " + nuTab + ": produto " + codProd + " sem preco");
                 continue;
             }
             PriceDTO dto = new PriceDTO();
@@ -70,12 +89,33 @@ public class PriceService {
             dto.setListPrice(result.getListPriceCentavos() != null
                     ? result.getListPriceCentavos()
                     : result.getPriceCentavos());
-            BigDecimal tableId = resolvePriceTableId(nuTab);
-            if (tableId == null) continue; // Skip tabelas sem mapeamento
             dto.setPriceTableId(tableId);
             FastchannelPriceClient client = clientFor(channel);
             client.updatePrice(dto);
-            log.fine("Preco sincronizado: codProd=" + codProd + " sku=" + sku + " nuTab=" + nuTab + " channel=" + channel);
+            log.info("PUT preco: codProd=" + codProd + " sku=" + sku + " nuTab=" + nuTab
+                    + " fcTable=" + tableId + " sale=" + result.getPriceCentavos()
+                    + " list=" + dto.getListPrice() + " channel=" + channel);
+
+            // Verificacao imediata: GET para confirmar que o preco entrou na FC
+            try {
+                PriceDTO verify = client.getPrice(sku, tableId);
+                if (verify != null && verify.getPrice() != null) {
+                    if (verify.getPrice().compareTo(result.getPriceCentavos()) != 0) {
+                        log.warning("VERIFY MISMATCH: PUT sale=" + result.getPriceCentavos()
+                                + " mas GET retornou=" + verify.getPrice()
+                                + " SKU=" + sku + " fcTable=" + tableId);
+                    } else {
+                        log.info("VERIFY OK: SKU=" + sku + " fcTable=" + tableId
+                                + " preco=" + verify.getPrice());
+                    }
+                } else {
+                    log.warning("VERIFY FALHOU: GET nao retornou preco SKU=" + sku
+                            + " fcTable=" + tableId);
+                }
+            } catch (Exception verifyEx) {
+                log.warning("VERIFY ERRO: " + verifyEx.getMessage()
+                        + " SKU=" + sku + " fcTable=" + tableId);
+            }
 
             // Sync batch/scaled pricing (precos escalonados por quantidade)
             try {
@@ -83,10 +123,10 @@ public class PriceService {
                 List<PriceBatchItemDTO> batches = batchResolver.resolve(codProd, nuTab, tableId);
                 if (!batches.isEmpty()) {
                     client.updatePriceBatches(sku, tableId, batches);
-                    log.fine("Batches sincronizados: codProd=" + codProd + " sku=" + sku + " batches=" + batches.size());
+                    log.info("Batches OK: codProd=" + codProd + " fcTable=" + tableId + " faixas=" + batches.size());
                 }
             } catch (Exception batchEx) {
-                log.log(Level.WARNING, "Erro ao sincronizar batches para SKU " + sku + ": " + batchEx.getMessage(), batchEx);
+                log.log(Level.WARNING, "Erro batches SKU " + sku + " fcTable=" + tableId + ": " + batchEx.getMessage(), batchEx);
             }
         }
     }
@@ -156,6 +196,25 @@ public class PriceService {
             return FastchannelPriceClient.Channel.DISTRIBUTION;
         }
         return FastchannelPriceClient.Channel.CONSUMPTION;
+    }
+
+    private boolean productExistsInTable(BigDecimal codProd, BigDecimal nuTab) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement("SELECT TOP 1 1 FROM TGFEXC WHERE CODPROD = ? AND NUTAB = ?");
+            stmt.setBigDecimal(1, codProd);
+            stmt.setBigDecimal(2, nuTab);
+            rs = stmt.executeQuery();
+            return rs.next();
+        } catch (Exception e) {
+            log.log(Level.FINE, "Erro ao verificar TGFEXC codProd=" + codProd + " nuTab=" + nuTab, e);
+            return false;
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
+        }
     }
 
     private BigDecimal resolvePriceTableId(BigDecimal nuTab) {
