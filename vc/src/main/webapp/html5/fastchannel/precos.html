@@ -322,18 +322,7 @@
                     <span class="filter-label">PriceTableId</span>
                     <input type="number" id="filterPriceTableId" class="form-input">
                 </div>
-                <div class="filter-group">
-                    <span class="filter-label">Cod Empresa</span>
-                    <input type="number" id="filterCodEmp" class="form-input">
-                </div>
-                <div class="filter-group">
-                    <span class="filter-label">Data Inicio</span>
-                    <input type="date" id="filterDataInicio" class="form-input">
-                </div>
-                <div class="filter-group">
-                    <span class="filter-label">Data Fim</span>
-                    <input type="date" id="filterDataFim" class="form-input">
-                </div>
+                <!-- COD EMPRESA, DATA INICIO, DATA FIM removidos -->
                 <div class="filter-group">
                     <span class="filter-label">Fonte de Dados</span>
                     <select id="filterSource" class="form-input" onchange="onSourceChange()">
@@ -370,8 +359,7 @@
                             <th class="sortable" data-col="vlrTabela" onclick="sortBy('vlrTabela','num')">Preco Tabela (R$)</th>
                             <th>Preco FC (R$)</th>
                             <th>Delta (R$)</th>
-                            <th class="sortable" data-col="dtInic" onclick="sortBy('dtInic','date')">Dt Inicio</th>
-                            <th class="sortable" data-col="dtFim" onclick="sortBy('dtFim','date')">Dt Fim</th>
+                            <!-- Dt Inicio/Fim removidos -->
                             <th>Status</th>
                             <th>Acoes</th>
                         </tr>
@@ -727,7 +715,7 @@
                     codProd: readNumberFilter('filterCodProd'),
                     nuTab: readNumberFilter('filterNuTab'),
                     priceTableId: readNumberFilter('filterPriceTableId'),
-                    codEmp: readNumberFilter('filterCodEmp'),
+                    // codEmp removido
                     dataInicio: (document.getElementById('filterDataInicio').value || '').trim(),
                     dataFim: (document.getElementById('filterDataFim').value || '').trim(),
                     page: currentPage,
@@ -778,8 +766,7 @@
                     <td>${formatMoney(p.vlrTabela)}</td>
                     <td id="fc-${makeKey(p)}">${formatMoney(p.precoFastchannel)}</td>
                     <td id="delta-${makeKey(p)}">${formatMoney(p.delta)}</td>
-                    <td>${formatDate(p.dtInic)}</td>
-                    <td>${formatDate(p.dtFim)}</td>
+                    <!-- dtInic/dtFim removidos -->
                     <td>${statusInfo}</td>
                     <td style="white-space:nowrap;">
                         <button class="btn btn-secondary btn-sm" onclick="comparar(${idx})">Comparar</button>

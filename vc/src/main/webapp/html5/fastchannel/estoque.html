@@ -376,14 +376,7 @@
                         <option value="ERRO_FATAL">Erro Fatal</option>
                     </select>
                 </div>
-                <div class="filter-group">
-                    <span class="filter-label">Data Inicio</span>
-                    <input type="date" id="filterDataInicio" class="form-input" onchange="loadEstoque()">
-                </div>
-                <div class="filter-group">
-                    <span class="filter-label">Data Fim</span>
-                    <input type="date" id="filterDataFim" class="form-input" onchange="loadEstoque()">
-                </div>
+                <!-- Data Inicio/Fim removidos -->
                 <div class="filter-group">
                     <span class="filter-label">SKU</span>
                     <input type="text" id="filterSku" class="form-input" placeholder="Buscar..."
@@ -428,21 +421,16 @@
                             <th class="sortable" data-col="codProd" onclick="sortBy('codProd','num')">CODPROD</th>
                             <th class="sortable" data-col="descricao" onclick="sortBy('descricao')">Descricao</th>
                             <th class="sortable" data-col="codLocal" onclick="sortBy('codLocal','num')">Local</th>
-                            <th class="sortable" data-col="codEmp" onclick="sortBy('codEmp','num')">Empresa</th>
-                            <th class="sortable" data-col="storageId" onclick="sortBy('storageId')">StorageId</th>
-                            <th class="sortable" data-col="resellerId" onclick="sortBy('resellerId')">ResellerId</th>
                             <th class="sortable" data-col="estoque" onclick="sortBy('estoque','num')">Estoque</th>
                             <th>FC Estoque</th>
                             <th>Delta</th>
                             <th class="sortable" data-col="queueStatus" onclick="sortBy('queueStatus')">Status Fila</th>
-                            <th class="sortable" data-col="queueDate" onclick="sortBy('queueDate','date')">Ult Fila</th>
-                            <th>Ult Log</th>
                             <th>Acoes</th>
                         </tr>
                     </thead>
                     <tbody id="estoqueTable">
                         <tr>
-                            <td colspan="15" class="empty-state">Carregando...</td>
+                            <td colspan="10" class="empty-state">Carregando...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -597,15 +585,10 @@
                     <td>${item.codProd || '--'}</td>
                     <td>${escapeHtml(item.descricao || '--')}</td>
                     <td>${item.codLocal || '--'}</td>
-                    <td>${item.codEmp || '--'}</td>
-                    <td>${escapeHtml(item.storageId || '--')}</td>
-                    <td>${escapeHtml(item.resellerId || '--')}</td>
                     <td>${formatNumber(item.estoque)}</td>
                     <td id="fc-${key}">${formatNumber(item.estoqueFastchannel)}</td>
                     <td id="delta-${key}">${formatNumber(item.delta)}</td>
                     <td>${getStatusPill(item.queueStatus)}</td>
-                    <td>${formatDate(item.queueDate)}</td>
-                    <td>${getLogPill(item.logLevel)}</td>
                     <td>
                         <button class="btn btn-secondary btn-sm" onclick="compararItem(${idx})">Comparar</button>
                         <button class="btn btn-secondary btn-sm" onclick="forcarSyncItem(${idx})">Forcar</button>
@@ -772,7 +755,7 @@
 
         async function loadEstoque() {
             const tbody = document.getElementById('estoqueTable');
-            tbody.innerHTML = '<tr><td colspan="15" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
             selected = new Set();
             document.getElementById('checkAll').checked = false;
 
@@ -789,11 +772,11 @@
                         await compareBatch(data.items);
                     }
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="15" class="empty-state">Nenhum registro encontrado</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">Nenhum registro encontrado</td></tr>';
                     updatePagination(0);
                 }
             } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="15" class="empty-state">Erro: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="empty-state">Erro: ${e.message}</td></tr>`;
             }
         }
 
