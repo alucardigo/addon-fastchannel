@@ -4,12 +4,12 @@ import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.config.FastchannelConstants;
 import br.com.bellube.fastchannel.dto.QueueItemDTO;
 import br.com.bellube.fastchannel.service.DeparaService;
-import br.com.sankhya.jape.dao.JdbcWrapper;
-import br.com.sankhya.jape.sql.NativeSql;
-import br.com.sankhya.modelcore.util.EntityFacadeFactory;
+import br.com.bellube.fastchannel.util.DBUtil;
 import com.google.gson.Gson;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -23,11 +23,9 @@ import java.util.logging.Logger;
  * Gerencia a tabela AD_FCQUEUE para sincronizacao assincrona
  * entre Sankhya e Fastchannel.
  *
- * Caracteristicas:
- * - Thread-safe
- * - Debouncing automatico (evita duplicatas)
- * - Priorizacao de itens
- * - Controle de retry
+ * Usa JDBC direto (DBUtil/JNDI java:/MGEDS) em vez de JAPE,
+ * para funcionar imediatamente apos WildFly boot sem depender
+ * da inicializacao do mge-core.
  */
 public class QueueService {
 
@@ -53,12 +51,6 @@ public class QueueService {
 
     /**
      * Enfileira item para sincronizacao (com debounce).
-     *
-     * @param entityType tipo da entidade (PRODUTO, ESTOQUE, PRECO)
-     * @param operation operacao (CREATE, UPDATE, DELETE)
-     * @param entityId ID da entidade no Sankhya
-     * @param entityKey chave alternativa (SKU)
-     * @param payload dados JSON (opcional)
      */
     public void enqueue(String entityType, String operation, BigDecimal entityId,
                         String entityKey, String payload) {
@@ -71,68 +63,68 @@ public class QueueService {
     public void enqueue(String entityType, String operation, BigDecimal entityId,
                         String entityKey, String payload, BigDecimal priority) {
 
-        JdbcWrapper jdbc = null;
         String normalizedEntityKey = normalizeEntityKey(entityKey);
+        Connection conn = null;
+        PreparedStatement stmt = null;
 
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
             // Debounce: verificar se ja existe item similar recente
-            if (hasPendingItem(jdbc, entityType, entityId, normalizedEntityKey)) {
+            if (hasPendingItem(conn, entityType, entityId, normalizedEntityKey)) {
                 log.fine("Item ja na fila (debounce): " + entityType + "/" + entityId);
                 return;
             }
 
-            // Inserir novo item na fila
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("INSERT INTO AD_FCQUEUE ");
-            sql.appendSql("(ENTITY_TYPE, OPERATION, ENTITY_ID, ENTITY_KEY, PAYLOAD, STATUS, ");
-            sql.appendSql("RETRY_COUNT, PRIORITY, DH_CRIACAO) ");
-            sql.appendSql("VALUES (:entityType, :operation, :entityId, :entityKey, :payload, ");
-            sql.appendSql(":status, 0, :priority, CURRENT_TIMESTAMP)");
+            stmt = conn.prepareStatement(
+                "INSERT INTO AD_FCQUEUE " +
+                "(ENTITY_TYPE, OPERATION, ENTITY_ID, ENTITY_KEY, PAYLOAD, STATUS, " +
+                "RETRY_COUNT, PRIORITY, DH_CRIACAO) " +
+                "VALUES (?, ?, ?, ?, ?, ?, 0, ?, CURRENT_TIMESTAMP)");
 
-            sql.setNamedParameter("entityType", entityType);
-            sql.setNamedParameter("operation", operation);
-            sql.setNamedParameter("entityId", entityId);
-            sql.setNamedParameter("entityKey", normalizedEntityKey);
-            sql.setNamedParameter("payload", payload);
-            sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_PENDENTE);
-            sql.setNamedParameter("priority", priority);
+            stmt.setString(1, entityType);
+            stmt.setString(2, operation);
+            stmt.setBigDecimal(3, entityId);
+            stmt.setString(4, normalizedEntityKey);
+            stmt.setString(5, payload);
+            stmt.setString(6, FastchannelConstants.QUEUE_STATUS_PENDENTE);
+            stmt.setBigDecimal(7, priority);
 
-            sql.executeUpdate();
+            stmt.executeUpdate();
 
             log.info("Enfileirado: " + entityType + "/" + operation + " - " + normalizedEntityKey);
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao enfileirar item", e);
         } finally {
-            closeJdbc(jdbc);
+            DBUtil.closeAll(null, stmt, conn);
         }
     }
 
     /**
      * Verifica se ha item pendente similar (debounce).
      */
-    private boolean hasPendingItem(JdbcWrapper jdbc, String entityType,
+    private boolean hasPendingItem(Connection conn, String entityType,
                                    BigDecimal entityId, String entityKey) throws Exception {
-        NativeSql sql = new NativeSql(jdbc);
-        sql.appendSql("SELECT 1 FROM AD_FCQUEUE WHERE ");
-        sql.appendSql("ENTITY_TYPE = :entityType AND STATUS IN ('PENDENTE', 'PROCESSANDO') ");
-        sql.appendSql("AND (ENTITY_ID = :entityId OR ENTITY_KEY = :entityKey) ");
-        sql.appendSql("AND DH_CRIACAO > :debounceTime");
-
-        sql.setNamedParameter("entityType", entityType);
-        sql.setNamedParameter("entityId", entityId);
-        sql.setNamedParameter("entityKey", entityKey);
-
-        Timestamp debounceTime = new Timestamp(System.currentTimeMillis() - DEBOUNCE_WINDOW_MS);
-        sql.setNamedParameter("debounceTime", debounceTime);
-
-        ResultSet rs = sql.executeQuery();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
+            stmt = conn.prepareStatement(
+                "SELECT 1 FROM AD_FCQUEUE WHERE " +
+                "ENTITY_TYPE = ? AND STATUS IN ('PENDENTE', 'PROCESSANDO') " +
+                "AND (ENTITY_ID = ? OR ENTITY_KEY = ?) " +
+                "AND DH_CRIACAO > ?");
+
+            stmt.setString(1, entityType);
+            stmt.setBigDecimal(2, entityId);
+            stmt.setString(3, entityKey);
+            stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis() - DEBOUNCE_WINDOW_MS));
+
+            rs = stmt.executeQuery();
             return rs.next();
         } finally {
-            closeQuietly(rs);
+            DBUtil.closeResultSet(rs);
+            DBUtil.closeStatement(stmt);
         }
     }
 
@@ -144,53 +136,36 @@ public class QueueService {
 
     /**
      * Busca proximos itens pendentes para processamento.
-     *
-     * @param batchSize quantidade maxima de itens
-     * @return lista de itens pendentes ordenados por prioridade
      */
     public List<QueueItemDTO> fetchPendingItems(int batchSize) {
         List<QueueItemDTO> items = new ArrayList<>();
-        JdbcWrapper jdbc = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         ResultSet rs = null;
 
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("SELECT IDQUEUE, ENTITY_TYPE, OPERATION, ENTITY_ID, ENTITY_KEY, ");
-            sql.appendSql("PAYLOAD, STATUS, RETRY_COUNT, LAST_ERROR, DH_CRIACAO, PRIORITY ");
-            sql.appendSql("FROM AD_FCQUEUE ");
-            sql.appendSql("WHERE STATUS = :status ");
-            sql.appendSql("ORDER BY PRIORITY DESC, DH_CRIACAO ASC ");
-            sql.appendSql("OFFSET 0 ROWS FETCH NEXT :limit ROWS ONLY");
+            stmt = conn.prepareStatement(
+                "SELECT TOP (?) IDQUEUE, ENTITY_TYPE, OPERATION, ENTITY_ID, ENTITY_KEY, " +
+                "PAYLOAD, STATUS, RETRY_COUNT, LAST_ERROR, DH_CRIACAO, PRIORITY " +
+                "FROM AD_FCQUEUE " +
+                "WHERE STATUS = ? " +
+                "ORDER BY PRIORITY DESC, DH_CRIACAO ASC");
 
-            sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_PENDENTE);
-            sql.setNamedParameter("limit", batchSize);
+            stmt.setInt(1, batchSize);
+            stmt.setString(2, FastchannelConstants.QUEUE_STATUS_PENDENTE);
 
-            rs = sql.executeQuery();
+            rs = stmt.executeQuery();
 
             while (rs.next()) {
-                QueueItemDTO item = new QueueItemDTO();
-                item.setIdQueue(rs.getBigDecimal("IDQUEUE"));
-                item.setEntityType(rs.getString("ENTITY_TYPE"));
-                item.setOperation(rs.getString("OPERATION"));
-                item.setEntityId(rs.getBigDecimal("ENTITY_ID"));
-                item.setEntityKey(rs.getString("ENTITY_KEY"));
-                item.setPayload(rs.getString("PAYLOAD"));
-                item.setStatus(rs.getString("STATUS"));
-                item.setRetryCount(rs.getInt("RETRY_COUNT"));
-                item.setLastError(rs.getString("LAST_ERROR"));
-                item.setCreatedAt(rs.getTimestamp("DH_CRIACAO"));
-                item.setPriority(rs.getBigDecimal("PRIORITY"));
-                items.add(item);
+                items.add(mapQueueItem(rs));
             }
 
         } catch (Exception e) {
-            Level level = isJapeUnavailableError(e) ? Level.FINE : Level.SEVERE;
-            log.log(level, "Erro ao buscar itens pendentes", e);
+            log.log(Level.WARNING, "Erro ao buscar itens pendentes", e);
         } finally {
-            closeQuietly(rs);
-            closeJdbc(jdbc);
+            DBUtil.closeAll(rs, stmt, conn);
         }
 
         return items;
@@ -201,47 +176,34 @@ public class QueueService {
      */
     public List<QueueItemDTO> fetchPendingByType(String entityType, int batchSize) {
         List<QueueItemDTO> items = new ArrayList<>();
-        JdbcWrapper jdbc = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         ResultSet rs = null;
 
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("SELECT IDQUEUE, ENTITY_TYPE, OPERATION, ENTITY_ID, ENTITY_KEY, ");
-            sql.appendSql("PAYLOAD, STATUS, RETRY_COUNT, LAST_ERROR, DH_CRIACAO, PRIORITY ");
-            sql.appendSql("FROM AD_FCQUEUE ");
-            sql.appendSql("WHERE STATUS = :status AND ENTITY_TYPE = :entityType ");
-            sql.appendSql("ORDER BY PRIORITY DESC, DH_CRIACAO ASC ");
-            sql.appendSql("OFFSET 0 ROWS FETCH NEXT :limit ROWS ONLY");
+            stmt = conn.prepareStatement(
+                "SELECT TOP (?) IDQUEUE, ENTITY_TYPE, OPERATION, ENTITY_ID, ENTITY_KEY, " +
+                "PAYLOAD, STATUS, RETRY_COUNT, LAST_ERROR, DH_CRIACAO, PRIORITY " +
+                "FROM AD_FCQUEUE " +
+                "WHERE STATUS = ? AND ENTITY_TYPE = ? " +
+                "ORDER BY PRIORITY DESC, DH_CRIACAO ASC");
 
-            sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_PENDENTE);
-            sql.setNamedParameter("entityType", entityType);
-            sql.setNamedParameter("limit", batchSize);
+            stmt.setInt(1, batchSize);
+            stmt.setString(2, FastchannelConstants.QUEUE_STATUS_PENDENTE);
+            stmt.setString(3, entityType);
 
-            rs = sql.executeQuery();
+            rs = stmt.executeQuery();
 
             while (rs.next()) {
-                QueueItemDTO item = new QueueItemDTO();
-                item.setIdQueue(rs.getBigDecimal("IDQUEUE"));
-                item.setEntityType(rs.getString("ENTITY_TYPE"));
-                item.setOperation(rs.getString("OPERATION"));
-                item.setEntityId(rs.getBigDecimal("ENTITY_ID"));
-                item.setEntityKey(rs.getString("ENTITY_KEY"));
-                item.setPayload(rs.getString("PAYLOAD"));
-                item.setStatus(rs.getString("STATUS"));
-                item.setRetryCount(rs.getInt("RETRY_COUNT"));
-                item.setLastError(rs.getString("LAST_ERROR"));
-                item.setCreatedAt(rs.getTimestamp("DH_CRIACAO"));
-                item.setPriority(rs.getBigDecimal("PRIORITY"));
-                items.add(item);
+                items.add(mapQueueItem(rs));
             }
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao buscar itens por tipo", e);
         } finally {
-            closeQuietly(rs);
-            closeJdbc(jdbc);
+            DBUtil.closeAll(rs, stmt, conn);
         }
 
         return items;
@@ -258,26 +220,27 @@ public class QueueService {
      * Marca item como enviado com sucesso.
      */
     public void markAsSuccess(BigDecimal idQueue) {
-        JdbcWrapper jdbc = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("UPDATE AD_FCQUEUE SET ");
-            sql.appendSql("STATUS = :status, DH_PROCESSAMENTO = CURRENT_TIMESTAMP, LAST_ERROR = NULL ");
-            sql.appendSql("WHERE IDQUEUE = :idQueue");
+            stmt = conn.prepareStatement(
+                "UPDATE AD_FCQUEUE SET " +
+                "STATUS = ?, DH_PROCESSAMENTO = CURRENT_TIMESTAMP, LAST_ERROR = NULL " +
+                "WHERE IDQUEUE = ?");
 
-            sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_ENVIADO);
-            sql.setNamedParameter("idQueue", idQueue);
+            stmt.setString(1, FastchannelConstants.QUEUE_STATUS_ENVIADO);
+            stmt.setBigDecimal(2, idQueue);
 
-            sql.executeUpdate();
+            stmt.executeUpdate();
 
             log.fine("Item " + idQueue + " marcado como ENVIADO");
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao marcar item como sucesso", e);
         } finally {
-            closeJdbc(jdbc);
+            DBUtil.closeAll(null, stmt, conn);
         }
     }
 
@@ -285,28 +248,29 @@ public class QueueService {
      * Marca item como erro (para retry).
      */
     public void markAsError(BigDecimal idQueue, String errorMessage) {
-        JdbcWrapper jdbc = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("UPDATE AD_FCQUEUE SET ");
-            sql.appendSql("STATUS = :status, RETRY_COUNT = RETRY_COUNT + 1, ");
-            sql.appendSql("LAST_ERROR = :error, DH_ALTERACAO = CURRENT_TIMESTAMP ");
-            sql.appendSql("WHERE IDQUEUE = :idQueue");
+            stmt = conn.prepareStatement(
+                "UPDATE AD_FCQUEUE SET " +
+                "STATUS = ?, RETRY_COUNT = RETRY_COUNT + 1, " +
+                "LAST_ERROR = ?, DH_ALTERACAO = CURRENT_TIMESTAMP " +
+                "WHERE IDQUEUE = ?");
 
-            sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_ERRO);
-            sql.setNamedParameter("error", truncate(errorMessage, 4000));
-            sql.setNamedParameter("idQueue", idQueue);
+            stmt.setString(1, FastchannelConstants.QUEUE_STATUS_ERRO);
+            stmt.setString(2, truncate(errorMessage, 4000));
+            stmt.setBigDecimal(3, idQueue);
 
-            sql.executeUpdate();
+            stmt.executeUpdate();
 
             log.warning("Item " + idQueue + " marcado como ERRO: " + errorMessage);
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao marcar item como erro", e);
         } finally {
-            closeJdbc(jdbc);
+            DBUtil.closeAll(null, stmt, conn);
         }
     }
 
@@ -322,31 +286,31 @@ public class QueueService {
      * Reativa itens com erro para reprocessamento.
      */
     public int reactivateErrorItems(int maxRetries) {
-        JdbcWrapper jdbc = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("UPDATE AD_FCQUEUE SET ");
-            sql.appendSql("STATUS = :newStatus, DH_ALTERACAO = CURRENT_TIMESTAMP ");
-            sql.appendSql("WHERE STATUS = :errorStatus AND RETRY_COUNT < :maxRetries");
+            stmt = conn.prepareStatement(
+                "UPDATE AD_FCQUEUE SET " +
+                "STATUS = ?, DH_ALTERACAO = CURRENT_TIMESTAMP " +
+                "WHERE STATUS = ? AND RETRY_COUNT < ?");
 
-            sql.setNamedParameter("newStatus", FastchannelConstants.QUEUE_STATUS_PENDENTE);
-            sql.setNamedParameter("errorStatus", FastchannelConstants.QUEUE_STATUS_ERRO);
-            sql.setNamedParameter("maxRetries", maxRetries);
+            stmt.setString(1, FastchannelConstants.QUEUE_STATUS_PENDENTE);
+            stmt.setString(2, FastchannelConstants.QUEUE_STATUS_ERRO);
+            stmt.setInt(3, maxRetries);
 
-            boolean updated = sql.executeUpdate();
-            if (updated) {
-                log.info("Reativacao de itens para reprocessamento executada");
-                return 1;
+            int updated = stmt.executeUpdate();
+            if (updated > 0) {
+                log.info("Reativados " + updated + " itens para reprocessamento");
             }
-            return 0;
+            return updated;
 
         } catch (Exception e) {
-            log.log(isJapeUnavailableError(e) ? Level.FINE : Level.SEVERE, "Erro ao reativar itens", e);
+            log.log(Level.WARNING, "Erro ao reativar itens", e);
             return 0;
         } finally {
-            closeJdbc(jdbc);
+            DBUtil.closeAll(null, stmt, conn);
         }
     }
 
@@ -354,59 +318,37 @@ public class QueueService {
      * Conta todos os itens pendentes.
      */
     public int countPending() {
-        JdbcWrapper jdbc = null;
-        ResultSet rs = null;
-
-        try {
-            jdbc = openJdbc();
-
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("SELECT COUNT(*) AS TOTAL FROM AD_FCQUEUE ");
-            sql.appendSql("WHERE STATUS = :status");
-
-            sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_PENDENTE);
-
-            rs = sql.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("TOTAL");
-            }
-
-        } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao contar itens pendentes", e);
-        } finally {
-            closeQuietly(rs);
-            closeJdbc(jdbc);
-        }
-
-        return 0;
+        return countByStatus(FastchannelConstants.QUEUE_STATUS_PENDENTE);
     }
 
     /**
      * Conta todos os itens com erro.
      */
     public int countErrors() {
-        JdbcWrapper jdbc = null;
+        return countByStatus(FastchannelConstants.QUEUE_STATUS_ERRO);
+    }
+
+    private int countByStatus(String status) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
         ResultSet rs = null;
 
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("SELECT COUNT(*) AS TOTAL FROM AD_FCQUEUE ");
-            sql.appendSql("WHERE STATUS = :status");
+            stmt = conn.prepareStatement(
+                "SELECT COUNT(*) AS TOTAL FROM AD_FCQUEUE WHERE STATUS = ?");
+            stmt.setString(1, status);
 
-            sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_ERRO);
-
-            rs = sql.executeQuery();
+            rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt("TOTAL");
             }
 
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao contar itens com erro", e);
+            log.log(Level.WARNING, "Erro ao contar itens com status " + status, e);
         } finally {
-            closeQuietly(rs);
-            closeJdbc(jdbc);
+            DBUtil.closeAll(rs, stmt, conn);
         }
 
         return 0;
@@ -416,20 +358,21 @@ public class QueueService {
      * Reseta item para reprocessamento (zera tentativas e status para PENDENTE).
      */
     public void resetForRetry(BigDecimal codQueue) {
-        JdbcWrapper jdbc = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("UPDATE AD_FCQUEUE SET ");
-            sql.appendSql("STATUS = :status, RETRY_COUNT = 0, LAST_ERROR = NULL, ");
-            sql.appendSql("DH_ALTERACAO = CURRENT_TIMESTAMP ");
-            sql.appendSql("WHERE IDQUEUE = :idQueue");
+            stmt = conn.prepareStatement(
+                "UPDATE AD_FCQUEUE SET " +
+                "STATUS = ?, RETRY_COUNT = 0, LAST_ERROR = NULL, " +
+                "DH_ALTERACAO = CURRENT_TIMESTAMP " +
+                "WHERE IDQUEUE = ?");
 
-            sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_PENDENTE);
-            sql.setNamedParameter("idQueue", codQueue);
+            stmt.setString(1, FastchannelConstants.QUEUE_STATUS_PENDENTE);
+            stmt.setBigDecimal(2, codQueue);
 
-            sql.executeUpdate();
+            stmt.executeUpdate();
 
             log.info("Item " + codQueue + " resetado para reprocessamento");
 
@@ -437,7 +380,7 @@ public class QueueService {
             log.log(Level.SEVERE, "Erro ao resetar item para retry", e);
             throw new RuntimeException("Falha ao resetar item: " + e.getMessage(), e);
         } finally {
-            closeJdbc(jdbc);
+            DBUtil.closeAll(null, stmt, conn);
         }
     }
 
@@ -445,29 +388,29 @@ public class QueueService {
      * Conta itens pendentes por tipo.
      */
     public int countPendingByType(String entityType) {
-        JdbcWrapper jdbc = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         ResultSet rs = null;
 
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("SELECT COUNT(*) AS TOTAL FROM AD_FCQUEUE ");
-            sql.appendSql("WHERE STATUS = :status AND ENTITY_TYPE = :entityType");
+            stmt = conn.prepareStatement(
+                "SELECT COUNT(*) AS TOTAL FROM AD_FCQUEUE " +
+                "WHERE STATUS = ? AND ENTITY_TYPE = ?");
 
-            sql.setNamedParameter("status", FastchannelConstants.QUEUE_STATUS_PENDENTE);
-            sql.setNamedParameter("entityType", entityType);
+            stmt.setString(1, FastchannelConstants.QUEUE_STATUS_PENDENTE);
+            stmt.setString(2, entityType);
 
-            rs = sql.executeQuery();
+            rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt("TOTAL");
             }
 
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao contar itens pendentes", e);
+            log.log(Level.WARNING, "Erro ao contar itens pendentes por tipo", e);
         } finally {
-            closeQuietly(rs);
-            closeJdbc(jdbc);
+            DBUtil.closeAll(rs, stmt, conn);
         }
 
         return 0;
@@ -477,53 +420,70 @@ public class QueueService {
      * Limpa itens antigos ja processados.
      */
     public int cleanupOldItems(int daysToKeep) {
-        JdbcWrapper jdbc = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("DELETE FROM AD_FCQUEUE ");
-            sql.appendSql("WHERE STATUS IN ('ENVIADO', 'ERRO_FATAL', 'CANCELADO') ");
-            sql.appendSql("AND DH_CRIACAO < DATEADD(DAY, -:days, CURRENT_TIMESTAMP)");
+            stmt = conn.prepareStatement(
+                "DELETE FROM AD_FCQUEUE " +
+                "WHERE STATUS IN ('ENVIADO', 'ERRO_FATAL', 'CANCELADO') " +
+                "AND DH_CRIACAO < DATEADD(DAY, -?, CURRENT_TIMESTAMP)");
 
-            sql.setNamedParameter("days", daysToKeep);
+            stmt.setInt(1, daysToKeep);
 
-            boolean deleted = sql.executeUpdate();
-            if (deleted) {
-                log.info("Remocao de itens antigos da fila executada");
-                return 1;
+            int deleted = stmt.executeUpdate();
+            if (deleted > 0) {
+                log.info("Removidos " + deleted + " itens antigos da fila");
             }
-            return 0;
+            return deleted;
 
         } catch (Exception e) {
             log.log(Level.WARNING, "Erro ao limpar itens antigos", e);
             return 0;
         } finally {
-            closeJdbc(jdbc);
+            DBUtil.closeAll(null, stmt, conn);
         }
     }
 
     private void updateStatus(BigDecimal idQueue, String status, String errorMessage) {
-        JdbcWrapper jdbc = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("UPDATE AD_FCQUEUE SET ");
-            sql.appendSql("STATUS = :status, LAST_ERROR = :error, DH_ALTERACAO = CURRENT_TIMESTAMP ");
-            sql.appendSql("WHERE IDQUEUE = :idQueue");
+            stmt = conn.prepareStatement(
+                "UPDATE AD_FCQUEUE SET " +
+                "STATUS = ?, LAST_ERROR = ?, DH_ALTERACAO = CURRENT_TIMESTAMP " +
+                "WHERE IDQUEUE = ?");
 
-            sql.setNamedParameter("status", status);
-            sql.setNamedParameter("error", truncate(errorMessage, 4000));
-            sql.setNamedParameter("idQueue", idQueue);
+            stmt.setString(1, status);
+            stmt.setString(2, truncate(errorMessage, 4000));
+            stmt.setBigDecimal(3, idQueue);
 
-            sql.executeUpdate();
+            stmt.executeUpdate();
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao atualizar status", e);
         } finally {
-            closeJdbc(jdbc);
+            DBUtil.closeAll(null, stmt, conn);
         }
+    }
+
+    private QueueItemDTO mapQueueItem(ResultSet rs) throws Exception {
+        QueueItemDTO item = new QueueItemDTO();
+        item.setIdQueue(rs.getBigDecimal("IDQUEUE"));
+        item.setEntityType(rs.getString("ENTITY_TYPE"));
+        item.setOperation(rs.getString("OPERATION"));
+        item.setEntityId(rs.getBigDecimal("ENTITY_ID"));
+        item.setEntityKey(rs.getString("ENTITY_KEY"));
+        item.setPayload(rs.getString("PAYLOAD"));
+        item.setStatus(rs.getString("STATUS"));
+        item.setRetryCount(rs.getInt("RETRY_COUNT"));
+        item.setLastError(rs.getString("LAST_ERROR"));
+        item.setCreatedAt(rs.getTimestamp("DH_CRIACAO"));
+        item.setPriority(rs.getBigDecimal("PRIORITY"));
+        return item;
     }
 
     private String truncate(String str, int maxLength) {
@@ -531,51 +491,7 @@ public class QueueService {
         return str.length() > maxLength ? str.substring(0, maxLength) : str;
     }
 
-    private void closeQuietly(ResultSet rs) {
-        if (rs != null) {
-            try { rs.close(); } catch (Exception ignored) {}
-        }
-    }
-
-    private static volatile boolean japeReady = false;
-
-    private JdbcWrapper openJdbc() throws Exception {
-        JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
-        jdbc.openSession();
-        if (!japeReady) {
-            japeReady = true;
-            log.info("QueueService: JAPE/mge-core disponivel.");
-        }
-        return jdbc;
-    }
-
-    /**
-     * Retorna true quando JAPE esta indisponivel (mge-core nao inicializado).
-     * Usado para evitar logs SEVERE repetitivos durante warmup.
-     */
-    static boolean isJapeUnavailableError(Exception e) {
-        Throwable current = e;
-        while (current != null) {
-            String msg = current.getMessage();
-            if (msg != null && msg.contains("Erro ao inicializar datasource para provider mge-core")) {
-                return true;
-            }
-            current = current.getCause();
-        }
-        return false;
-    }
-
-    private void closeJdbc(JdbcWrapper jdbc) {
-        if (jdbc != null) {
-            try {
-                jdbc.closeSession();
-            } catch (Exception e) {
-                log.log(Level.FINE, "Erro ao fechar JdbcWrapper", e);
-            }
-        }
-    }
-
-    // ==================== M?TODOS DE CONVENI?NCIA ====================
+    // ==================== METODOS DE CONVENIENCIA ====================
 
     /**
      * Enfileira atualizacao de produto.
@@ -697,4 +613,3 @@ public class QueueService {
         private String resellerId;
     }
 }
-

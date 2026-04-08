@@ -1,10 +1,10 @@
 package br.com.bellube.fastchannel.service;
 
-import br.com.sankhya.jape.dao.JdbcWrapper;
-import br.com.sankhya.jape.sql.NativeSql;
-import br.com.sankhya.modelcore.util.EntityFacadeFactory;
+import br.com.bellube.fastchannel.util.DBUtil;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,6 +12,7 @@ import java.util.logging.Logger;
  * Servico de Log para integracao Fastchannel.
  *
  * Registra operacoes na tabela AD_FCLOG para auditoria.
+ * Usa JDBC direto (DBUtil) para funcionar sem JAPE/mge-core.
  */
 public class LogService {
 
@@ -44,60 +45,36 @@ public class LogService {
         return instance;
     }
 
-    /**
-     * Registra log de informacao.
-     */
     public void info(String operation, String message) {
         logEntry(LEVEL_INFO, operation, message, null, null);
     }
 
-    /**
-     * Registra log de informacao com referencia.
-     */
     public void info(String operation, String message, String reference) {
         logEntry(LEVEL_INFO, operation, message, reference, null);
     }
 
-    /**
-     * Registra log de aviso.
-     */
     public void warning(String operation, String message) {
         logEntry(LEVEL_WARNING, operation, message, null, null);
     }
 
-    /**
-     * Registra log de aviso com referencia.
-     */
     public void warning(String operation, String message, String reference) {
         logEntry(LEVEL_WARNING, operation, message, reference, null);
     }
 
-    /**
-     * Registra log de erro.
-     */
     public void error(String operation, String message, Throwable exception) {
         String stackTrace = exception != null ? getStackTrace(exception) : null;
         logEntry(LEVEL_ERROR, operation, message, null, stackTrace);
     }
 
-    /**
-     * Registra log de erro com referencia.
-     */
     public void error(String operation, String message, String reference, Throwable exception) {
         String stackTrace = exception != null ? getStackTrace(exception) : null;
         logEntry(LEVEL_ERROR, operation, message, reference, stackTrace);
     }
 
-    /**
-     * Registra log de debug.
-     */
     public void debug(String operation, String message) {
         logEntry(LEVEL_DEBUG, operation, message, null, null);
     }
 
-    /**
-     * Registra importacao de pedido.
-     */
     public void logOrderImport(String orderId, BigDecimal nuNota, boolean success, String details) {
         String message = success ?
                 "Pedido " + orderId + " importado como NUNOTA " + nuNota :
@@ -105,17 +82,11 @@ public class LogService {
         logEntry(success ? LEVEL_INFO : LEVEL_ERROR, OP_ORDER_IMPORT, message, orderId, details);
     }
 
-    /**
-     * Registra pedido pulado no retry por concorrencia legitima (PROCESSANDO recente).
-     */
     public void logOrderRetrySkipped(String orderId, String reason) {
         String message = "Retry ignorado para pedido " + orderId + ": " + reason;
         logEntry(LEVEL_INFO, OP_ORDER_IMPORT, message, orderId, null);
     }
 
-    /**
-     * Registra sincronizacao de estoque.
-     */
     public void logStockSync(String sku, BigDecimal quantity, boolean success, String details) {
         String message = success ?
                 "Estoque do SKU " + sku + " atualizado: " + quantity :
@@ -123,9 +94,6 @@ public class LogService {
         logEntry(success ? LEVEL_INFO : LEVEL_ERROR, OP_STOCK_SYNC, message, sku, details);
     }
 
-    /**
-     * Registra sincronizacao de preco.
-     */
     public void logPriceSync(String sku, boolean success, String details) {
         String message = success ?
                 "Preco do SKU " + sku + " atualizado" :
@@ -133,9 +101,6 @@ public class LogService {
         logEntry(success ? LEVEL_INFO : LEVEL_ERROR, OP_PRICE_SYNC, message, sku, details);
     }
 
-    /**
-     * Registra requisicao HTTP.
-     */
     public void logHttpRequest(String method, String url, int statusCode, String responseBody) {
         String level = statusCode >= 200 && statusCode < 300 ? LEVEL_DEBUG : LEVEL_ERROR;
         String message = method + " " + url + " -> " + statusCode;
@@ -155,32 +120,30 @@ public class LogService {
             log.fine("[" + operation + "] " + message);
         }
 
-        // Persistir na tabela
-        JdbcWrapper jdbc = null;
+        // Persistir na tabela via JDBC direto
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("INSERT INTO AD_FCLOG ");
-            sql.appendSql("(NIVEL, OPERACAO, MENSAGEM, REFERENCIA, DETALHES, DH_REGISTRO) ");
-            sql.appendSql("VALUES (:nivel, :operacao, :mensagem, :referencia, :detalhes, CURRENT_TIMESTAMP)");
+            stmt = conn.prepareStatement(
+                "INSERT INTO AD_FCLOG " +
+                "(NIVEL, OPERACAO, MENSAGEM, REFERENCIA, DETALHES, DH_REGISTRO) " +
+                "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
 
-            sql.setNamedParameter("nivel", level);
-            sql.setNamedParameter("operacao", operation);
-            sql.setNamedParameter("mensagem", truncate(message, 500));
-            sql.setNamedParameter("referencia", truncate(reference, 100));
-            sql.setNamedParameter("detalhes", truncate(details, 4000));
+            stmt.setString(1, level);
+            stmt.setString(2, operation);
+            stmt.setString(3, truncate(message, 500));
+            stmt.setString(4, truncate(reference, 100));
+            stmt.setString(5, truncate(details, 4000));
 
-            sql.executeUpdate();
+            stmt.executeUpdate();
 
         } catch (Exception e) {
-            // Nao propagar erro de log, mas logar com stack trace completo para diagnostico
-            log.log(Level.SEVERE, "ERRO CRITICO ao persistir log na AD_FCLOG (operacao=" + operation +
-                    ", referencia=" + reference + "): " + e.getMessage() +
-                    ". Verifique se a tabela AD_FCLOG existe e tem as colunas corretas: " +
-                    "NIVEL, OPERACAO, MENSAGEM, REFERENCIA, DETALHES, DH_REGISTRO", e);
+            // Nao propagar erro de log - apenas registrar no console
+            log.log(Level.FINE, "Falha ao persistir log na AD_FCLOG: " + e.getMessage());
         } finally {
-            closeJdbc(jdbc);
+            DBUtil.closeAll(null, stmt, conn);
         }
     }
 
@@ -206,46 +169,28 @@ public class LogService {
      * Limpa logs antigos.
      */
     public int cleanupOldLogs(int daysToKeep) {
-        JdbcWrapper jdbc = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
         try {
-            jdbc = openJdbc();
+            conn = DBUtil.getConnection();
 
-            NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("DELETE FROM AD_FCLOG ");
-            sql.appendSql("WHERE DH_REGISTRO < DATEADD(DAY, -:days, CURRENT_TIMESTAMP)");
+            stmt = conn.prepareStatement(
+                "DELETE FROM AD_FCLOG " +
+                "WHERE DH_REGISTRO < DATEADD(DAY, -?, CURRENT_TIMESTAMP)");
 
-            sql.setNamedParameter("days", daysToKeep);
+            stmt.setInt(1, daysToKeep);
 
-            boolean success = sql.executeUpdate();
-            if (success) {
-                log.info("Remocao de logs antigos executada com sucesso");
-                // Contagem nao disponivel na assinatura atual
-                return 1;
+            int deleted = stmt.executeUpdate();
+            if (deleted > 0) {
+                log.info("Removidos " + deleted + " logs antigos");
             }
-            return 0;
+            return deleted;
 
         } catch (Exception e) {
             log.log(Level.WARNING, "Erro ao limpar logs antigos", e);
             return 0;
         } finally {
-            closeJdbc(jdbc);
-        }
-    }
-
-    private JdbcWrapper openJdbc() throws Exception {
-        JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
-        jdbc.openSession();
-        return jdbc;
-    }
-
-    private void closeJdbc(JdbcWrapper jdbc) {
-        if (jdbc != null) {
-            try {
-                jdbc.closeSession();
-            } catch (Exception e) {
-                log.log(Level.FINE, "Erro ao fechar JdbcWrapper", e);
-            }
+            DBUtil.closeAll(null, stmt, conn);
         }
     }
 }
-

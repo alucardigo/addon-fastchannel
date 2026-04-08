@@ -1,10 +1,13 @@
 package br.com.bellube.fastchannel.service;
 
+import br.com.bellube.fastchannel.util.DBUtil;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +37,27 @@ public class StockResolver {
             + "AND E.CODLOCAL = :codLocal "
             + "AND P.ATIVO = 'S'";
 
+    private static final String SQL_WITH_BRAND_FILTER_JDBC = ""
+            + "SELECT SUM(E.ESTOQUE - E.RESERVADO) AS QTD "
+            + "FROM TGFEST E "
+            + "INNER JOIN TGFPRO P ON P.CODPROD = E.CODPROD "
+            + "INNER JOIN TGFMAR M ON M.CODIGO = P.CODMARCA "
+            + "WHERE E.CODPROD = ? "
+            + "AND E.CODEMP = ? "
+            + "AND E.CODLOCAL = ? "
+            + "AND P.ATIVO = 'S' "
+            + "AND M.AD_FAST = 'S' "
+            + "AND M.AD_FASTREF IN ('C','R')";
+
+    private static final String SQL_FALLBACK_JDBC = ""
+            + "SELECT SUM(E.ESTOQUE - E.RESERVADO) AS QTD "
+            + "FROM TGFEST E "
+            + "INNER JOIN TGFPRO P ON P.CODPROD = E.CODPROD "
+            + "WHERE E.CODPROD = ? "
+            + "AND E.CODEMP = ? "
+            + "AND E.CODLOCAL = ? "
+            + "AND P.ATIVO = 'S'";
+
     private static volatile Boolean supportsBrandFilter;
     private static volatile boolean loggedFallback;
 
@@ -58,11 +82,72 @@ public class StockResolver {
                 return qtd != null ? qtd : BigDecimal.ZERO;
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao resolver estoque", e);
+            log.log(Level.FINE, "JAPE indisponivel para StockResolver, usando JDBC direto", e);
+            return resolveJdbc(codProd, codEmp, codLocal);
         } finally {
             closeQuietly(rs);
         }
         return BigDecimal.ZERO;
+    }
+
+    private BigDecimal resolveJdbc(BigDecimal codProd, BigDecimal codEmp, BigDecimal codLocal) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            String sqlText = resolveSqlJdbc(conn);
+            stmt = conn.prepareStatement(sqlText);
+            stmt.setBigDecimal(1, codProd);
+            stmt.setBigDecimal(2, codEmp);
+            stmt.setBigDecimal(3, codLocal);
+
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                BigDecimal qtd = rs.getBigDecimal("QTD");
+                return qtd != null ? qtd : BigDecimal.ZERO;
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Fallback JDBC StockResolver falhou", e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private String resolveSqlJdbc(Connection conn) {
+        if (supportsBrandFilter == null) {
+            supportsBrandFilter = hasColumnJdbc(conn, "TGFMAR", "AD_FAST")
+                    && hasColumnJdbc(conn, "TGFMAR", "AD_FASTREF")
+                    && hasColumnJdbc(conn, "TGFPRO", "CODMARCA");
+            if (!supportsBrandFilter && !loggedFallback) {
+                log.warning("TGFMAR.AD_FAST/AD_FASTREF indisponiveis. Usando fallback sem filtro de marca.");
+                loggedFallback = true;
+            }
+        }
+        return supportsBrandFilter ? SQL_WITH_BRAND_FILTER_JDBC : SQL_FALLBACK_JDBC;
+    }
+
+    private boolean hasColumnJdbc(Connection conn, String tableName, String columnName) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.prepareStatement(
+                "SELECT COUNT(*) AS CNT FROM INFORMATION_SCHEMA.COLUMNS " +
+                "WHERE TABLE_NAME = ? AND COLUMN_NAME = ?");
+            stmt.setString(1, tableName);
+            stmt.setString(2, columnName);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("CNT") > 0;
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Nao foi possivel verificar coluna " + tableName + "." + columnName, e);
+        } finally {
+            DBUtil.closeResultSet(rs);
+            DBUtil.closeStatement(stmt);
+        }
+        return false;
     }
 
     String getSql() {
