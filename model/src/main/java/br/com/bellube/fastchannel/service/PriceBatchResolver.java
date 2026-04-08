@@ -110,7 +110,9 @@ public class PriceBatchResolver {
                 dto.setPriceTableId(priceTableId);
                 dto.setMinimumBatchSize(rs.getBigDecimal("MinimumBatchSize"));
                 dto.setMaximumBatchSize(rs.getBigDecimal("MaximumBatchSize"));
-                dto.setUnitaryPriceForBatch(unitPrice.setScale(2, RoundingMode.HALF_UP));
+                // FC API espera precos em centavos (mesma unidade que SalePrice/ListPrice)
+                BigDecimal unitPriceCentavos = unitPrice.movePointRight(2).setScale(0, RoundingMode.HALF_UP);
+                dto.setUnitaryPriceForBatch(unitPriceCentavos);
                 String disabled = rs.getString("BatchDisabled");
                 dto.setBatchDisabled("true".equalsIgnoreCase(disabled));
                 items.add(dto);
