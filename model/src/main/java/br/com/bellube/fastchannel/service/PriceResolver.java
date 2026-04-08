@@ -1,10 +1,13 @@
 package br.com.bellube.fastchannel.service;
 
+import br.com.bellube.fastchannel.util.DBUtil;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +54,6 @@ public class PriceResolver {
             jdbc.openSession();
             NativeSql sql = new NativeSql(jdbc);
 
-            // Busca o NUTAB da tabela de origem (CODTABORIG -> ultimo NUTAB desse CODTAB)
             sql.appendSql("SELECT TOP 1 TORIG.NUTAB AS NUTAB_ORIG ");
             sql.appendSql("FROM TGFTAB T ");
             sql.appendSql("INNER JOIN TGFTAB TORIG ON TORIG.CODTAB = T.CODTABORIG ");
@@ -64,19 +66,48 @@ public class PriceResolver {
             if (rs.next()) {
                 BigDecimal nuTabOrig = rs.getBigDecimal("NUTAB_ORIG");
                 if (nuTabOrig != null) {
-                    // Busca o preco na tabela de origem
                     return fetchPriceDecimal(codProd, nuTabOrig);
                 }
             }
         } catch (Exception e) {
-            log.log(Level.FINE, "Erro ao buscar preco de tabela origem para NUTAB " + nuTab, e);
+            log.log(Level.FINE, "JAPE indisponivel para fetchOriginPrice, usando JDBC direto", e);
+            return fetchOriginPriceJdbc(codProd, nuTab);
         } finally {
             closeQuietly(rs);
             if (jdbc != null) {
                 try { jdbc.closeSession(); } catch (Exception ignored) {}
             }
         }
-        return null; // tabela nao tem origem ou erro
+        return null;
+    }
+
+    private BigDecimal fetchOriginPriceJdbc(BigDecimal codProd, BigDecimal nuTab) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement(
+                "SELECT TOP 1 TORIG.NUTAB AS NUTAB_ORIG " +
+                "FROM TGFTAB T " +
+                "INNER JOIN TGFTAB TORIG ON TORIG.CODTAB = T.CODTABORIG " +
+                "WHERE T.NUTAB = ? " +
+                "AND T.CODTABORIG IS NOT NULL AND T.CODTABORIG > 0 " +
+                "ORDER BY TORIG.DTVIGOR DESC");
+            stmt.setBigDecimal(1, nuTab);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                BigDecimal nuTabOrig = rs.getBigDecimal("NUTAB_ORIG");
+                if (nuTabOrig != null) {
+                    return fetchPriceDecimal(codProd, nuTabOrig);
+                }
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Fallback JDBC fetchOriginPrice falhou", e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
+        }
+        return null;
     }
 
     private BigDecimal fetchPriceDecimal(BigDecimal codProd, BigDecimal nuTab) {
@@ -99,18 +130,42 @@ public class PriceResolver {
                 return rs.getBigDecimal("VLR_FINAL");
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao buscar preco via SNK_GET_PRECO", e);
+            log.log(Level.FINE, "JAPE indisponivel para fetchPriceDecimal, usando JDBC direto", e);
+            return fetchPriceDecimalJdbc(codProd, nuTab);
         } finally {
             closeQuietly(rs);
             if (jdbc != null) {
                 try {
                     jdbc.closeSession();
                 } catch (Exception e) {
-                    log.log(Level.WARNING, "Erro ao fechar session do JdbcWrapper", e);
+                    log.log(Level.FINE, "Erro ao fechar session do JdbcWrapper", e);
                 }
             }
         }
 
+        return null;
+    }
+
+    private BigDecimal fetchPriceDecimalJdbc(BigDecimal codProd, BigDecimal nuTab) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement("SELECT [sankhya].SNK_GET_PRECO(?, ?, GETDATE()) AS VLR_FINAL");
+            stmt.setBigDecimal(1, nuTab);
+            stmt.setBigDecimal(2, codProd);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                BigDecimal price = rs.getBigDecimal("VLR_FINAL");
+                log.info("(JDBC) SNK_GET_PRECO NUTAB=" + nuTab + " CODPROD=" + codProd + " = " + price);
+                return price;
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Fallback JDBC fetchPriceDecimal falhou", e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
+        }
         return null;
     }
 

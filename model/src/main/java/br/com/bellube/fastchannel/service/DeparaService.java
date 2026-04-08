@@ -1,11 +1,14 @@
 package br.com.bellube.fastchannel.service;
 
 import br.com.bellube.fastchannel.dto.OrderItemDTO;
+import br.com.bellube.fastchannel.util.DBUtil;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -339,8 +342,10 @@ public class DeparaService {
     public String getSkuForStock(BigDecimal codProd) {
         if (codProd == null) return null;
 
+        // Tenta via JAPE primeiro
         ResultSet rs = null;
         JdbcWrapper jdbc = null;
+        boolean japeOk = false;
         try {
             jdbc = openJdbc();
 
@@ -353,6 +358,7 @@ public class DeparaService {
             sql.setNamedParameter("codProd", codProd);
 
             rs = sql.executeQuery();
+            japeOk = true;
             if (rs.next()) {
                 String adFastRef = rs.getString("AD_FASTREF");
                 String refForn = rs.getString("REFFORN");
@@ -363,10 +369,16 @@ public class DeparaService {
                 }
             }
         } catch (Exception e) {
-            log.log(Level.FINE, "Erro ao buscar SKU por regra de marca", e);
+            log.log(Level.FINE, "Erro ao buscar SKU por regra de marca via JAPE", e);
         } finally {
             closeQuietly(rs);
             closeJdbc(jdbc);
+        }
+
+        // Fallback JDBC direto quando JAPE nao inicializou (mge-core nao pronto)
+        if (!japeOk) {
+            String skuJdbc = getSkuForStockJdbc(codProd);
+            if (skuJdbc != null) return skuJdbc;
         }
 
         // Fallback: AD_FCDEPARA (somente registros com integracao ativa)
@@ -375,6 +387,67 @@ public class DeparaService {
             sku = normalizeSku(getSku(codProd));
         }
         return sku;
+    }
+
+    /**
+     * Fallback JDBC direto para getSkuForStock quando JAPE/mge-core nao esta disponivel.
+     */
+    private String getSkuForStockJdbc(BigDecimal codProd) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement(
+                "SELECT M.AD_FASTREF, P.REFFORN, P.CODPROD " +
+                "FROM TGFPRO P " +
+                "INNER JOIN TGFMAR M ON M.CODIGO = P.CODMARCA AND M.AD_FAST = 'S' " +
+                "WHERE P.CODPROD = ?");
+            stmt.setBigDecimal(1, codProd);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                String adFastRef = rs.getString("AD_FASTREF");
+                String refForn = rs.getString("REFFORN");
+                BigDecimal cod = rs.getBigDecimal("CODPROD");
+                String skuByRule = normalizeSku(computeSkuFromBrandRule(adFastRef, cod, refForn));
+                if (skuByRule != null && !skuByRule.isEmpty()) {
+                    return skuByRule;
+                }
+            }
+            // Se nao encontrou pela marca, tenta AD_FCDEPARA via JDBC
+            return getCodigoExternoAtivoJdbc(TIPO_PRODUTO, codProd, conn);
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Fallback JDBC getSkuForStock falhou para CODPROD=" + codProd, e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
+        }
+        return null;
+    }
+
+    /**
+     * Fallback JDBC direto para getCodigoExternoAtivo quando JAPE nao esta disponivel.
+     */
+    private String getCodigoExternoAtivoJdbc(String tipo, BigDecimal codSankhya, Connection conn) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.prepareStatement(
+                "SELECT COD_EXTERNO FROM AD_FCDEPARA " +
+                "WHERE TIPO_ENTIDADE = ? AND COD_SANKHYA = ? " +
+                "AND COALESCE(INTEGRA_AUTO, 'S') = 'S'");
+            stmt.setString(1, tipo);
+            stmt.setBigDecimal(2, codSankhya);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("COD_EXTERNO");
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Fallback JDBC getCodigoExternoAtivo falhou", e);
+        } finally {
+            DBUtil.closeResultSet(rs);
+            DBUtil.closeStatement(stmt);
+        }
+        return null;
     }
 
     public static String computeSkuFromBrandRule(String adFastRef, BigDecimal codProd, String refForn) {
@@ -529,7 +602,17 @@ public class DeparaService {
                 }
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao buscar codigo externo", e);
+            log.log(Level.FINE, "Erro ao buscar codigo externo via JAPE, tentando JDBC", e);
+            // Fallback JDBC quando JAPE nao inicializou
+            Connection conn = null;
+            try {
+                conn = DBUtil.getConnection();
+                return getCodigoExternoAtivoJdbc(tipo, codSankhya, conn);
+            } catch (Exception jdbcEx) {
+                log.log(Level.WARNING, "Fallback JDBC fetchCodigoExterno tambem falhou", jdbcEx);
+            } finally {
+                DBUtil.closeConnection(conn);
+            }
         } finally {
             closeQuietly(rs);
             closeJdbc(jdbc);
@@ -569,7 +652,17 @@ public class DeparaService {
                 }
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao buscar codigo externo ativo", e);
+            log.log(Level.WARNING, "Erro ao buscar codigo externo ativo via JAPE, tentando JDBC direto", e);
+            // Fallback JDBC quando JAPE/mge-core nao inicializou
+            Connection conn = null;
+            try {
+                conn = DBUtil.getConnection();
+                return getCodigoExternoAtivoJdbc(tipo, codSankhya, conn);
+            } catch (Exception jdbcEx) {
+                log.log(Level.WARNING, "Fallback JDBC getCodigoExternoAtivo tambem falhou", jdbcEx);
+            } finally {
+                DBUtil.closeConnection(conn);
+            }
         } finally {
             closeQuietly(rs);
             closeJdbc(jdbc);

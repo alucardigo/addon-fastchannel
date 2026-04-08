@@ -186,7 +186,8 @@ public class QueueService {
             }
 
         } catch (Exception e) {
-            log.log(Level.SEVERE, "Erro ao buscar itens pendentes", e);
+            Level level = isJapeUnavailableError(e) ? Level.FINE : Level.SEVERE;
+            log.log(level, "Erro ao buscar itens pendentes", e);
         } finally {
             closeQuietly(rs);
             closeJdbc(jdbc);
@@ -342,7 +343,7 @@ public class QueueService {
             return 0;
 
         } catch (Exception e) {
-            log.log(Level.SEVERE, "Erro ao reativar itens", e);
+            log.log(isJapeUnavailableError(e) ? Level.FINE : Level.SEVERE, "Erro ao reativar itens", e);
             return 0;
         } finally {
             closeJdbc(jdbc);
@@ -536,10 +537,32 @@ public class QueueService {
         }
     }
 
+    private static volatile boolean japeReady = false;
+
     private JdbcWrapper openJdbc() throws Exception {
         JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
         jdbc.openSession();
+        if (!japeReady) {
+            japeReady = true;
+            log.info("QueueService: JAPE/mge-core disponivel.");
+        }
         return jdbc;
+    }
+
+    /**
+     * Retorna true quando JAPE esta indisponivel (mge-core nao inicializado).
+     * Usado para evitar logs SEVERE repetitivos durante warmup.
+     */
+    static boolean isJapeUnavailableError(Exception e) {
+        Throwable current = e;
+        while (current != null) {
+            String msg = current.getMessage();
+            if (msg != null && msg.contains("Erro ao inicializar datasource para provider mge-core")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     private void closeJdbc(JdbcWrapper jdbc) {

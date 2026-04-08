@@ -2,11 +2,14 @@ package br.com.bellube.fastchannel.service;
 
 import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.service.DeparaService;
+import br.com.bellube.fastchannel.util.DBUtil;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
 import java.util.logging.Level;
@@ -172,10 +175,41 @@ public class PriceTableResolver {
             }
             return result;
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao descobrir tabelas Fast via AD_FCDEPARA", e);
-            return Collections.emptyList();
+            log.log(Level.FINE, "JAPE indisponivel para fetchMappedFcTableIds, usando JDBC direto", e);
+            return fetchMappedFcTableIdsJdbc();
         } finally {
             closeQuietly(rs);
+        }
+    }
+
+    private List<String> fetchMappedFcTableIdsJdbc() {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement(
+                "SELECT DISTINCT LTRIM(RTRIM(COD_EXTERNO)) AS COD_EXTERNO " +
+                "FROM AD_FCDEPARA " +
+                "WHERE TIPO_ENTIDADE = 'TABELA_PRECO' " +
+                "AND COD_EXTERNO IS NOT NULL " +
+                "AND LTRIM(RTRIM(COD_EXTERNO)) <> '' " +
+                "AND COALESCE(INTEGRA_AUTO, 'S') = 'S' " +
+                "ORDER BY LTRIM(RTRIM(COD_EXTERNO))");
+            rs = stmt.executeQuery();
+            List<String> result = new ArrayList<>();
+            while (rs.next()) {
+                String fcTableId = rs.getString("COD_EXTERNO");
+                if (fcTableId != null) {
+                    result.add(fcTableId.trim());
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Fallback JDBC fetchMappedFcTableIds tambem falhou", e);
+            return Collections.emptyList();
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
         }
     }
 
@@ -188,8 +222,6 @@ public class PriceTableResolver {
         try {
             JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
             NativeSql sql = new NativeSql(jdbc);
-            // Pega o de-para mais recente para esta FC table
-            // Resolve CODTAB → ultimo NUTAB (por DTVIGOR DESC)
             sql.appendSql("SELECT TOP 1 ULT.NUTAB ");
             sql.appendSql("FROM AD_FCDEPARA D ");
             sql.appendSql("INNER JOIN TGFTAB REF ON REF.NUTAB = CAST(D.COD_SANKHYA AS INT) ");
@@ -207,9 +239,41 @@ public class PriceTableResolver {
                 return rs.getBigDecimal("NUTAB");
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao resolver NUTAB para FC table " + fcTableId, e);
+            log.log(Level.FINE, "JAPE indisponivel para findLatestNuTabForFcTable, usando JDBC direto", e);
+            return findLatestNuTabForFcTableJdbc(fcTableId);
         } finally {
             closeQuietly(rs);
+        }
+        return null;
+    }
+
+    private BigDecimal findLatestNuTabForFcTableJdbc(String fcTableId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement(
+                "SELECT TOP 1 ULT.NUTAB " +
+                "FROM AD_FCDEPARA D " +
+                "INNER JOIN TGFTAB REF ON REF.NUTAB = CAST(D.COD_SANKHYA AS INT) " +
+                "INNER JOIN ( " +
+                "  SELECT CODTAB, MAX(DTVIGOR) AS MAX_DT FROM TGFTAB GROUP BY CODTAB " +
+                ") MX ON MX.CODTAB = REF.CODTAB " +
+                "INNER JOIN TGFTAB ULT ON ULT.CODTAB = MX.CODTAB AND ULT.DTVIGOR = MX.MAX_DT " +
+                "WHERE D.TIPO_ENTIDADE = 'TABELA_PRECO' " +
+                "AND D.COD_EXTERNO = ? " +
+                "AND (D.INTEGRA_AUTO IS NULL OR D.INTEGRA_AUTO = 'S') " +
+                "ORDER BY ISNULL(D.DH_ALTERACAO, D.DH_CRIACAO) DESC, ULT.NUTAB DESC");
+            stmt.setString(1, fcTableId);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("NUTAB");
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Fallback JDBC findLatestNuTabForFcTable falhou para " + fcTableId, e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
         }
         return null;
     }
@@ -285,10 +349,47 @@ public class PriceTableResolver {
             }
             return result;
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao buscar NUTABs para FC PriceTableId " + fcPriceTableId, e);
-            return Collections.emptyList();
+            log.log(Level.FINE, "JAPE indisponivel para findAllNuTabsForPriceTableId, usando JDBC direto", e);
+            return findAllNuTabsForPriceTableIdJdbc(fcPriceTableId);
         } finally {
             closeQuietly(rs);
+        }
+    }
+
+    private List<BigDecimal> findAllNuTabsForPriceTableIdJdbc(String fcPriceTableId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement(
+                "SELECT DISTINCT ULT.NUTAB " +
+                "FROM AD_FCDEPARA D " +
+                "INNER JOIN TGFTAB REF ON REF.NUTAB = CAST(D.COD_SANKHYA AS INT) " +
+                "INNER JOIN ( " +
+                "  SELECT CODTAB, MAX(DTVIGOR) AS MAX_DT FROM TGFTAB GROUP BY CODTAB " +
+                ") MX ON MX.CODTAB = REF.CODTAB " +
+                "INNER JOIN TGFTAB ULT ON ULT.CODTAB = MX.CODTAB AND ULT.DTVIGOR = MX.MAX_DT " +
+                "WHERE D.TIPO_ENTIDADE = 'TABELA_PRECO' " +
+                "AND D.COD_EXTERNO = ? " +
+                "AND (D.INTEGRA_AUTO IS NULL OR D.INTEGRA_AUTO = 'S') " +
+                "ORDER BY ULT.NUTAB");
+            stmt.setString(1, fcPriceTableId);
+            rs = stmt.executeQuery();
+            List<BigDecimal> result = new ArrayList<>();
+            while (rs.next()) {
+                BigDecimal nuTab = rs.getBigDecimal("NUTAB");
+                if (nuTab != null) {
+                    result.add(nuTab);
+                    log.info("(JDBC) PriceTableId FC " + fcPriceTableId + " -> NUTAB " + nuTab);
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Fallback JDBC findAllNuTabsForPriceTableId falhou", e);
+            return Collections.emptyList();
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
         }
     }
 
@@ -304,9 +405,30 @@ public class PriceTableResolver {
                 return rs.getBigDecimal("NUTAB");
             }
         } catch (Exception e) {
-            log.log(Level.FINE, "Erro ao validar NUTAB " + nuTab + " em TGFTAB", e);
+            log.log(Level.FINE, "JAPE indisponivel para resolveExistingNuTab, usando JDBC", e);
+            return resolveExistingNuTabJdbc(nuTab);
         } finally {
             closeQuietly(rs);
+        }
+        return null;
+    }
+
+    private BigDecimal resolveExistingNuTabJdbc(BigDecimal nuTab) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement("SELECT TOP 1 NUTAB FROM TGFTAB WHERE NUTAB = ?");
+            stmt.setBigDecimal(1, nuTab);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("NUTAB");
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Fallback JDBC resolveExistingNuTab falhou", e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
         }
         return null;
     }

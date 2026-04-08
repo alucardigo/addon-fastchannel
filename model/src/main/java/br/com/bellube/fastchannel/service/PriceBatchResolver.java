@@ -90,6 +90,7 @@ public class PriceBatchResolver {
 
         try {
             conn = DBUtil.getConnection();
+            log.info("PriceBatchResolver: CODPROD=" + codProd + " NUTAB=" + nuTab + " priceTableId=" + priceTableId);
             stmt = conn.prepareStatement(BATCH_SQL);
             // SNK_GET_PRECO parameters: NUTAB, CODPROD
             if (nuTab != null) {
@@ -102,9 +103,19 @@ public class PriceBatchResolver {
             stmt.setBigDecimal(3, codProd);
 
             rs = stmt.executeQuery();
+            int rowCount = 0;
             while (rs.next()) {
+                rowCount++;
                 BigDecimal unitPrice = rs.getBigDecimal("UnitaryPriceForBatch");
-                if (unitPrice == null) continue;
+                log.info("PriceBatchResolver row " + rowCount + ": unitPrice=" + unitPrice
+                    + " qtde=" + rs.getBigDecimal("MinimumBatchSize")
+                    + " tipdesc=" + rs.getString("TIPDESC")
+                    + " percdesc=" + rs.getBigDecimal("PERCDESC"));
+                if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                    log.warning("Batch faixa ignorada: preco invalido " + unitPrice
+                        + " CODPROD=" + codProd + " qtde=" + rs.getBigDecimal("MinimumBatchSize"));
+                    continue;
+                }
 
                 PriceBatchItemDTO dto = new PriceBatchItemDTO();
                 dto.setPriceTableId(priceTableId);
@@ -117,6 +128,7 @@ public class PriceBatchResolver {
                 dto.setBatchDisabled("true".equalsIgnoreCase(disabled));
                 items.add(dto);
             }
+            log.info("PriceBatchResolver: CODPROD=" + codProd + " total rows=" + rowCount + " items=" + items.size());
 
             if (!items.isEmpty()) {
                 log.info("Batch pricing encontrado para CODPROD=" + codProd + ": " + items.size() + " faixa(s)");
