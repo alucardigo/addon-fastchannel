@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V21: Campo para armazenar o desconto de cupom de produto vindo do Fastchannel -->
+    <sql nomeTabela="TGFCAB" nomeObjeto="AD_DESCONTO_FAST" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFCAB ADD AD_DESCONTO_FAST NUMBER(18,2)
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFCAB ADD AD_DESCONTO_FAST DECIMAL(18,2)
+        </mssql>
+    </sql>
+</alteracoes>

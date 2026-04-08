@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 public class PriceTableResolver {
 
     private static final Logger log = Logger.getLogger(PriceTableResolver.class.getName());
+    private static volatile Boolean hasIntegraAutoColumn;
 
     private final FastchannelConfig config;
 
@@ -26,6 +27,11 @@ public class PriceTableResolver {
     }
 
     public List<BigDecimal> resolveEligibleTables() {
+        Map<String, BigDecimal> mappedTables = resolveTableToNuTabMap();
+        if (!mappedTables.isEmpty()) {
+            return new ArrayList<>(new LinkedHashSet<>(mappedTables.values()));
+        }
+
         List<BigDecimal> explicit = parseTableIds(config.getPriceTableIds());
         if (!explicit.isEmpty()) {
             return explicit;
@@ -103,14 +109,13 @@ public class PriceTableResolver {
      * Garante exatamente 1 PUT por tabela FC no sync.
      */
     public Map<String, BigDecimal> resolveTableToNuTabMap() {
-        String raw = config.getPriceTableIds();
-        if (raw == null || raw.trim().isEmpty()) return Collections.emptyMap();
+        List<String> fcTableIds = resolveConfiguredOrMappedFcTableIds();
+        if (fcTableIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
 
         Map<String, BigDecimal> result = new LinkedHashMap<>();
-        String[] parts = raw.split("[;,\\s]+");
-        for (String part : parts) {
-            String fcTableId = part.trim();
-            if (fcTableId.isEmpty()) continue;
+        for (String fcTableId : fcTableIds) {
             // Para cada FC table ID, pegar o ULTIMO NUTAB ativo (mais recente por DTVIGOR)
             BigDecimal latestNuTab = findLatestNuTabForFcTable(fcTableId);
             if (latestNuTab != null) {
@@ -119,6 +124,59 @@ public class PriceTableResolver {
             }
         }
         return result;
+    }
+
+    private List<String> resolveConfiguredOrMappedFcTableIds() {
+        // O de-para é a fonte de verdade — qualquer tabela ativa no de-para é elegível.
+        // PRICE_TABLE_IDS no config é ignorado para sync (existe apenas para compatibilidade).
+        return fetchMappedFcTableIds();
+    }
+
+    private List<String> parseRawTableIds(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        String[] parts = raw.split("[;,\\s]+");
+        List<String> ids = new ArrayList<>();
+        for (String part : parts) {
+            String value = part != null ? part.trim() : null;
+            if (value != null && !value.isEmpty()) {
+                ids.add(value);
+            }
+        }
+        return ids;
+    }
+
+    private List<String> fetchMappedFcTableIds() {
+        ResultSet rs = null;
+        try {
+            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT DISTINCT LTRIM(RTRIM(COD_EXTERNO)) AS COD_EXTERNO ");
+            sql.appendSql("FROM AD_FCDEPARA ");
+            sql.appendSql("WHERE TIPO_ENTIDADE = 'TABELA_PRECO' ");
+            sql.appendSql("AND COD_EXTERNO IS NOT NULL ");
+            sql.appendSql("AND LTRIM(RTRIM(COD_EXTERNO)) <> '' ");
+            if (supportsIntegraAuto(jdbc)) {
+                sql.appendSql("AND COALESCE(INTEGRA_AUTO, 'S') = 'S' ");
+            }
+            sql.appendSql("ORDER BY LTRIM(RTRIM(COD_EXTERNO))");
+
+            rs = sql.executeQuery();
+            List<String> result = new ArrayList<>();
+            while (rs.next()) {
+                String fcTableId = rs.getString("COD_EXTERNO");
+                if (fcTableId != null) {
+                    result.add(fcTableId.trim());
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao descobrir tabelas Fast via AD_FCDEPARA", e);
+            return Collections.emptyList();
+        } finally {
+            closeQuietly(rs);
+        }
     }
 
     /**
@@ -270,6 +328,31 @@ public class PriceTableResolver {
             closeQuietly(rs);
         }
         return null;
+    }
+
+    private boolean supportsIntegraAuto(JdbcWrapper jdbc) {
+        Boolean cached = hasIntegraAutoColumn;
+        if (cached != null) {
+            return cached;
+        }
+
+        ResultSet rs = null;
+        try {
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT COUNT(*) AS CNT ");
+            sql.appendSql("FROM INFORMATION_SCHEMA.COLUMNS ");
+            sql.appendSql("WHERE TABLE_NAME = 'AD_FCDEPARA' AND COLUMN_NAME = 'INTEGRA_AUTO'");
+            rs = sql.executeQuery();
+            boolean supported = rs.next() && rs.getInt("CNT") > 0;
+            hasIntegraAutoColumn = supported;
+            return supported;
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao validar coluna INTEGRA_AUTO em AD_FCDEPARA", e);
+            hasIntegraAutoColumn = false;
+            return false;
+        } finally {
+            closeQuietly(rs);
+        }
     }
 
     private void closeQuietly(ResultSet rs) {

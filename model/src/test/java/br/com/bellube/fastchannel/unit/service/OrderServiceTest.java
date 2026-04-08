@@ -221,6 +221,43 @@ public class OrderServiceTest {
         assertEquals(11, cpf.length());
     }
 
+    @Test
+    public void getFrete_appliesAllShippingDiscountsAndNeverNegative() throws Exception {
+        OrderDTO order = new OrderDTO();
+        order.setShippingCost(new BigDecimal("42.00"));
+        order.setShippingDiscount(new BigDecimal("10.00"));
+        order.setShippingDiscountCoupon(new BigDecimal("20.00"));
+        order.setShippingDiscountAmount(new BigDecimal("20.00"));
+
+        assertEquals(BigDecimal.ZERO, invokeGetFrete(order));
+    }
+
+    @Test
+    public void buildObservacao_doesNotExposeFastOrderId() throws Exception {
+        OrderDTO order = new OrderDTO();
+        order.setOrderId("4642");
+        order.setNotes("Cliente pediu entrega rapida");
+        order.setShippingMethod("Retira");
+
+        String observacao = invokeBuildObservacao(order);
+
+        assertFalse(observacao.contains("Pedido Fastchannel"));
+        assertTrue(observacao.contains("Cliente pediu entrega rapida"));
+        assertTrue(observacao.contains("Frete: Retira"));
+    }
+
+    @Test
+    public void buildObservacaoInterna_keepsFastOrderIdAndSellerNotes() throws Exception {
+        OrderDTO order = new OrderDTO();
+        order.setOrderId("4642");
+        order.setSellerNotes("Cupom BELLUBE085");
+
+        String observacaoInterna = invokeBuildObservacaoInterna(order);
+
+        assertTrue(observacaoInterna.contains("Pedido Fastchannel: 4642"));
+        assertTrue(observacaoInterna.contains("Cupom BELLUBE085"));
+    }
+
     // ===================== Helpers (reflection) =====================
 
     private boolean invokeIsValidCpfCnpj(String value) throws Exception {
@@ -260,6 +297,27 @@ public class OrderServiceTest {
         Method m = OrderService.class.getDeclaredMethod("isBlank", String.class);
         m.setAccessible(true);
         return (boolean) m.invoke(svc, value);
+    }
+
+    private BigDecimal invokeGetFrete(OrderDTO order) throws Exception {
+        OrderService svc = new OrderService();
+        Method m = OrderService.class.getDeclaredMethod("getFrete", OrderDTO.class);
+        m.setAccessible(true);
+        return (BigDecimal) m.invoke(svc, order);
+    }
+
+    private String invokeBuildObservacao(OrderDTO order) throws Exception {
+        OrderService svc = new OrderService();
+        Method m = OrderService.class.getDeclaredMethod("buildObservacao", OrderDTO.class);
+        m.setAccessible(true);
+        return (String) m.invoke(svc, order);
+    }
+
+    private String invokeBuildObservacaoInterna(OrderDTO order) throws Exception {
+        OrderService svc = new OrderService();
+        Method m = OrderService.class.getDeclaredMethod("buildObservacaoInterna", OrderDTO.class);
+        m.setAccessible(true);
+        return (String) m.invoke(svc, order);
     }
 
     private String invokeBuildFallbackCpf(OrderCustomerDTO customer) throws Exception {

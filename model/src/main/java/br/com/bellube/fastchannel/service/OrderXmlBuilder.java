@@ -140,7 +140,7 @@ public class OrderXmlBuilder {
             xml.append("        <VLRDESC>").append(normalizeMoney(order.getDiscount())).append("</VLRDESC>\n");
         }
         // Sempre enviar VLRFRETE (mesmo quando zero) - compatibilidade com legado
-        BigDecimal frete = order.getShippingCost() != null ? order.getShippingCost() : BigDecimal.ZERO;
+        BigDecimal frete = getFrete(order);
         xml.append("        <VLRFRETE>").append(normalizeMoney(frete)).append("</VLRFRETE>\n");
 
         // Campos customizados
@@ -149,6 +149,12 @@ public class OrderXmlBuilder {
         }
         if (order.getOrderId() != null && supportsCabField("AD_FASTCHANNEL_ID")) {
             xml.append("        <AD_FASTCHANNEL_ID>").append(xmlEscape(order.getOrderId())).append("</AD_FASTCHANNEL_ID>\n");
+        }
+        if (supportsCabField("AD_DESCONTO_FAST")) {
+            BigDecimal descontoFast = order.getProductDiscountCoupon() != null
+                    ? order.getProductDiscountCoupon()
+                    : BigDecimal.ZERO;
+            xml.append("        <AD_DESCONTO_FAST>").append(normalizeMoney(descontoFast)).append("</AD_DESCONTO_FAST>\n");
         }
         if (supportsCabField("AD_MCAPORTAL")) {
             xml.append("        <AD_MCAPORTAL>P</AD_MCAPORTAL>\n");
@@ -325,15 +331,19 @@ public class OrderXmlBuilder {
 
     private String buildObservacao(OrderDTO order) {
         StringBuilder obs = new StringBuilder();
-        // Sempre incluir ID do pedido FC como primeira informacao
-        obs.append("Pedido Fastchannel: ").append(order.getOrderId());
         if (order.getNotes() != null && !order.getNotes().isEmpty()) {
-            obs.append(" | ").append(order.getNotes());
+            obs.append(order.getNotes());
         }
         if (order.getShippingMethod() != null) {
-            obs.append(" | Frete: ").append(order.getShippingMethod());
+            if (obs.length() > 0) {
+                obs.append(" | ");
+            }
+            obs.append("Frete: ").append(order.getShippingMethod());
         }
-        String result = obs.toString();
+        String result = trimToNull(obs.toString());
+        if (result == null) {
+            return null;
+        }
         return result.length() > 500 ? result.substring(0, 500) : result;
     }
 
@@ -345,6 +355,25 @@ public class OrderXmlBuilder {
         }
         String result = obs.toString();
         return result.length() > 1000 ? result.substring(0, 1000) : result;
+    }
+
+    private BigDecimal getFrete(OrderDTO order) {
+        if (order == null || order.getShippingCost() == null) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal descontoFrete = BigDecimal.ZERO;
+        if (order.getShippingDiscount() != null) {
+            descontoFrete = descontoFrete.add(order.getShippingDiscount());
+        }
+        if (order.getShippingDiscountCoupon() != null) {
+            descontoFrete = descontoFrete.add(order.getShippingDiscountCoupon());
+        }
+        if (order.getShippingDiscountAmount() != null) {
+            descontoFrete = descontoFrete.add(order.getShippingDiscountAmount());
+        }
+
+        BigDecimal freteEfetivo = order.getShippingCost().subtract(descontoFrete);
+        return freteEfetivo.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : freteEfetivo;
     }
 
     private String loadProductCodVol(BigDecimal codProd) {

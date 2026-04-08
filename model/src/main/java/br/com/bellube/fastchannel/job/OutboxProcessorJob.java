@@ -8,6 +8,7 @@ import br.com.bellube.fastchannel.http.FastchannelPriceClient;
 import br.com.bellube.fastchannel.http.FastchannelStockClient;
 import br.com.bellube.fastchannel.service.DeparaService;
 import br.com.bellube.fastchannel.service.LogService;
+import br.com.bellube.fastchannel.service.PriceService;
 import br.com.bellube.fastchannel.service.PriceBatchResolver;
 import br.com.bellube.fastchannel.service.PriceResolver;
 import br.com.bellube.fastchannel.service.PriceTableResolver;
@@ -238,69 +239,7 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
             throw new Exception("SKU nao encontrado para CODPROD " + item.getEntityId());
         }
 
-        PriceResolver priceResolver = new PriceResolver();
-        PriceBatchResolver batchResolver = new PriceBatchResolver();
-        PriceTableResolver tableResolver = new PriceTableResolver();
-
-        List<BigDecimal> tables = new ArrayList<>(tableResolver.resolveEligibleTables());
-        if (tables.isEmpty() && config.getNuTab() != null) {
-            tables.add(config.getNuTab());
-        }
-        if (tables.isEmpty()) {
-            BigDecimal fallbackNuTab = findAnyNuTabForProduct(item.getEntityId());
-            if (fallbackNuTab != null) {
-                tables.add(fallbackNuTab);
-            }
-        }
-        if (tables.isEmpty()) {
-            throw new Exception("Nenhuma tabela de preco elegivel configurada");
-        }
-
-        int sentCount = 0;
-        int skippedNoIntegration = 0;
-        int skippedNoPrice = 0;
-
-        for (BigDecimal nuTab : tables) {
-            if (!deparaService.isIntegracaoAutomaticaAtiva(DeparaService.TIPO_TABELA_PRECO, nuTab)) {
-                log.info("Tabela de preco " + nuTab + " com integracao automatica desabilitada. Ignorando.");
-                LogService.getInstance().warning(LogService.OP_PRICE_SYNC,
-                        "SKU " + sku + " NUTAB " + nuTab + " ignorado: integracao automatica desabilitada", sku);
-                skippedNoIntegration++;
-                continue;
-            }
-            PriceResolver.PriceResult priceResult = priceResolver.resolve(item.getEntityId(), nuTab);
-            if (priceResult == null || priceResult.getPriceCentavos() == null) {
-                log.warning("Preco nao encontrado para SKU " + sku + " (NUTAB " + nuTab + ")");
-                LogService.getInstance().warning(LogService.OP_PRICE_SYNC,
-                        "SKU " + sku + " NUTAB " + nuTab + " ignorado: preco nao encontrado no Sankhya", sku);
-                skippedNoPrice++;
-                continue;
-            }
-
-            BigDecimal priceTableId = resolvePriceTableId(deparaService, nuTab);
-            BigDecimal price = priceResult.getPriceCentavos();
-            BigDecimal listPrice = priceResult.getListPriceCentavos();
-
-            FastchannelPriceClient priceClient = resolvePriceClient(item.getEntityId(), sku, nuTab);
-            log.info("Atualizando preco: SKU " + sku + " NUTAB " + nuTab + " = " + price
-                    + " canal=" + priceClient.getChannel());
-            priceClient.updatePrice(sku, price, listPrice, priceTableId);
-            sentCount++;
-
-            if (priceTableId != null) {
-                List<PriceBatchItemDTO> batches = batchResolver.resolve(item.getEntityId(), nuTab, priceTableId);
-                if (!batches.isEmpty()) {
-                    priceClient.updatePriceBatches(sku, priceTableId, batches);
-                }
-            }
-        }
-
-        if (sentCount == 0) {
-            throw new Exception("Nenhum preco enviado para SKU " + sku
-                    + ". Tabelas analisadas=" + tables.size()
-                    + ", semIntegracao=" + skippedNoIntegration
-                    + ", semPreco=" + skippedNoPrice);
-        }
+        new PriceService().syncPrice(item.getEntityId(), sku);
 
         LogService.getInstance().logPriceSync(sku, true, null);
     }
@@ -692,4 +631,3 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
         return LogService.OP_QUEUE_PROCESS;
     }
 }
-

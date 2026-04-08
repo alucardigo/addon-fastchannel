@@ -227,6 +227,7 @@ public class FastchannelPriceClient {
         String endpoint = String.format(FastchannelConstants.ENDPOINT_PRICE_BATCHES, sku);
         List<PriceBatchItemDTO> desiredBatches = normalizeDesiredBatches(priceTableId, batches);
         List<PriceBatchItemDTO> currentBatches = listPriceBatches(sku);
+        currentBatches = filterBatchesByPriceTable(currentBatches, priceTableId);
 
         for (PriceBatchItemDTO currentBatch : currentBatches) {
             if (currentBatch == null || currentBatch.getBatchId() == null || currentBatch.getBatchId().trim().isEmpty()) {
@@ -243,12 +244,39 @@ public class FastchannelPriceClient {
             }
 
             String json = gson.toJson(desiredBatch);
+            log.info("POST batch SKU=" + sku + " payload=" + json);
             FastchannelHttpClient.HttpResult result = httpClient.postPrice(endpoint, json, getSubscriptionKeyForChannel());
             if (!result.isSuccess()) {
-                log.warning("Erro ao atualizar batch de preco: HTTP " + result.getStatusCode() + " - " + result.getBody());
-                throw new Exception(buildHttpError("POST", endpoint, sku, result));
+                log.warning("Erro batch POST: HTTP " + result.getStatusCode()
+                        + " SKU=" + sku + " payload=" + json + " response=" + result.getBody());
+                // Nao lancar exception para nao abortar o sync - log e continua
+                continue;
+            }
+            log.info("Batch OK: SKU=" + sku + " tableId=" + desiredBatch.getPriceTableId());
+        }
+    }
+
+    private List<PriceBatchItemDTO> filterBatchesByPriceTable(List<PriceBatchItemDTO> batches, BigDecimal priceTableId) {
+        if (batches == null || batches.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<PriceBatchItemDTO> filtered = new ArrayList<>();
+        for (PriceBatchItemDTO batch : batches) {
+            if (batch == null) {
+                continue;
+            }
+            if (matchesPriceTable(batch.getPriceTableId(), priceTableId)) {
+                filtered.add(batch);
             }
         }
+        return filtered;
+    }
+
+    private boolean matchesPriceTable(BigDecimal currentPriceTableId, BigDecimal targetPriceTableId) {
+        if (targetPriceTableId == null) {
+            return currentPriceTableId == null;
+        }
+        return currentPriceTableId != null && currentPriceTableId.compareTo(targetPriceTableId) == 0;
     }
 
     List<PriceBatchItemDTO> listPriceBatches(String sku) throws Exception {

@@ -233,24 +233,29 @@ public class FCDeparaService {
         try {
             conn = DBUtil.getConnection();
             boolean hasIntegraAuto = containsIgnoreCase(getTableColumns(conn, "AD_FCDEPARA"), "INTEGRA_AUTO");
-            String selectIntegraAuto = hasIntegraAuto
-                    ? "COALESCE(INTEGRA_AUTO, 'S') AS INTEGRA_AUTO"
-                    : "'S' AS INTEGRA_AUTO";
-            stmt = conn.prepareStatement(
-                    "SELECT COD_SANKHYA, COD_EXTERNO, " + selectIntegraAuto + ", DH_CRIACAO, DH_ALTERACAO " +
-                            "FROM AD_FCDEPARA WHERE TIPO_ENTIDADE = ? ORDER BY COD_SANKHYA");
-            stmt.setString(1, tipo);
-            rs = stmt.executeQuery();
+            List<Map<String, Object>> items;
+            if (DeparaService.TIPO_TABELA_PRECO.equalsIgnoreCase(tipo)) {
+                items = listPriceTableMappings(conn, hasIntegraAuto);
+            } else {
+                String selectIntegraAuto = hasIntegraAuto
+                        ? "COALESCE(INTEGRA_AUTO, 'S') AS INTEGRA_AUTO"
+                        : "'S' AS INTEGRA_AUTO";
+                stmt = conn.prepareStatement(
+                        "SELECT COD_SANKHYA, COD_EXTERNO, " + selectIntegraAuto + ", DH_CRIACAO, DH_ALTERACAO " +
+                                "FROM AD_FCDEPARA WHERE TIPO_ENTIDADE = ? ORDER BY COD_SANKHYA");
+                stmt.setString(1, tipo);
+                rs = stmt.executeQuery();
 
-            List<Map<String, Object>> items = new ArrayList<>();
-            while (rs.next()) {
-                Map<String, Object> item = new HashMap<>();
-                item.put("codSankhya", rs.getBigDecimal("COD_SANKHYA"));
-                item.put("codExterno", rs.getString("COD_EXTERNO"));
-                item.put("integracaoAutomatica", "S".equalsIgnoreCase(rs.getString("INTEGRA_AUTO")));
-                item.put("dhCriacao", rs.getTimestamp("DH_CRIACAO"));
-                item.put("dhAlteracao", rs.getTimestamp("DH_ALTERACAO"));
-                items.add(item);
+                items = new ArrayList<>();
+                while (rs.next()) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("codSankhya", rs.getBigDecimal("COD_SANKHYA"));
+                    item.put("codExterno", rs.getString("COD_EXTERNO"));
+                    item.put("integracaoAutomatica", "S".equalsIgnoreCase(rs.getString("INTEGRA_AUTO")));
+                    item.put("dhCriacao", rs.getTimestamp("DH_CRIACAO"));
+                    item.put("dhAlteracao", rs.getTimestamp("DH_ALTERACAO"));
+                    items.add(item);
+                }
             }
 
             result.put("items", items);
@@ -283,6 +288,23 @@ public class FCDeparaService {
             result.put("success", false);
             result.put("message", "items obrigatorio");
             return result;
+        }
+
+        // Validar duplicata dentro do batch
+        String duplicateFastId = findDuplicateFastId(tipo, (List<?>) itemsObj);
+        if (duplicateFastId != null) {
+            result.put("success", false);
+            result.put("message", "O ID Fast " + duplicateFastId + " nao pode ser usado em mais de uma tabela de preco.");
+            return result;
+        }
+        // Validar duplicata contra BD (outro CODTAB ja usa esse ID Fast)
+        if (DeparaService.TIPO_TABELA_PRECO.equalsIgnoreCase(tipo)) {
+            String dbDuplicate = findDuplicateAgainstDb(tipo, (List<?>) itemsObj);
+            if (dbDuplicate != null) {
+                result.put("success", false);
+                result.put("message", dbDuplicate);
+                return result;
+            }
         }
 
         int updated = 0;
@@ -324,6 +346,42 @@ public class FCDeparaService {
         return result;
     }
 
+    private List<Map<String, Object>> listPriceTableMappings(Connection conn, boolean hasIntegraAuto) throws SQLException {
+        String selectIntegraAuto = hasIntegraAuto
+                ? "COALESCE(D.INTEGRA_AUTO, 'S') AS INTEGRA_AUTO"
+                : "'S' AS INTEGRA_AUTO";
+        String sql =
+                "SELECT ULT.NUTAB AS COD_SANKHYA, D.COD_EXTERNO, D.INTEGRA_AUTO, D.DH_CRIACAO, D.DH_ALTERACAO " +
+                "FROM ( " +
+                "    SELECT D.COD_EXTERNO, D.COD_SANKHYA, " + selectIntegraAuto + ", D.DH_CRIACAO, D.DH_ALTERACAO, D.IDDEPARA, REF.CODTAB, " +
+                "           ROW_NUMBER() OVER (PARTITION BY REF.CODTAB ORDER BY ISNULL(D.DH_ALTERACAO, D.DH_CRIACAO) DESC, D.IDDEPARA DESC) AS RN " +
+                "    FROM AD_FCDEPARA D " +
+                "    INNER JOIN TGFTAB REF ON REF.NUTAB = CAST(D.COD_SANKHYA AS INT) " +
+                "    WHERE D.TIPO_ENTIDADE = ? " +
+                ") D " +
+                "INNER JOIN (SELECT CODTAB, MAX(DTVIGOR) AS DTVIGOR FROM TGFTAB GROUP BY CODTAB) MX ON MX.CODTAB = D.CODTAB " +
+                "INNER JOIN TGFTAB ULT ON ULT.CODTAB = MX.CODTAB AND ULT.DTVIGOR = MX.DTVIGOR " +
+                "WHERE D.RN = 1 " +
+                "ORDER BY ULT.NUTAB";
+
+        List<Map<String, Object>> items = new ArrayList<>();
+        try (PreparedStatement localStmt = conn.prepareStatement(sql)) {
+            localStmt.setString(1, DeparaService.TIPO_TABELA_PRECO);
+            try (ResultSet localRs = localStmt.executeQuery()) {
+                while (localRs.next()) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("codSankhya", localRs.getBigDecimal("COD_SANKHYA"));
+                    item.put("codExterno", localRs.getString("COD_EXTERNO"));
+                    item.put("integracaoAutomatica", "S".equalsIgnoreCase(localRs.getString("INTEGRA_AUTO")));
+                    item.put("dhCriacao", localRs.getTimestamp("DH_CRIACAO"));
+                    item.put("dhAlteracao", localRs.getTimestamp("DH_ALTERACAO"));
+                    items.add(item);
+                }
+            }
+        }
+        return items;
+    }
+
     static List<Map<String, Object>> merge(List<Map<String, Object>> base, List<Map<String, Object>> mappings) {
         Map<String, String> byCod = new HashMap<>();
         for (Map<String, Object> m : mappings) {
@@ -338,6 +396,83 @@ public class FCDeparaService {
             }
         }
         return base;
+    }
+
+    static String findDuplicateFastId(String tipo, List<?> items) {
+        if (!DeparaService.TIPO_TABELA_PRECO.equalsIgnoreCase(tipo) || items == null) {
+            return null;
+        }
+        Map<String, String> fastIdToSankhya = new HashMap<>();
+        for (Object obj : items) {
+            if (!(obj instanceof Map)) {
+                continue;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> item = (Map<String, Object>) obj;
+            Object rawCodExterno = item.get("codExterno");
+            if (rawCodExterno == null) {
+                continue;
+            }
+            String codExterno = rawCodExterno.toString().trim();
+            if (codExterno.isEmpty()) {
+                continue;
+            }
+            String codSankhya = item.get("codSankhya") != null ? item.get("codSankhya").toString() : "";
+            String previous = fastIdToSankhya.putIfAbsent(codExterno, codSankhya);
+            if (previous != null && !previous.equals(codSankhya)) {
+                return codExterno;
+            }
+        }
+        return null;
+    }
+
+    private String findDuplicateAgainstDb(String tipo, List<?> items) {
+        if (items == null) return null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = br.com.bellube.fastchannel.util.DBUtil.getConnection();
+            for (Object obj : items) {
+                if (!(obj instanceof Map)) continue;
+                @SuppressWarnings("unchecked")
+                Map<String, Object> item = (Map<String, Object>) obj;
+                Object rawCodExterno = item.get("codExterno");
+                if (rawCodExterno == null) continue;
+                String codExterno = rawCodExterno.toString().trim();
+                if (codExterno.isEmpty()) continue;
+                BigDecimal codSankhya = toBigDecimal(item.get("codSankhya"));
+                if (codSankhya == null) continue;
+
+                // Verificar se outro CODTAB ja tem esse COD_EXTERNO
+                stmt = conn.prepareStatement(
+                    "SELECT TOP 1 D.COD_SANKHYA, T.CODTAB " +
+                    "FROM AD_FCDEPARA D " +
+                    "INNER JOIN TGFTAB T ON T.NUTAB = CAST(D.COD_SANKHYA AS INT) " +
+                    "INNER JOIN TGFTAB T2 ON T2.NUTAB = ? " +
+                    "WHERE D.TIPO_ENTIDADE = ? AND D.COD_EXTERNO = ? " +
+                    "AND T.CODTAB <> T2.CODTAB");
+                stmt.setBigDecimal(1, codSankhya);
+                stmt.setString(2, tipo);
+                stmt.setString(3, codExterno);
+                rs = stmt.executeQuery();
+                if (rs.next()) {
+                    String existingSankhya = rs.getString("COD_SANKHYA");
+                    BigDecimal existingCodTab = rs.getBigDecimal("CODTAB");
+                    br.com.bellube.fastchannel.util.DBUtil.closeAll(rs, stmt, null);
+                    rs = null; stmt = null;
+                    return "O ID Fast " + codExterno + " ja esta em uso pela tabela CODTAB " + existingCodTab
+                            + " (NUTAB " + existingSankhya + "). Cada ID Fast so pode ser usado por uma tabela.";
+                }
+                br.com.bellube.fastchannel.util.DBUtil.closeAll(rs, stmt, null);
+                rs = null; stmt = null;
+            }
+        } catch (Exception e) {
+            log.log(java.util.logging.Level.WARNING, "Erro ao validar duplicata de-para", e);
+        } finally {
+            br.com.bellube.fastchannel.util.DBUtil.closeAll(rs, stmt, conn);
+        }
+        return null;
     }
 
     private String getString(Map<String, Object> params, String key) {

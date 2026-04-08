@@ -307,13 +307,19 @@ public class InternalApiStrategy implements OrderCreationStrategy {
             cabBuilder = cabBuilder.set("VLRDESC", order.getDiscount());
         }
         // Sempre enviar VLRFRETE (mesmo quando zero) - compatibilidade com legado
-        BigDecimal frete = order.getShippingCost() != null ? order.getShippingCost() : BigDecimal.ZERO;
+        // Usar frete efetivo (bruto - descontos) para nao cobrar frete quando FC tem desconto
+        BigDecimal frete = getFrete(order);
         cabBuilder = cabBuilder.set("VLRFRETE", frete);
         if (supportsCabField("CIF_FOB")) {
             cabBuilder = cabBuilder.set("CIF_FOB", "C");
         }
         if (supportsCabField("AD_MCAPORTAL")) {
             cabBuilder = cabBuilder.set("AD_MCAPORTAL", "P");
+        }
+
+        // Desconto cupom FC
+        if (supportsCabField("AD_DESCONTO_FAST") && order.getProductDiscountCoupon() != null) {
+            cabBuilder = cabBuilder.set("AD_DESCONTO_FAST", order.getProductDiscountCoupon());
         }
 
         // Observacao publica sem numero Fast
@@ -1922,6 +1928,18 @@ public class InternalApiStrategy implements OrderCreationStrategy {
         }
         String result = obs.toString();
         return result.length() > 1000 ? result.substring(0, 1000) : result;
+    }
+
+    private BigDecimal getFrete(OrderDTO order) {
+        if (order == null) return BigDecimal.ZERO;
+        BigDecimal freteBruto = order.getShippingCost();
+        if (freteBruto == null) return BigDecimal.ZERO;
+        BigDecimal desconto = BigDecimal.ZERO;
+        if (order.getShippingDiscount() != null) desconto = desconto.add(order.getShippingDiscount());
+        if (order.getShippingDiscountCoupon() != null) desconto = desconto.add(order.getShippingDiscountCoupon());
+        if (order.getShippingDiscountAmount() != null) desconto = desconto.add(order.getShippingDiscountAmount());
+        BigDecimal efetivo = freteBruto.subtract(desconto);
+        return efetivo.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : efetivo;
     }
 
     private ItemPricingData resolveItemPricingData(BigDecimal codProd, BigDecimal codEmp,

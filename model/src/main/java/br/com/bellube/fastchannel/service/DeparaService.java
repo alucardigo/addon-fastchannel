@@ -182,15 +182,25 @@ public class DeparaService {
         JdbcWrapper jdbc = null;
         try {
             jdbc = openJdbc();
+            BigDecimal resolvedCodSankhya = normalizeSankhyaCodeForMapping(jdbc, tipo, codSankhya);
+            if (TIPO_TABELA_PRECO.equalsIgnoreCase(tipo)) {
+                validateUniqueFastCodeForPriceTable(jdbc, resolvedCodSankhya, codExterno);
+            }
 
-            // Verificar se ja existe
-            BigDecimal existingId = getMappingId(jdbc, tipo, codSankhya);
+            BigDecimal existingId = getMappingId(jdbc, tipo, resolvedCodSankhya);
+            if (existingId == null && TIPO_TABELA_PRECO.equalsIgnoreCase(tipo)) {
+                PriceTableFamilyMapping familyMapping = findPriceTableFamilyMapping(jdbc, resolvedCodSankhya);
+                if (familyMapping != null) {
+                    existingId = familyMapping.idDepara;
+                }
+            }
             boolean hasIntegraAuto = supportsIntegraAuto(jdbc);
 
             if (existingId != null) {
                 // Atualizar
                 NativeSql sql = new NativeSql(jdbc);
                 sql.appendSql("UPDATE AD_FCDEPARA SET ");
+                sql.appendSql("COD_SANKHYA = :codSankhya, ");
                 sql.appendSql("COD_EXTERNO = :codExterno, ");
                 if (hasIntegraAuto) {
                     sql.appendSql("INTEGRA_AUTO = :integraAuto, ");
@@ -198,6 +208,7 @@ public class DeparaService {
                 sql.appendSql("DH_ALTERACAO = CURRENT_TIMESTAMP ");
                 sql.appendSql("WHERE IDDEPARA = :id");
 
+                sql.setNamedParameter("codSankhya", resolvedCodSankhya);
                 sql.setNamedParameter("codExterno", codExterno);
                 if (hasIntegraAuto) {
                     sql.setNamedParameter("integraAuto", integraAuto ? "S" : "N");
@@ -221,21 +232,21 @@ public class DeparaService {
                 sql.appendSql(", CURRENT_TIMESTAMP)");
 
                 sql.setNamedParameter("tipo", tipo);
-                sql.setNamedParameter("codSankhya", codSankhya);
+                sql.setNamedParameter("codSankhya", resolvedCodSankhya);
                 sql.setNamedParameter("codExterno", codExterno);
                 if (hasIntegraAuto) {
                     sql.setNamedParameter("integraAuto", integraAuto ? "S" : "N");
                 }
                 sql.executeUpdate();
+                existingId = getMappingId(jdbc, tipo, resolvedCodSankhya);
             }
 
-            // Atualizar cache
-            cacheSankhyaToExterno.computeIfAbsent(tipo, k -> new ConcurrentHashMap<>())
-                    .put(codSankhya, codExterno);
-            cacheExternoToSankhya.computeIfAbsent(tipo, k -> new ConcurrentHashMap<>())
-                    .put(codExterno, codSankhya);
+            if (TIPO_TABELA_PRECO.equalsIgnoreCase(tipo)) {
+                cleanupDuplicatePriceTableFamilyMappings(jdbc, existingId, resolvedCodSankhya);
+            }
+            invalidateCache();
 
-            log.fine("Mapeamento registrado: " + tipo + " " + codSankhya + " <-> " + codExterno);
+            log.fine("Mapeamento registrado: " + tipo + " " + resolvedCodSankhya + " <-> " + codExterno);
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao registrar mapeamento", e);
@@ -252,28 +263,37 @@ public class DeparaService {
         JdbcWrapper jdbc = null;
         try {
             jdbc = openJdbc();
+            BigDecimal resolvedCodSankhya = normalizeSankhyaCodeForMapping(jdbc, tipo, codSankhya);
 
             // Buscar codigo externo para limpar cache
-            String codExterno = getCodigoExterno(tipo, codSankhya);
+            String codExterno = getCodigoExterno(tipo, resolvedCodSankhya);
 
             NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("DELETE FROM AD_FCDEPARA ");
-            sql.appendSql("WHERE TIPO_ENTIDADE = :tipo AND COD_SANKHYA = :codSankhya");
-
-            sql.setNamedParameter("tipo", tipo);
-            sql.setNamedParameter("codSankhya", codSankhya);
+            if (TIPO_TABELA_PRECO.equalsIgnoreCase(tipo)) {
+                BigDecimal codTab = resolvePriceTableCodTab(jdbc, resolvedCodSankhya);
+                if (codTab != null) {
+                    sql.appendSql("DELETE FROM AD_FCDEPARA ");
+                    sql.appendSql("WHERE TIPO_ENTIDADE = :tipo ");
+                    sql.appendSql("AND CAST(COD_SANKHYA AS INT) IN (SELECT NUTAB FROM TGFTAB WHERE CODTAB = :codTab)");
+                    sql.setNamedParameter("tipo", tipo);
+                    sql.setNamedParameter("codTab", codTab);
+                } else {
+                    sql.appendSql("DELETE FROM AD_FCDEPARA ");
+                    sql.appendSql("WHERE TIPO_ENTIDADE = :tipo AND COD_SANKHYA = :codSankhya");
+                    sql.setNamedParameter("tipo", tipo);
+                    sql.setNamedParameter("codSankhya", resolvedCodSankhya);
+                }
+            } else {
+                sql.appendSql("DELETE FROM AD_FCDEPARA ");
+                sql.appendSql("WHERE TIPO_ENTIDADE = :tipo AND COD_SANKHYA = :codSankhya");
+                sql.setNamedParameter("tipo", tipo);
+                sql.setNamedParameter("codSankhya", resolvedCodSankhya);
+            }
             sql.executeUpdate();
 
-            // Limpar cache
-            Map<BigDecimal, String> cache1 = cacheSankhyaToExterno.get(tipo);
-            if (cache1 != null) cache1.remove(codSankhya);
+            invalidateCache();
 
-            if (codExterno != null) {
-                Map<String, BigDecimal> cache2 = cacheExternoToSankhya.get(tipo);
-                if (cache2 != null) cache2.remove(codExterno);
-            }
-
-            log.fine("Mapeamento removido: " + tipo + " " + codSankhya);
+            log.fine("Mapeamento removido: " + tipo + " " + resolvedCodSankhya + " <-> " + codExterno);
 
         } catch (Exception e) {
             log.log(Level.SEVERE, "Erro ao remover mapeamento", e);
@@ -502,6 +522,12 @@ public class DeparaService {
             if (rs.next()) {
                 return rs.getString("COD_EXTERNO");
             }
+            if (TIPO_TABELA_PRECO.equalsIgnoreCase(tipo)) {
+                PriceTableFamilyMapping familyMapping = findPriceTableFamilyMapping(jdbc, codSankhya);
+                if (familyMapping != null) {
+                    return familyMapping.codExterno;
+                }
+            }
         } catch (Exception e) {
             log.log(Level.WARNING, "Erro ao buscar codigo externo", e);
         } finally {
@@ -535,6 +561,12 @@ public class DeparaService {
             rs = sql.executeQuery();
             if (rs.next()) {
                 return rs.getString("COD_EXTERNO");
+            }
+            if (TIPO_TABELA_PRECO.equalsIgnoreCase(tipo)) {
+                PriceTableFamilyMapping familyMapping = findPriceTableFamilyMapping(jdbc, codSankhya);
+                if (familyMapping != null && "S".equalsIgnoreCase(familyMapping.integraAuto)) {
+                    return familyMapping.codExterno;
+                }
             }
         } catch (Exception e) {
             log.log(Level.WARNING, "Erro ao buscar codigo externo ativo", e);
@@ -572,6 +604,12 @@ public class DeparaService {
             if (rs.next()) {
                 return "S".equalsIgnoreCase(rs.getString("INTEGRA_AUTO"));
             }
+            if (TIPO_TABELA_PRECO.equalsIgnoreCase(tipo)) {
+                PriceTableFamilyMapping familyMapping = findPriceTableFamilyMapping(jdbc, codSankhya);
+                if (familyMapping != null) {
+                    return "S".equalsIgnoreCase(familyMapping.integraAuto);
+                }
+            }
             return true;
         } catch (Exception e) {
             log.log(Level.WARNING, "Erro ao validar flag de integracao automatica", e);
@@ -604,6 +642,157 @@ public class DeparaService {
         } finally {
             closeQuietly(rs);
             closeJdbc(jdbc);
+        }
+        return null;
+    }
+
+    private BigDecimal normalizeSankhyaCodeForMapping(JdbcWrapper jdbc, String tipo, BigDecimal codSankhya) {
+        if (!TIPO_TABELA_PRECO.equalsIgnoreCase(tipo) || codSankhya == null) {
+            return codSankhya;
+        }
+        BigDecimal codTab = resolvePriceTableCodTab(jdbc, codSankhya);
+        if (codTab == null) {
+            return codSankhya;
+        }
+        BigDecimal latestNuTab = resolveLatestPriceTableNuTab(jdbc, codTab);
+        return latestNuTab != null ? latestNuTab : codSankhya;
+    }
+
+    private void validateUniqueFastCodeForPriceTable(JdbcWrapper jdbc, BigDecimal codSankhya, String codExterno) throws Exception {
+        if (codSankhya == null || codExterno == null || codExterno.trim().isEmpty()) {
+            return;
+        }
+        BigDecimal codTab = resolvePriceTableCodTab(jdbc, codSankhya);
+        if (codTab == null) {
+            return;
+        }
+
+        ResultSet rs = null;
+        try {
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT TOP 1 REF.CODTAB AS CODTAB, ULT.NUTAB AS NUTAB ");
+            sql.appendSql("FROM AD_FCDEPARA D ");
+            sql.appendSql("INNER JOIN TGFTAB REF ON REF.NUTAB = CAST(D.COD_SANKHYA AS INT) ");
+            sql.appendSql("INNER JOIN (SELECT CODTAB, MAX(DTVIGOR) AS DTVIGOR FROM TGFTAB GROUP BY CODTAB) MX ");
+            sql.appendSql("ON MX.CODTAB = REF.CODTAB ");
+            sql.appendSql("INNER JOIN TGFTAB ULT ON ULT.CODTAB = MX.CODTAB AND ULT.DTVIGOR = MX.DTVIGOR ");
+            sql.appendSql("WHERE D.TIPO_ENTIDADE = :tipo ");
+            sql.appendSql("AND LTRIM(RTRIM(D.COD_EXTERNO)) = :codExterno ");
+            sql.appendSql("AND REF.CODTAB <> :codTab ");
+            sql.appendSql("ORDER BY ULT.NUTAB DESC");
+            sql.setNamedParameter("tipo", TIPO_TABELA_PRECO);
+            sql.setNamedParameter("codExterno", codExterno.trim());
+            sql.setNamedParameter("codTab", codTab);
+
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                throw new IllegalArgumentException("O ID Fast " + codExterno.trim()
+                        + " ja esta vinculado a outra tabela de preco Sankhya.");
+            }
+        } finally {
+            closeQuietly(rs);
+        }
+    }
+
+    private void cleanupDuplicatePriceTableFamilyMappings(JdbcWrapper jdbc, BigDecimal keepId, BigDecimal codSankhya) throws Exception {
+        if (keepId == null || codSankhya == null) {
+            return;
+        }
+        BigDecimal codTab = resolvePriceTableCodTab(jdbc, codSankhya);
+        if (codTab == null) {
+            return;
+        }
+
+        NativeSql sql = new NativeSql(jdbc);
+        sql.appendSql("DELETE FROM AD_FCDEPARA ");
+        sql.appendSql("WHERE TIPO_ENTIDADE = :tipo ");
+        sql.appendSql("AND IDDEPARA <> :keepId ");
+        sql.appendSql("AND CAST(COD_SANKHYA AS INT) IN (SELECT NUTAB FROM TGFTAB WHERE CODTAB = :codTab)");
+        sql.setNamedParameter("tipo", TIPO_TABELA_PRECO);
+        sql.setNamedParameter("keepId", keepId);
+        sql.setNamedParameter("codTab", codTab);
+        sql.executeUpdate();
+    }
+
+    private PriceTableFamilyMapping findPriceTableFamilyMapping(JdbcWrapper jdbc, BigDecimal codSankhya) throws Exception {
+        if (codSankhya == null) {
+            return null;
+        }
+        BigDecimal codTab = resolvePriceTableCodTab(jdbc, codSankhya);
+        if (codTab == null) {
+            return null;
+        }
+
+        ResultSet rs = null;
+        try {
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT TOP 1 D.IDDEPARA, D.COD_SANKHYA, D.COD_EXTERNO, ");
+            if (supportsIntegraAuto(jdbc)) {
+                sql.appendSql("COALESCE(D.INTEGRA_AUTO, 'S') AS INTEGRA_AUTO ");
+            } else {
+                sql.appendSql("'S' AS INTEGRA_AUTO ");
+            }
+            sql.appendSql("FROM AD_FCDEPARA D ");
+            sql.appendSql("INNER JOIN TGFTAB T ON T.NUTAB = CAST(D.COD_SANKHYA AS INT) ");
+            sql.appendSql("WHERE D.TIPO_ENTIDADE = :tipo ");
+            sql.appendSql("AND T.CODTAB = :codTab ");
+            sql.appendSql("ORDER BY ISNULL(D.DH_ALTERACAO, D.DH_CRIACAO) DESC, D.IDDEPARA DESC");
+            sql.setNamedParameter("tipo", TIPO_TABELA_PRECO);
+            sql.setNamedParameter("codTab", codTab);
+
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                PriceTableFamilyMapping mapping = new PriceTableFamilyMapping();
+                mapping.idDepara = rs.getBigDecimal("IDDEPARA");
+                mapping.codSankhya = rs.getBigDecimal("COD_SANKHYA");
+                mapping.codExterno = rs.getString("COD_EXTERNO");
+                mapping.integraAuto = rs.getString("INTEGRA_AUTO");
+                return mapping;
+            }
+        } finally {
+            closeQuietly(rs);
+        }
+        return null;
+    }
+
+    private BigDecimal resolvePriceTableCodTab(JdbcWrapper jdbc, BigDecimal nuTab) {
+        if (jdbc == null || nuTab == null) {
+            return null;
+        }
+        ResultSet rs = null;
+        try {
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT CODTAB FROM TGFTAB WHERE NUTAB = :nuTab");
+            sql.setNamedParameter("nuTab", nuTab);
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("CODTAB");
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao resolver CODTAB para NUTAB " + nuTab, e);
+        } finally {
+            closeQuietly(rs);
+        }
+        return null;
+    }
+
+    private BigDecimal resolveLatestPriceTableNuTab(JdbcWrapper jdbc, BigDecimal codTab) {
+        if (jdbc == null || codTab == null) {
+            return null;
+        }
+        ResultSet rs = null;
+        try {
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT TOP 1 NUTAB FROM TGFTAB WHERE CODTAB = :codTab ORDER BY DTVIGOR DESC, NUTAB DESC");
+            sql.setNamedParameter("codTab", codTab);
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("NUTAB");
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao resolver NUTAB vigente para CODTAB " + codTab, e);
+        } finally {
+            closeQuietly(rs);
         }
         return null;
     }
@@ -1024,6 +1213,13 @@ public class DeparaService {
         }
     }
 
+    private static final class PriceTableFamilyMapping {
+        private BigDecimal idDepara;
+        private BigDecimal codSankhya;
+        private String codExterno;
+        private String integraAuto;
+    }
+
     private JdbcWrapper openJdbc() throws Exception {
         JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
         jdbc.openSession();
@@ -1046,6 +1242,3 @@ public class DeparaService {
         }
     }
 }
-
-
-

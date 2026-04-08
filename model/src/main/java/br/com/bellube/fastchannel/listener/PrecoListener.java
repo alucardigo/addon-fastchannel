@@ -53,27 +53,18 @@ public class PrecoListener extends PersistenceEventAdapter {
 
             List<BigDecimal> eligibleTables = new PriceTableResolver().resolveEligibleTables();
             if (!eligibleTables.isEmpty()) {
-                if (!eligibleTables.contains(nuTab)) {
+                if (nuTab != null && !eligibleTables.contains(nuTab)) {
                     log.fine("Tabela de preco " + nuTab + " fora da lista elegivel. Ignorando.");
                     return;
                 }
             } else {
                 BigDecimal configNuTab = config.getNuTab();
-                if (configNuTab != null && !configNuTab.equals(nuTab)) {
+                if (configNuTab != null && nuTab != null && !configNuTab.equals(nuTab)) {
                     return;
                 }
             }
 
-            String ativo = vo.asString("ATIVO");
-            if (!"S".equals(ativo)) {
-                return;
-            }
-
             DeparaService deparaService = DeparaService.getInstance();
-            if (!deparaService.isIntegracaoAutomaticaAtiva(DeparaService.TIPO_TABELA_PRECO, nuTab)) {
-                log.fine("Tabela de preco " + nuTab + " com integracao automatica desabilitada.");
-                return;
-            }
             String sku = deparaService.getSkuForStock(codProd);
             if (sku != null) {
                 sku = sku.trim();

@@ -35,6 +35,26 @@ public class FCDeparaServiceTest {
         assertEquals("DESCRICAO", FCDeparaService.choosePriceTableDescriptionColumn(available));
     }
 
+    @Test
+    public void findDuplicateFastId_detectsDuplicateOnPriceTables() {
+        List<Map<String, Object>> items = java.util.Arrays.asList(
+                map("codSankhya", 1001, "codExterno", "27"),
+                map("codSankhya", 1002, "codExterno", "27")
+        );
+
+        assertEquals("27", FCDeparaService.findDuplicateFastId("TABELA_PRECO", items));
+    }
+
+    @Test
+    public void findDuplicateFastId_ignoresOtherTypes() {
+        List<Map<String, Object>> items = java.util.Arrays.asList(
+                map("codSankhya", 1, "codExterno", "27"),
+                map("codSankhya", 2, "codExterno", "27")
+        );
+
+        assertEquals(null, FCDeparaService.findDuplicateFastId("EMPRESA", items));
+    }
+
     private static Map<String, Object> map(Object... values) {
         Map<String, Object> result = new HashMap<>();
         for (int i = 0; i < values.length; i += 2) {

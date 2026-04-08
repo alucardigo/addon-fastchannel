@@ -773,16 +773,16 @@ public class OrderService {
             }
         }
         if (hasColumn(jdbc, "TGFCAB", "VLRFRETE")) {
-            BigDecimal frete = cabVO.asBigDecimal("VLRFRETE");
-            if (frete == null) {
-                updateVO = updateVO.set("VLRFRETE", BigDecimal.ZERO);
+            BigDecimal targetFrete = getFrete(order);
+            BigDecimal currentFrete = cabVO.asBigDecimal("VLRFRETE");
+            if (currentFrete == null || currentFrete.compareTo(targetFrete) != 0) {
+                updateVO = updateVO.set("VLRFRETE", targetFrete);
                 changed = true;
-                frete = BigDecimal.ZERO;
             }
             if (hasColumn(jdbc, "TGFCAB", "VLRNOTA")) {
                 BigDecimal totalItens = resolveTotalItens(jdbc, nuNota);
                 if (totalItens != null) {
-                    BigDecimal targetVlrNota = totalItens.add(frete);
+                    BigDecimal targetVlrNota = totalItens.add(targetFrete);
                     BigDecimal currentVlrNota = cabVO.asBigDecimal("VLRNOTA");
                     if (currentVlrNota == null || currentVlrNota.compareTo(targetVlrNota) != 0) {
                         updateVO = updateVO.set("VLRNOTA", targetVlrNota);
@@ -791,16 +791,22 @@ public class OrderService {
                 }
             }
         }
+        if (hasColumn(jdbc, "TGFCAB", "AD_DESCONTO_FAST")) {
+            BigDecimal targetDescontoFast = order != null && order.getProductDiscountCoupon() != null
+                    ? order.getProductDiscountCoupon()
+                    : BigDecimal.ZERO;
+            BigDecimal currentDescontoFast = safeAsBigDecimal(cabVO, "AD_DESCONTO_FAST");
+            if (currentDescontoFast == null || currentDescontoFast.compareTo(targetDescontoFast) != 0) {
+                updateVO = updateVO.set("AD_DESCONTO_FAST", targetDescontoFast);
+                changed = true;
+            }
+        }
         boolean hasObsInterna = hasColumn(jdbc, "TGFCAB", "OBSERVACAOINTERNA");
+        // NUNCA colocar tag "Pedido Fastchannel" no OBSERVACAO (sai na nota fiscal)
+        // Sempre limpar o tag do OBSERVACAO se existir de versoes anteriores
         if (hasColumn(jdbc, "TGFCAB", "OBSERVACAO") && orderTag != null) {
             String currentObs = trimToNull(cabVO.asString("OBSERVACAO"));
-            String normalizedObs;
-            if (!hasObsInterna) {
-                // Fallback: usar OBSERVACAO para guardar o ID FC quando OBSERVACAOINTERNA nao existe
-                normalizedObs = ensureTagInObservacaoInterna(currentObs, orderTag);
-            } else {
-                normalizedObs = removeTag(currentObs, orderTag);
-            }
+            String normalizedObs = removeTag(currentObs, orderTag);
             if (!equalsNullable(currentObs, normalizedObs)) {
                 updateVO = updateVO.set("OBSERVACAO", normalizedObs);
                 changed = true;
@@ -808,7 +814,11 @@ public class OrderService {
         }
         if (hasObsInterna && orderTag != null) {
             String currentObsInt = trimToNull(cabVO.asString("OBSERVACAOINTERNA"));
-            String normalizedObsInt = ensureTagInObservacaoInterna(currentObsInt, orderTag);
+            String desiredObsInterna = buildObservacaoInterna(order);
+            String normalizedObsInt = trimToNull(desiredObsInterna);
+            if (normalizedObsInt == null) {
+                normalizedObsInt = ensureTagInObservacaoInterna(currentObsInt, orderTag);
+            }
             if (!equalsNullable(currentObsInt, normalizedObsInt)) {
                 updateVO = updateVO.set("OBSERVACAOINTERNA", normalizedObsInt);
                 changed = true;
@@ -1949,7 +1959,7 @@ public class OrderService {
                 .set("OBSERVACAO", buildObservacao(order));
 
         // Valores
-        BigDecimal frete = order.getShippingCost() != null ? order.getShippingCost() : BigDecimal.ZERO;
+        BigDecimal frete = getFrete(order);
         cabBuilder = cabBuilder.set("VLRFRETE", frete);
         if (order.getTotal() != null) {
             cabBuilder = cabBuilder.set("VLRNOTA", order.getTotal());
@@ -1964,17 +1974,32 @@ public class OrderService {
 
     private String buildObservacao(OrderDTO order) {
         StringBuilder obs = new StringBuilder();
-        obs.append("Pedido Fastchannel: ").append(order.getOrderId());
 
         if (order.getNotes() != null && !order.getNotes().isEmpty()) {
-            obs.append("\n").append(order.getNotes());
+            obs.append(order.getNotes());
         }
 
         if (order.getShippingMethod() != null) {
-            obs.append("\nFrete: ").append(order.getShippingMethod());
+            if (obs.length() > 0) {
+                obs.append("\n");
+            }
+            obs.append("Frete: ").append(order.getShippingMethod());
         }
 
-        return truncate(obs.toString(), 500);
+        return truncate(trimToNull(obs.toString()), 500);
+    }
+
+    private String buildObservacaoInterna(OrderDTO order) {
+        if (order == null || isBlank(order.getOrderId())) {
+            return truncate(trimToNull(order != null ? order.getSellerNotes() : null), 1000);
+        }
+
+        StringBuilder obs = new StringBuilder();
+        obs.append("Pedido Fastchannel: ").append(order.getOrderId());
+        if (!isBlank(order.getSellerNotes())) {
+            obs.append(" | ").append(order.getSellerNotes().trim());
+        }
+        return truncate(obs.toString(), 1000);
     }
 
     /**

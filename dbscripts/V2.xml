@@ -452,4 +452,14 @@
         </mssql>
     </sql>
 
+    <!-- AD_DESCONTO_FAST na TGFCAB para cupom de desconto FC -->
+    <sql nomeTabela="TGFCAB" nomeObjeto="AD_DESCONTO_FAST" ordem="22" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFCAB ADD AD_DESCONTO_FAST VARCHAR2(200)
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFCAB ADD AD_DESCONTO_FAST VARCHAR(200)
+        </mssql>
+    </sql>
+
 </scripts>

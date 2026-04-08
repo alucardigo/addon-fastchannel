@@ -51,14 +51,9 @@ public class PriceService {
         }
 
         FastchannelPriceClient.Channel channel = determineChannel(codProd, sku);
-
-        // Abordagem orientada por TABELA FC: para cada tabela configurada,
-        // encontrar o NUTAB correto e enviar o preco correspondente.
-        // Isso evita duplicatas e garante 1 PUT por tabela FC.
         Map<String, BigDecimal> fcTableToNuTab = priceTableResolver.resolveTableToNuTabMap();
 
         if (fcTableToNuTab.isEmpty()) {
-            // Fallback: usar resolveEligibleTables antigo
             List<BigDecimal> tables = priceTableResolver.resolveEligibleTables();
             for (BigDecimal nuTab : tables) {
                 BigDecimal tableId = resolvePriceTableId(nuTab);
@@ -68,66 +63,17 @@ public class PriceService {
             }
         }
 
+        if (fcTableToNuTab.isEmpty()) {
+            log.warning("Nenhuma tabela de preco Fast elegivel encontrada para sincronizar SKU " + sku);
+            return;
+        }
+
+        FastchannelPriceClient client = clientFor(channel);
+        PriceBatchResolver batchResolver = new PriceBatchResolver();
         for (Map.Entry<String, BigDecimal> entry : fcTableToNuTab.entrySet()) {
             BigDecimal tableId = new BigDecimal(entry.getKey());
             BigDecimal nuTab = entry.getValue();
-
-            // Verificar se o produto EXISTE explicitamente na TGFEXC para esta NUTAB
-            if (!productExistsInTable(codProd, nuTab)) {
-                log.fine("Skip fcTable " + tableId + " nuTab " + nuTab + ": produto " + codProd + " nao existe em TGFEXC");
-                continue;
-            }
-            PriceResolver.PriceResult result = priceResolver.resolve(codProd, nuTab);
-            if (result == null || result.getPriceCentavos() == null
-                    || result.getPriceCentavos().compareTo(BigDecimal.ZERO) <= 0) {
-                log.fine("Skip fcTable " + tableId + " nuTab " + nuTab + ": produto " + codProd + " sem preco");
-                continue;
-            }
-            PriceDTO dto = new PriceDTO();
-            dto.setSku(sku);
-            dto.setPrice(result.getPriceCentavos());
-            dto.setListPrice(result.getListPriceCentavos() != null
-                    ? result.getListPriceCentavos()
-                    : result.getPriceCentavos());
-            dto.setPriceTableId(tableId);
-            FastchannelPriceClient client = clientFor(channel);
-            client.updatePrice(dto);
-            log.info("PUT preco: codProd=" + codProd + " sku=" + sku + " nuTab=" + nuTab
-                    + " fcTable=" + tableId + " sale=" + result.getPriceCentavos()
-                    + " list=" + dto.getListPrice() + " channel=" + channel);
-
-            // Verificacao imediata: GET para confirmar que o preco entrou na FC
-            try {
-                PriceDTO verify = client.getPrice(sku, tableId);
-                if (verify != null && verify.getPrice() != null) {
-                    if (verify.getPrice().compareTo(result.getPriceCentavos()) != 0) {
-                        log.warning("VERIFY MISMATCH: PUT sale=" + result.getPriceCentavos()
-                                + " mas GET retornou=" + verify.getPrice()
-                                + " SKU=" + sku + " fcTable=" + tableId);
-                    } else {
-                        log.info("VERIFY OK: SKU=" + sku + " fcTable=" + tableId
-                                + " preco=" + verify.getPrice());
-                    }
-                } else {
-                    log.warning("VERIFY FALHOU: GET nao retornou preco SKU=" + sku
-                            + " fcTable=" + tableId);
-                }
-            } catch (Exception verifyEx) {
-                log.warning("VERIFY ERRO: " + verifyEx.getMessage()
-                        + " SKU=" + sku + " fcTable=" + tableId);
-            }
-
-            // Sync batch/scaled pricing (precos escalonados por quantidade)
-            try {
-                PriceBatchResolver batchResolver = new PriceBatchResolver();
-                List<PriceBatchItemDTO> batches = batchResolver.resolve(codProd, nuTab, tableId);
-                if (!batches.isEmpty()) {
-                    client.updatePriceBatches(sku, tableId, batches);
-                    log.info("Batches OK: codProd=" + codProd + " fcTable=" + tableId + " faixas=" + batches.size());
-                }
-            } catch (Exception batchEx) {
-                log.log(Level.WARNING, "Erro batches SKU " + sku + " fcTable=" + tableId + ": " + batchEx.getMessage(), batchEx);
-            }
+            syncPriceTable(client, batchResolver, codProd, sku, nuTab, tableId, channel);
         }
     }
 
@@ -136,54 +82,84 @@ public class PriceService {
             return;
         }
 
-        List<PriceDTO> dist = new ArrayList<>();
-        List<PriceDTO> cons = new ArrayList<>();
-        List<BigDecimal> tables = priceTableResolver.resolveEligibleTables();
-        if (tables.isEmpty()) {
-            tables = Collections.singletonList(BigDecimal.ZERO);
-        }
-
         for (BigDecimal codProd : codProds) {
-            if (codProd == null) continue;
-            String sku = deparaService.getSkuForStock(codProd);
-            if (sku == null || sku.trim().isEmpty()) continue;
-            FastchannelPriceClient.Channel channel = determineChannel(codProd, sku);
-            for (BigDecimal nuTab : tables) {
-                PriceResolver.PriceResult result = priceResolver.resolve(codProd, nuTab);
-                if (result == null || result.getPriceCentavos() == null
-                        || result.getPriceCentavos().compareTo(BigDecimal.ZERO) <= 0) continue;
-                PriceDTO dto = new PriceDTO();
-                dto.setSku(sku);
-                dto.setPrice(result.getPriceCentavos());
-                dto.setListPrice(result.getListPriceCentavos() != null
-                        ? result.getListPriceCentavos()
-                        : result.getPriceCentavos());
-                BigDecimal tableId = resolvePriceTableId(nuTab);
-                if (tableId == null) continue; // Skip produtos sem tabela mapeada
-                dto.setPriceTableId(tableId);
-                if (channel == FastchannelPriceClient.Channel.DISTRIBUTION) {
-                    dist.add(dto);
-                } else {
-                    cons.add(dto);
-                }
+            if (codProd == null) {
+                continue;
             }
+            String sku = deparaService.getSkuForStock(codProd);
+            try {
+                syncPrice(codProd, sku);
+            } catch (Exception e) {
+                log.warning("Falha ao sincronizar preco SKU=" + sku + " CODPROD=" + codProd + ": " + e.getMessage());
+            }
+        }
+    }
+
+    private void syncPriceTable(FastchannelPriceClient client,
+                                PriceBatchResolver batchResolver,
+                                BigDecimal codProd,
+                                String sku,
+                                BigDecimal nuTab,
+                                BigDecimal tableId,
+                                FastchannelPriceClient.Channel channel) throws Exception {
+        boolean productExists = productExistsInTable(codProd, nuTab);
+        PriceResolver.PriceResult result = productExists ? priceResolver.resolve(codProd, nuTab) : null;
+        boolean hasPositivePrice = result != null
+                && result.getPriceCentavos() != null
+                && result.getPriceCentavos().compareTo(BigDecimal.ZERO) > 0;
+
+        PriceDTO dto = new PriceDTO();
+        dto.setSku(sku);
+        dto.setPriceTableId(tableId);
+        if (hasPositivePrice) {
+            dto.setPrice(result.getPriceCentavos());
+            dto.setListPrice(result.getListPriceCentavos() != null
+                    ? result.getListPriceCentavos()
+                    : result.getPriceCentavos());
+        } else {
+            dto.setPrice(BigDecimal.ZERO);
+            dto.setListPrice(BigDecimal.ZERO);
         }
 
-        // Batch endpoint /prices/{resellerId}/batches requer RESELLER_ID configurado.
-        // Como o endpoint correto e por SKU (/prices/{sku}), iterar individualmente.
-        for (PriceDTO dto : dist) {
+        client.updatePrice(dto);
+        log.info("PUT preco: codProd=" + codProd + " sku=" + sku + " nuTab=" + nuTab
+                + " fcTable=" + tableId + " sale=" + dto.getPrice()
+                + " list=" + dto.getListPrice() + " channel=" + channel
+                + " existsInTable=" + productExists + " mirroredZero=" + (!hasPositivePrice));
+
+        verifySyncedPrice(client, sku, tableId, dto.getPrice());
+
+        List<PriceBatchItemDTO> batches = Collections.emptyList();
+        if (hasPositivePrice) {
             try {
-                distributionClient.updatePrice(dto);
-            } catch (Exception e) {
-                log.warning("Falha ao sincronizar preco dist SKU=" + dto.getSku() + ": " + e.getMessage());
+                batches = batchResolver.resolve(codProd, nuTab, tableId);
+            } catch (Exception batchResolveEx) {
+                log.log(Level.WARNING, "Erro ao resolver batches SKU " + sku + " fcTable=" + tableId, batchResolveEx);
             }
         }
-        for (PriceDTO dto : cons) {
-            try {
-                consumptionClient.updatePrice(dto);
-            } catch (Exception e) {
-                log.warning("Falha ao sincronizar preco cons SKU=" + dto.getSku() + ": " + e.getMessage());
+        client.updatePriceBatches(sku, tableId, batches);
+        log.info("Batches reconciliados: codProd=" + codProd + " fcTable=" + tableId + " faixas=" + batches.size());
+    }
+
+    private void verifySyncedPrice(FastchannelPriceClient client, String sku, BigDecimal tableId, BigDecimal expectedPrice) {
+        try {
+            PriceDTO verify = client.getPrice(sku, tableId);
+            if (verify != null && verify.getPrice() != null) {
+                if (verify.getPrice().compareTo(expectedPrice) != 0) {
+                    log.warning("VERIFY MISMATCH: PUT sale=" + expectedPrice
+                            + " mas GET retornou=" + verify.getPrice()
+                            + " SKU=" + sku + " fcTable=" + tableId);
+                } else {
+                    log.info("VERIFY OK: SKU=" + sku + " fcTable=" + tableId
+                            + " preco=" + verify.getPrice());
+                }
+            } else {
+                log.warning("VERIFY FALHOU: GET nao retornou preco SKU=" + sku
+                        + " fcTable=" + tableId);
             }
+        } catch (Exception verifyEx) {
+            log.warning("VERIFY ERRO: " + verifyEx.getMessage()
+                    + " SKU=" + sku + " fcTable=" + tableId);
         }
     }
 
@@ -292,4 +268,3 @@ public class PriceService {
         }
     }
 }
-

@@ -463,6 +463,22 @@
             document.getElementById('btnSalvar').disabled = !hasChanges;
         }
 
+        function findDuplicateFastIdOnCurrentTab() {
+            if (state.currentTab !== 'tabelas') return null;
+            const seen = new Map();
+            for (const item of state.data.tabelas || []) {
+                const codExterno = (item.codExterno || '').trim();
+                if (!codExterno) continue;
+                const codSankhya = item.codSankhya != null ? item.codSankhya.toString() : '';
+                const previous = seen.get(codExterno);
+                if (previous && previous !== codSankhya) {
+                    return codExterno;
+                }
+                seen.set(codExterno, codSankhya);
+            }
+            return null;
+        }
+
         async function saveChanges() {
             const tab = state.currentTab;
             const tipo = getTipo(tab);
@@ -479,6 +495,12 @@
             }));
 
             if (!changes.length) return;
+
+            const duplicateFastId = findDuplicateFastIdOnCurrentTab();
+            if (duplicateFastId) {
+                showAlert('error', `O ID Fast ${duplicateFastId} ja esta vinculado a outra tabela de preco.`);
+                return;
+            }
 
             const btn = document.getElementById('btnSalvar');
             btn.disabled = true;
