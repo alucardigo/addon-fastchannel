@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V18: Adiciona campos de notificacao por email na tabela AD_FCCONFIG -->
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="EMAIL_NOTIFICACAO" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD EMAIL_NOTIFICACAO VARCHAR2(300)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD EMAIL_NOTIFICACAO VARCHAR(300)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="EMAIL_HABILITADO" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD EMAIL_HABILITADO CHAR(1) DEFAULT 'N'
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD EMAIL_HABILITADO CHAR(1) DEFAULT 'N'
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="SMTP_HOST" ordem="3" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD SMTP_HOST VARCHAR2(200)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD SMTP_HOST VARCHAR(200)
+        </mssql>
+    </sql>
+
+</alteracoes>

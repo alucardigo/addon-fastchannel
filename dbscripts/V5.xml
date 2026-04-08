@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V5: Garantir colunas de pedidos (SQL migrado para V*.xml) -->
+
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="STATUS_IMPORT" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCPEDIDO ADD STATUS_IMPORT VARCHAR2(20)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCPEDIDO ADD STATUS_IMPORT VARCHAR(20)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="VALOR_TOTAL" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCPEDIDO ADD VALOR_TOTAL NUMBER(18,2)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCPEDIDO ADD VALOR_TOTAL DECIMAL(18,2)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="DH_PEDIDO" ordem="3" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCPEDIDO ADD DH_PEDIDO TIMESTAMP
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCPEDIDO ADD DH_PEDIDO DATETIME2
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="NOME_CLIENTE" ordem="4" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCPEDIDO ADD NOME_CLIENTE VARCHAR2(200)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCPEDIDO ADD NOME_CLIENTE VARCHAR(200)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="CPF_CNPJ" ordem="5" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCPEDIDO ADD CPF_CNPJ VARCHAR2(20)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCPEDIDO ADD CPF_CNPJ VARCHAR(20)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="VALOR_FRETE" ordem="6" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCPEDIDO ADD VALOR_FRETE NUMBER(18,2)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCPEDIDO ADD VALOR_FRETE DECIMAL(18,2)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="AD_FCPEDIDO" nomeObjeto="ERRO_MSG" ordem="7" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCPEDIDO ADD ERRO_MSG VARCHAR2(1000)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCPEDIDO ADD ERRO_MSG VARCHAR(1000)
+        </mssql>
+    </sql>
+</alteracoes>

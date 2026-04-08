@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE parameters >
+<parameters group-name="mge.:name" data-source="br.com.sankhya.modelcore.util.MGECoreParameter" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:noNamespaceSchemaLocation="../../../../../.gradle/parameters.xsd">
+
+    <!--
+        Para mais informações sobre a criação e utilização de Parâmetros,
+        consulte a documentação oficial da Sankhya em: https://developer.sankhya.com.br/docs/03_parameter
+    -->
+
+    <parameter name="TesteA" key="PTESTEA" type="string" default="A" cacheable="false" required="false" module="S" description="Exemplo de Parametro A"/>
+    <parameter name="TesteB" key="PTESTEB" type="string" default="B" cacheable="false" required="false" module="A" description="Exemplo de Parametro B"/>
+</parameters>

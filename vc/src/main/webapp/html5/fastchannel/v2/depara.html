@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - De-Para</title>
+    <link rel="stylesheet" href="fc-design-system.css">
+    <style>
+        /* Page-specific styles that complement the design system */
+        .fc-tab-group {
+            display: inline-flex; gap: 4px;
+            background: var(--bg-primary); padding: 4px;
+            border-radius: var(--radius-md); border: 1px solid var(--border-primary);
+        }
+        .fc-tab-btn {
+            padding: 6px 14px; background: transparent;
+            border: 1px solid transparent; border-radius: var(--radius-sm);
+            color: var(--text-secondary); font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all var(--transition);
+            font-family: var(--font-family);
+        }
+        .fc-tab-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+        .fc-tab-btn.active {
+            background: var(--accent); border-color: var(--accent);
+            color: white;
+        }
+        .fc-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+        }
+        .fc-card-actions { display: flex; gap: 8px; }
+        .fc-alert {
+            padding: 10px 14px; border-radius: var(--radius-sm);
+            margin-bottom: 12px; display: none; font-size: 13px; font-weight: 500;
+        }
+        .fc-alert-success {
+            background: var(--success-bg); color: var(--success-text);
+            border: 1px solid var(--success);
+        }
+        .fc-alert-error {
+            background: var(--danger-bg); color: var(--danger-text);
+            border: 1px solid var(--danger);
+        }
+        .fc-table td .fc-filter-input {
+            width: 100%; min-width: 160px;
+        }
+        .fc-table td .fc-filter-input.changed {
+            border-color: var(--warning);
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+        }
+        .fc-table td input[type="checkbox"] {
+            width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer;
+        }
+        .fc-spinner-inline {
+            width: 16px; height: 16px; border: 2px solid var(--border-primary);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: fc-spin 0.6s linear infinite; display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="fc-page">
+        <header class="fc-header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="fc-header-logo">
+            <span class="fc-header-title">Fastchannel</span>
+            <span class="fc-header-subtitle">De-Para</span>
+            <div class="fc-theme-toggle" onclick="toggleTheme()">
+                <span class="fc-theme-label">Tema</span>
+                <div class="fc-theme-toggle-track"></div>
+            </div>
+        </header>
+
+        <nav class="fc-nav">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="config.html">Configuracao</a>
+            <a href="depara.html" class="active">De-Para</a>
+            <a href="pedidos.html">Pedidos</a>
+            <a href="estoque.html">Estoque</a>
+            <a href="precos.html">Precos</a>
+            <a href="fila.html">Fila</a>
+            <a href="logs.html">Logs</a>
+        </nav>
+
+        <div id="alertSuccess" class="fc-alert fc-alert-success"></div>
+        <div id="alertError" class="fc-alert fc-alert-error"></div>
+
+        <div class="fc-card">
+            <div class="fc-card-header">
+                <div class="fc-tab-group">
+                    <button class="fc-tab-btn active" data-tab="empresas" onclick="switchTab('empresas')">Empresas</button>
+                    <button class="fc-tab-btn" data-tab="locais" onclick="switchTab('locais')">Locais</button>
+                    <button class="fc-tab-btn" data-tab="tabelas" onclick="switchTab('tabelas')">Tabelas de Preco</button>
+                </div>
+                <div class="fc-card-actions">
+                    <button class="fc-btn fc-btn-ghost" onclick="reloadTab()">Recarregar</button>
+                    <button class="fc-btn fc-btn-primary" id="btnSalvar" onclick="saveChanges()" disabled>Salvar alteracoes</button>
+                </div>
+            </div>
+
+            <div class="fc-filters" style="margin-bottom: 16px;">
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Codigo Sankhya</span>
+                    <input type="text" id="filterCodigo" class="fc-filter-input" placeholder="Ex: 1" oninput="applyFilters()">
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Descricao</span>
+                    <input type="text" id="filterDescricao" class="fc-filter-input" placeholder="Buscar..." oninput="applyFilters()">
+                </div>
+            </div>
+
+            <div class="fc-table-container">
+                <table class="fc-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">Cod Sankhya</th>
+                            <th>Descricao</th>
+                            <th style="width: 220px;">Cod Externo (Fastchannel)</th>
+                            <th style="width: 170px;">Integracao Automatica</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deparaTable">
+                        <tr><td colspan="4" class="fc-empty">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* --- Theme toggle --- */
+        (function initTheme() {
+            var saved = localStorage.getItem('fc-theme');
+            if (!saved) saved = 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+        })();
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('fc-theme', next);
+        }
+
+        /* --- Original JS (unchanged) --- */
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
+                }
+                return null;
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
+
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        const state = {
+            currentTab: 'empresas',
+            data: { empresas: [], locais: [], tabelas: [] },
+            filtered: { empresas: [], locais: [], tabelas: [] },
+            original: { empresas: {}, locais: {}, tabelas: {} }
+        };
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+                    if (resp.ok) return await resp.json();
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore
+                    }
+                    lastErr = errMsg;
+                } catch (e) {
+                    lastErr = e.message;
+                }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        function escapeHtml(text) {
+            return (text || '').toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function showAlert(type, message) {
+            const alertSuccess = document.getElementById('alertSuccess');
+            const alertError = document.getElementById('alertError');
+            alertSuccess.style.display = 'none';
+            alertError.style.display = 'none';
+
+            const alert = type === 'success' ? alertSuccess : alertError;
+            alert.textContent = message;
+            alert.style.display = 'block';
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 4000);
+        }
+
+        function hasUnsavedChanges() {
+            const tab = state.currentTab;
+            const data = state.data[tab] || [];
+            const orig = state.original[tab] || {};
+            return data.some(item => {
+                const key = item.codSankhya != null ? item.codSankhya.toString() : '';
+                const o = orig[key] || { codExterno: '', integracaoAutomatica: false };
+                return (item.codExterno || '') !== o.codExterno ||
+                       (item.integracaoAutomatica === true) !== (o.integracaoAutomatica === true);
+            });
+        }
+
+        function switchTab(tab) {
+            if (hasUnsavedChanges() && !confirm('Voce tem alteracoes nao salvas. Deseja descarta-las?')) return;
+            state.currentTab = tab;
+            document.querySelectorAll('.fc-tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            if (!state.data[tab] || state.data[tab].length === 0) {
+                loadTab(tab);
+            } else {
+                applyFilters();
+            }
+        }
+
+        function getTipo(tab) {
+            if (tab === 'empresas') return 'EMPRESA';
+            if (tab === 'locais') return 'STOCK_STORAGE';
+            return 'TABELA_PRECO';
+        }
+
+        async function loadTab(tab) {
+            const table = document.getElementById('deparaTable');
+            table.innerHTML = '<tr><td colspan="4" class="fc-empty"><div class="fc-spinner" style="margin: 0 auto;"></div></td></tr>';
+
+            const tipo = getTipo(tab);
+            try {
+                let basePromise;
+                if (tab === 'empresas') basePromise = callService('FCDeparaSP.listEmpresas', {});
+                else if (tab === 'locais') basePromise = callService('FCDeparaSP.listLocais', {});
+                else basePromise = callService('FCDeparaSP.listTabelasPreco', {});
+
+                const [base, mappings] = await Promise.all([
+                    basePromise,
+                    callService('FCDeparaSP.listMappings', { tipo })
+                ]);
+
+                if (base.error) throw new Error(base.error);
+                if (mappings.error) throw new Error(mappings.error);
+                const mapped = mergeMappings(base.items || [], mappings.items || []);
+                state.data[tab] = mapped;
+                state.original[tab] = buildOriginalMap(mapped);
+                applyFilters();
+            } catch (e) {
+                table.innerHTML = `<tr><td colspan="4" class="fc-empty">Erro: ${e.message}</td></tr>`;
+            }
+        }
+
+        function mergeMappings(base, mappings) {
+            const map = {};
+            mappings.forEach(m => {
+                if (m.codSankhya != null) {
+                    map[m.codSankhya.toString()] = {
+                        codExterno: m.codExterno != null ? m.codExterno.toString() : '',
+                        integracaoAutomatica: m.integracaoAutomatica === true
+                    };
+                }
+            });
+            return base.map(item => {
+                const key = item.codSankhya != null ? item.codSankhya.toString() : '';
+                const mapping = map[key] || { codExterno: '', integracaoAutomatica: false };
+                return {
+                    ...item,
+                    codExterno: mapping.codExterno || '',
+                    integracaoAutomatica: mapping.integracaoAutomatica === true
+                };
+            });
+        }
+
+        function buildOriginalMap(items) {
+            const map = {};
+            items.forEach(item => {
+                if (item.codSankhya != null) {
+                    map[item.codSankhya.toString()] = {
+                        codExterno: item.codExterno || '',
+                        integracaoAutomatica: item.integracaoAutomatica === true
+                    };
+                }
+            });
+            return map;
+        }
+
+        function applyFilters() {
+            const tab = state.currentTab;
+            const codFilter = document.getElementById('filterCodigo').value.trim().toLowerCase();
+            const descFilter = document.getElementById('filterDescricao').value.trim().toLowerCase();
+
+            const filtered = state.data[tab].filter(item => {
+                const cod = item.codSankhya != null ? item.codSankhya.toString().toLowerCase() : '';
+                const codTab = item.codTab != null ? item.codTab.toString().toLowerCase() : '';
+                const desc = (item.descricao || '').toLowerCase();
+                const okCod = !codFilter || cod.includes(codFilter) || codTab.includes(codFilter);
+                const okDesc = !descFilter || desc.includes(descFilter);
+                return okCod && okDesc;
+            });
+            state.filtered[tab] = filtered;
+            renderTable();
+        }
+
+        function renderTable() {
+            const tab = state.currentTab;
+            const items = state.filtered[tab] || [];
+            const table = document.getElementById('deparaTable');
+
+            if (!items.length) {
+                table.innerHTML = '<tr><td colspan="4" class="fc-empty">Nenhum registro encontrado</td></tr>';
+                updateSaveState();
+                return;
+            }
+
+            table.innerHTML = items.map(item => {
+                const key = item.codSankhya != null ? item.codSankhya.toString() : '';
+                const value = item.codExterno || '';
+                const original = state.original[tab][key] || { codExterno: '', integracaoAutomatica: false };
+                const changed = value !== original.codExterno ? 'changed' : '';
+                const codDisplay = tab === 'tabelas'
+                    ? ((item.codTab != null && item.codTab !== '') ? item.codTab : (item.codSankhya != null ? item.codSankhya : '--'))
+                    : (item.codSankhya != null ? item.codSankhya : '--');
+                const descricaoDisplay = (item.descricao && item.descricao.trim())
+                    ? item.descricao
+                    : (tab === 'tabelas' && item.codTab != null ? `Tabela ${item.codTab}` : '--');
+                return `
+                    <tr>
+                        <td class="text-mono">${escapeHtml(String(codDisplay))}</td>
+                        <td>${escapeHtml(descricaoDisplay)}</td>
+                        <td>
+                            <input class="fc-filter-input ${changed}" data-key="${escapeHtml(key)}" value="${escapeHtml(value)}" oninput="onChangeValue(event)">
+                        </td>
+                        <td class="text-center">
+                            <input type="checkbox" data-key="${escapeHtml(key)}" ${item.integracaoAutomatica === true ? 'checked' : ''} onchange="onToggleIntegracao(event)">
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            updateSaveState();
+        }
+
+        function onChangeValue(event) {
+            const input = event.target;
+            const key = input.getAttribute('data-key');
+            const tab = state.currentTab;
+            const item = state.data[tab].find(i => i.codSankhya != null && i.codSankhya.toString() === key);
+            if (item) {
+                item.codExterno = input.value;
+            }
+            const original = state.original[tab][key] || { codExterno: '', integracaoAutomatica: false };
+            input.classList.toggle('changed', input.value !== original.codExterno);
+            updateSaveState();
+        }
+
+        function onToggleIntegracao(event) {
+            const input = event.target;
+            const key = input.getAttribute('data-key');
+            const tab = state.currentTab;
+            const item = state.data[tab].find(i => i.codSankhya != null && i.codSankhya.toString() === key);
+            if (item) {
+                item.integracaoAutomatica = !!input.checked;
+            }
+            updateSaveState();
+        }
+
+        function updateSaveState() {
+            const tab = state.currentTab;
+            const hasChanges = state.data[tab].some(item => {
+                const key = item.codSankhya != null ? item.codSankhya.toString() : '';
+                const original = state.original[tab][key] || { codExterno: '', integracaoAutomatica: false };
+                const codChanged = (item.codExterno || '') !== (original.codExterno || '');
+                const autoChanged = (item.integracaoAutomatica === true) !== (original.integracaoAutomatica === true);
+                return codChanged || autoChanged;
+            });
+            document.getElementById('btnSalvar').disabled = !hasChanges;
+        }
+
+        function findDuplicateFastIdOnCurrentTab() {
+            if (state.currentTab !== 'tabelas') return null;
+            const seen = new Map();
+            for (const item of state.data.tabelas || []) {
+                const codExterno = (item.codExterno || '').trim();
+                if (!codExterno) continue;
+                const codSankhya = item.codSankhya != null ? item.codSankhya.toString() : '';
+                const previous = seen.get(codExterno);
+                if (previous && previous !== codSankhya) {
+                    return codExterno;
+                }
+                seen.set(codExterno, codSankhya);
+            }
+            return null;
+        }
+
+        async function saveChanges() {
+            const tab = state.currentTab;
+            const tipo = getTipo(tab);
+            const changes = state.data[tab].filter(item => {
+                const key = item.codSankhya != null ? item.codSankhya.toString() : '';
+                const original = state.original[tab][key] || { codExterno: '', integracaoAutomatica: false };
+                const codChanged = (item.codExterno || '') !== (original.codExterno || '');
+                const autoChanged = (item.integracaoAutomatica === true) !== (original.integracaoAutomatica === true);
+                return codChanged || autoChanged;
+            }).map(item => ({
+                codSankhya: item.codSankhya,
+                codExterno: item.codExterno,
+                integracaoAutomatica: item.integracaoAutomatica === true
+            }));
+
+            if (!changes.length) return;
+
+            const duplicateFastId = findDuplicateFastIdOnCurrentTab();
+            if (duplicateFastId) {
+                showAlert('error', `O ID Fast ${duplicateFastId} ja esta vinculado a outra tabela de preco.`);
+                return;
+            }
+
+            const btn = document.getElementById('btnSalvar');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="fc-spinner-inline"></div> Salvando...';
+
+            try {
+                const result = await callService('FCDeparaSP.saveMappings', { tipo, items: changes });
+                showAlert('success', result.message || 'Alteracoes salvas');
+                await loadTab(tab);
+            } catch (e) {
+                showAlert('error', 'Erro ao salvar: ' + e.message);
+            } finally {
+                btn.innerHTML = 'Salvar alteracoes';
+            }
+        }
+
+        function reloadTab() {
+            loadTab(state.currentTab);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTab('empresas');
+        });
+    </script>
+</body>
+</html>

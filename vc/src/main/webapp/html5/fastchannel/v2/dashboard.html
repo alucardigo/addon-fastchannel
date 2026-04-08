@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - Dashboard</title>
+    <link rel="stylesheet" href="fc-design-system.css">
+    <style>
+        /* Dashboard-specific layout utilities (not covered by design system) */
+        .fc-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .fc-grid-auto {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .fc-actions {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+        }
+        .fc-header-right {
+            margin-left: auto;
+            display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+        }
+        .fc-status-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 14px; border-radius: var(--radius-full);
+            font-size: 13px; font-weight: 500;
+        }
+        .fc-status-badge.online { background: var(--success-bg); color: var(--success-text); }
+        .fc-status-badge.offline { background: var(--danger-bg); color: var(--danger-text); }
+        .fc-status-badge.loading { background: var(--warning-bg); color: var(--warning-text); }
+
+        .fc-pulse {
+            width: 10px; height: 10px; border-radius: 50%;
+            animation: fc-pulse 2s infinite;
+        }
+        .fc-pulse.green { background: var(--success); }
+        .fc-pulse.red { background: var(--danger); }
+        .fc-pulse.yellow { background: var(--warning); }
+        @keyframes fc-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .fc-status-details {
+            display: flex; gap: 12px; flex-wrap: wrap;
+            font-size: 12px; color: var(--text-tertiary);
+        }
+        .fc-status-item {
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .fc-status-dot {
+            width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+        }
+        .fc-status-dot.ok { background: var(--success); }
+        .fc-status-dot.warn { background: var(--warning); }
+        .fc-status-dot.err { background: var(--danger); }
+
+        .fc-stat-value {
+            font-size: 36px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px;
+        }
+        .fc-stat-label {
+            font-size: 13px; color: var(--text-secondary);
+        }
+        .fc-stat-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-primary);
+        }
+        .fc-stat-row:last-child { border-bottom: none; }
+        .fc-stat-row-label { color: var(--text-secondary); font-size: 13px; }
+        .fc-stat-row-value { color: var(--text-primary); font-size: 13px; font-weight: 600; }
+
+        .fc-section-title {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+            color: var(--text-tertiary); margin-bottom: 8px; font-weight: 600;
+        }
+        .fc-section-divider {
+            height: 1px; background: var(--border-primary); margin: 14px 0;
+        }
+        .fc-orders-split {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .fc-progress-bar {
+            height: 6px; background: var(--bg-tertiary); border-radius: 3px;
+            overflow: hidden; margin: 10px 0;
+        }
+        .fc-progress-fill {
+            height: 100%; border-radius: 3px; transition: width 0.3s;
+        }
+        .fc-progress-fill.success { background: var(--success); }
+        .fc-progress-fill.warning { background: var(--warning); }
+        .fc-progress-fill.danger { background: var(--danger); }
+
+        .fc-error-banner {
+            background: var(--danger-bg); border: 1px solid var(--danger);
+            border-radius: var(--radius-md); padding: 14px 16px;
+            color: var(--danger-text); margin-bottom: 20px; display: none;
+            font-size: 13px;
+        }
+
+        .fc-refresh-info {
+            font-size: 11px; color: var(--text-tertiary);
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .fc-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px;
+        }
+        .fc-card-icon {
+            width: 36px; height: 36px; border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .fc-card-icon.blue { background: var(--info-bg); }
+        .fc-card-icon.green { background: var(--success-bg); }
+        .fc-card-icon.red { background: var(--danger-bg); }
+        .fc-card-icon.yellow { background: var(--warning-bg); }
+
+        @media (max-width: 768px) {
+            .fc-grid-2 { grid-template-columns: 1fr; }
+            .fc-header { flex-wrap: wrap; }
+            .fc-header-right { align-items: flex-start; margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="fc-page">
+        <header class="fc-header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="fc-header-logo">
+            <span class="fc-header-title">Fastchannel Integration</span>
+
+            <div class="fc-header-right">
+                <div id="statusBadge" class="fc-status-badge loading">
+                    <div class="fc-pulse yellow"></div>
+                    <span>Carregando...</span>
+                </div>
+                <div class="fc-status-details">
+                    <div class="fc-status-item">
+                        <span id="statusApiDot" class="fc-status-dot warn"></span>
+                        <span>API: </span><strong id="statusApiValue">--</strong>
+                    </div>
+                    <div class="fc-status-item">
+                        <span id="statusTokenDot" class="fc-status-dot warn"></span>
+                        <span>Token: </span><strong id="statusTokenValue">--</strong>
+                    </div>
+                    <div class="fc-status-item">
+                        <span id="statusIntegrationDot" class="fc-status-dot warn"></span>
+                        <span>Integracao: </span><strong id="statusIntegrationValue">--</strong>
+                    </div>
+                    <div class="fc-status-item">
+                        <span class="fc-status-dot warn"></span>
+                        <span>Ultima verif.: </span><strong id="statusLastCheckValue">--</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fc-theme-toggle" onclick="toggleTheme()" title="Alternar tema claro/escuro">
+                <span id="themeLabel">Escuro</span>
+                <div class="fc-theme-toggle-track"></div>
+            </div>
+        </header>
+
+        <nav class="fc-nav">
+            <a class="active" href="dashboard.html">Dashboard</a>
+            <a href="config.html">Configuracao</a>
+            <a href="depara.html">De-Para</a>
+            <a href="pedidos.html">Pedidos</a>
+            <a href="estoque.html">Estoque</a>
+            <a href="precos.html">Precos</a>
+            <a href="fila.html">Fila de Sincronizacao</a>
+            <a href="logs.html">Logs</a>
+        </nav>
+
+        <div id="errorBanner" class="fc-error-banner"></div>
+
+        <div class="fc-actions">
+            <button id="btnTestarConexao" class="fc-btn fc-btn-primary" onclick="testarConexao()">
+                Testar Conexao
+            </button>
+            <button id="btnImportarPedidos" class="fc-btn fc-btn-outline" onclick="importarPedidos()">
+                Importar Pedidos
+            </button>
+            <button id="btnProcessarFila" class="fc-btn fc-btn-outline" onclick="processarFila()">
+                Processar Fila
+            </button>
+            <button id="btnRefresh" class="fc-btn fc-btn-ghost" onclick="loadDashboard()">
+                Atualizar
+            </button>
+        </div>
+
+        <div class="fc-grid-2" style="margin-bottom: 20px;">
+            <div class="fc-card">
+                <div class="fc-card-header">
+                    <span class="fc-card-title">Pedidos</span>
+                    <div class="fc-card-icon green">&#x1F4E6;</div>
+                </div>
+                <div id="ordersStats">
+                    <div class="fc-orders-split">
+                        <div>
+                            <div class="fc-section-title">Sankhya</div>
+                            <div class="fc-stat-value" id="ordersToday">0</div>
+                            <div class="fc-stat-label">Importados Hoje</div>
+                            <div class="fc-stat-row">
+                                <span class="fc-stat-row-label">Pendentes</span>
+                                <span id="ordersPending" class="fc-stat-row-value">0</span>
+                            </div>
+                            <div class="fc-stat-row">
+                                <span class="fc-stat-row-label">Com Erro</span>
+                                <span id="ordersError" class="fc-stat-row-value">0</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="fc-section-title">Fastchannel (API)</div>
+                            <div class="fc-stat-row">
+                                <span class="fc-stat-row-label">Pendentes (API)</span>
+                                <span id="ordersFcPending" class="fc-stat-row-value">0</span>
+                            </div>
+                            <div class="fc-stat-row">
+                                <span class="fc-stat-row-label">Amostra Status</span>
+                                <span id="ordersFcStatusSample" class="fc-stat-row-value">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fc-card">
+                <div class="fc-card-header">
+                    <span class="fc-card-title">Operacoes</span>
+                    <div class="fc-card-icon yellow">&#x1F4E4;</div>
+                </div>
+                <div id="queueStats">
+                    <div class="fc-stat-value" id="queuePending">0</div>
+                    <div class="fc-stat-label">Itens Pendentes</div>
+                    <div class="fc-progress-bar">
+                        <div id="queueProgress" class="fc-progress-fill success" style="width: 0%"></div>
+                    </div>
+                    <div class="fc-stat-row">
+                        <span class="fc-stat-row-label">Processando</span>
+                        <span id="queueProcessing" class="fc-stat-row-value">0</span>
+                    </div>
+                    <div class="fc-stat-row">
+                        <span class="fc-stat-row-label">Com Erro</span>
+                        <span id="queueErrors" class="fc-stat-row-value">0</span>
+                    </div>
+                    <div class="fc-section-divider"></div>
+                    <div id="syncStats">
+                        <div class="fc-stat-row">
+                            <span class="fc-stat-row-label">Estoque (24h)</span>
+                            <span id="syncStock" class="fc-stat-row-value">0</span>
+                        </div>
+                        <div class="fc-stat-row">
+                            <span class="fc-stat-row-label">Precos (24h)</span>
+                            <span id="syncPrice" class="fc-stat-row-value">0</span>
+                        </div>
+                        <div class="fc-stat-row">
+                            <span class="fc-stat-row-label">Produtos (24h)</span>
+                            <span id="syncProduct" class="fc-stat-row-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fc-grid-auto">
+            <div class="fc-card">
+                <div class="fc-card-header">
+                    <span class="fc-card-title">Ultimos Logs</span>
+                    <div class="fc-refresh-info">
+                        <span>Atualiza automaticamente a cada 30s</span>
+                    </div>
+                </div>
+                <div class="fc-table-container">
+                    <table class="fc-table">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Operacao</th>
+                                <th>Nivel</th>
+                                <th>Mensagem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTable">
+                            <tr>
+                                <td colspan="4" class="fc-empty">Carregando logs...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Theme toggle ---
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('fc-theme', newTheme);
+            document.getElementById('themeLabel').textContent = newTheme === 'dark' ? 'Escuro' : 'Claro';
+        }
+        (function initTheme() {
+            var saved = localStorage.getItem('fc-theme');
+            if (!saved) saved = 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+            var label = document.getElementById('themeLabel');
+            if (label) label.textContent = saved === 'dark' ? 'Escuro' : 'Claro';
+        })();
+
+        // Resolve addon context paths
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
+                }
+                return null;
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
+
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        console.log('[Fastchannel] contexts', addonContexts);
+        let autoRefreshInterval = null;
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        // Call backend service
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+
+                    if (resp.ok) {
+                        return await resp.json();
+                    }
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    lastErr = errMsg;
+                } catch (e) {
+                    lastErr = e.message;
+                }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        // Update status badge
+        function updateStatus(isOnline, message) {
+            const badge = document.getElementById('statusBadge');
+            const pulse = badge.querySelector('.fc-pulse');
+            const span = badge.querySelector('span');
+
+            badge.className = `fc-status-badge ${isOnline ? 'online' : 'offline'}`;
+            pulse.className = `fc-pulse ${isOnline ? 'green' : 'red'}`;
+            span.textContent = message;
+        }
+
+        function escapeHtml(text) {
+            return (text || '').toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Show error
+        function showError(message) {
+            const banner = document.getElementById('errorBanner');
+            banner.textContent = message;
+            banner.style.display = 'block';
+            banner.style.background = '';
+            banner.style.borderColor = '';
+            banner.style.color = '';
+        }
+
+        // Hide error
+        function hideError() {
+            document.getElementById('errorBanner').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            const banner = document.getElementById('errorBanner');
+            banner.textContent = message;
+            banner.style.background = 'var(--success-bg)';
+            banner.style.borderColor = 'var(--success)';
+            banner.style.color = 'var(--success-text)';
+            banner.style.display = 'block';
+            setTimeout(() => {
+                banner.style.display = 'none';
+                banner.style.background = '';
+                banner.style.borderColor = '';
+                banner.style.color = '';
+            }, 5000);
+        }
+
+        // Format date
+        function parseBackendDate(dateStr) {
+            if (!dateStr) return null;
+            const match = typeof dateStr === 'string'
+                ? dateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/)
+                : null;
+            if (match) {
+                return new Date(
+                    Number(match[1]),
+                    Number(match[2]) - 1,
+                    Number(match[3]),
+                    Number(match[4]),
+                    Number(match[5]),
+                    Number(match[6])
+                );
+            }
+            const parsed = new Date(dateStr);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function formatDate(dateStr) {
+            const d = parseBackendDate(dateStr);
+            return d ? d.toLocaleString('pt-BR') : (dateStr || '--');
+        }
+
+        // Get badge class for log level
+        function getBadgeClass(level) {
+            switch (level) {
+                case 'ERROR': return 'fc-badge-danger';
+                case 'WARNING': return 'fc-badge-warning';
+                case 'INFO': return 'fc-badge-info';
+                default: return 'fc-badge-success';
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                hideError();
+                const data = await callService('FCDashboardSP.snapshot', {});
+
+                // Update connection status
+                if (data.connection) {
+                    const apiOk = !!data.connection.apiOnline;
+                    const tokenOk = !!data.connection.tokenValid;
+                    const integOk = !!data.connection.integrationActive;
+
+                    document.getElementById('statusApiValue').textContent = apiOk ? 'Online' : 'Offline';
+                    document.getElementById('statusTokenValue').textContent = tokenOk ? 'Valido' : 'Expirado';
+                    document.getElementById('statusIntegrationValue').textContent = integOk ? 'SIM' : 'NAO';
+                    document.getElementById('statusLastCheckValue').textContent = formatDate(data.connection.lastCheck);
+
+                    document.getElementById('statusApiDot').className = `fc-status-dot ${apiOk ? 'ok' : 'err'}`;
+                    document.getElementById('statusTokenDot').className = `fc-status-dot ${tokenOk ? 'ok' : 'err'}`;
+                    document.getElementById('statusIntegrationDot').className = `fc-status-dot ${integOk ? 'ok' : 'warn'}`;
+
+                    updateStatus(data.connection.apiOnline && data.connection.tokenValid,
+                        data.connection.apiOnline ? 'Conectado' : 'Desconectado');
+                }
+
+                // Update queue stats
+                if (data.queue) {
+                    document.getElementById('queuePending').textContent = data.queue.pending || 0;
+                    document.getElementById('queueProcessing').textContent = data.queue.processing || 0;
+                    document.getElementById('queueErrors').textContent = data.queue.errors || 0;
+
+                    const total = (data.queue.pending || 0) + (data.queue.processing || 0) + (data.queue.completed || 0);
+                    const completed = data.queue.completed || 0;
+                    const progress = total > 0 ? Math.round((completed / total) * 100) : 100;
+                    document.getElementById('queueProgress').style.width = progress + '%';
+                }
+
+                // Update orders stats
+                if (data.orders) {
+                    document.getElementById('ordersToday').textContent = data.orders.today || 0;
+                    document.getElementById('ordersPending').textContent = data.orders.pending || 0;
+                    document.getElementById('ordersError').textContent = data.orders.error || 0;
+                }
+
+                if (data.ordersFastchannel) {
+                    document.getElementById('ordersFcPending').textContent = data.ordersFastchannel.pendingTotal || 0;
+                    if (data.ordersFastchannel.error) {
+                        document.getElementById('ordersFcStatusSample').textContent = 'Erro: ' + data.ordersFastchannel.error;
+                    } else if (data.ordersFastchannel.statusSample) {
+                        const entries = Object.entries(data.ordersFastchannel.statusSample);
+                        if (entries.length > 0) {
+                            const sampleText = entries
+                                .slice(0, 3)
+                                .map(([k, v]) => `${k}: ${v}`)
+                                .join(' | ');
+                            document.getElementById('ordersFcStatusSample').textContent = sampleText;
+                        } else {
+                            document.getElementById('ordersFcStatusSample').textContent = '--';
+                        }
+                    }
+                }
+
+                // Update sync stats
+                if (data.sync) {
+                    document.getElementById('syncStock').textContent = data.sync.stock || 0;
+                    document.getElementById('syncPrice').textContent = data.sync.price || 0;
+                    document.getElementById('syncProduct').textContent = data.sync.product || 0;
+                }
+
+                // Update logs table
+                if (data.logs && data.logs.length > 0) {
+                    document.getElementById('logsTable').innerHTML = data.logs.map(log => `
+                        <tr>
+                            <td>${formatDate(log.timestamp)}</td>
+                            <td>${escapeHtml(log.operation || '--')}</td>
+                            <td><span class="fc-badge ${getBadgeClass(log.level)}">${escapeHtml(log.level)}</span></td>
+                            <td>${escapeHtml(log.message || '--')}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    document.getElementById('logsTable').innerHTML =
+                        '<tr><td colspan="4" class="fc-empty">Nenhum log encontrado</td></tr>';
+                }
+
+            } catch (e) {
+                console.error('Error loading dashboard:', e);
+                updateStatus(false, 'Erro');
+                showError('Erro ao carregar dashboard: ' + e.message);
+            }
+        }
+
+        // Test connection
+        async function testarConexao() {
+            const btn = document.getElementById('btnTestarConexao');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="fc-spinner"></div> Testando...';
+
+            try {
+                const result = await callService('FCAdminSP.testarConexao', {});
+                showSuccess(result.message || 'Teste concluido');
+                loadDashboard();
+            } catch (e) {
+                showError('Erro ao testar: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Testar Conexao';
+            }
+        }
+
+        // Import orders
+        async function importarPedidos() {
+            if (!confirm('Deseja importar novos pedidos do Fastchannel?')) return;
+            const btn = document.getElementById('btnImportarPedidos');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="fc-spinner"></div> Importando...';
+
+            try {
+                const result = await callService('FCAdminSP.importarPedidos', {});
+                showSuccess(result.message || 'Importacao concluida');
+                loadDashboard();
+            } catch (e) {
+                showError('Erro ao importar: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Importar Pedidos';
+            }
+        }
+
+        // Process queue
+        async function processarFila() {
+            if (!confirm('Processar todos os itens pendentes na fila?')) return;
+            const btn = document.getElementById('btnProcessarFila');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="fc-spinner"></div> Processando...';
+
+            try {
+                const result = await callService('FCAdminSP.processarFila', {});
+                showSuccess(result.message || 'Processamento concluido');
+                loadDashboard();
+            } catch (e) {
+                showError('Erro ao processar: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Processar Fila';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            // Auto-refresh every 30 seconds
+            autoRefreshInterval = setInterval(loadDashboard, 30000);
+        });
+    </script>
+</body>
+</html>

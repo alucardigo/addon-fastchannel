@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadados xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../.gradle/metadados.xsd">
+    <table name="AD_FCQUEUE" sequenceType="A" sequenceField="IDQUEUE">
+        <description>Fila de Sincronizacao Fastchannel (Outbox Pattern)</description>
+        <primaryKey>
+            <field name="IDQUEUE"/>
+        </primaryKey>
+        <instances>
+            <instance name="FC_FilaSincronizacao">
+                <description>Fila de Sincronizacao Fastchannel</description>
+                <toolbar>
+                    <action name="reprocessarItem" description="Reprocessar Selecionados"
+                            icon="fa-refresh" type="JAVA"
+                            classname="br.com.bellube.fastchannel.action.ReprocessarItemAction">
+                    </action>
+                    <action name="limparErros" description="Limpar Itens com Erro Fatal"
+                            icon="fa-trash" type="JAVA"
+                            classname="br.com.bellube.fastchannel.action.LimparErrosFataisAction">
+                    </action>
+                </toolbar>
+            </instance>
+        </instances>
+        <fields>
+            <field name="IDQUEUE" dataType="INTEIRO" size="10" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>ID do item na fila</description>
+            </field>
+            <field name="ENTITY_TYPE" dataType="TEXTO" size="30" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>Tipo da entidade (PRODUTO, ESTOQUE, PRECO, PEDIDO_STATUS)</description>
+            </field>
+            <field name="OPERATION" dataType="TEXTO" size="20" mandatory="S" allowSearch="S" visibleOnSearch="S">
+                <description>Operacao (CREATE, UPDATE, DELETE)</description>
+            </field>
+            <field name="ENTITY_ID" dataType="INTEIRO" size="10" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>ID da entidade no Sankhya (CODPROD, NUNOTA, etc)</description>
+            </field>
+            <field name="ENTITY_KEY" dataType="TEXTO" size="100" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Chave alternativa (SKU, OrderId)</description>
+            </field>
+            <field name="PAYLOAD" dataType="TEXTO" size="4000" mandatory="N" allowSearch="N">
+                <description>Dados JSON para processamento</description>
+            </field>
+            <field name="STATUS" dataType="TEXTO" size="20" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Status do Item</description>
+                <options>
+                    <option value="PENDENTE" description="Pendente"/>
+                    <option value="PROCESSANDO" description="Processando"/>
+                    <option value="ENVIADO" description="Enviado"/>
+                    <option value="ERRO" description="Erro"/>
+                    <option value="ERRO_FATAL" description="Erro Fatal"/>
+                    <option value="CANCELADO" description="Cancelado"/>
+                </options>
+            </field>
+            <field name="RETRY_COUNT" dataType="INTEIRO" size="3" mandatory="N" allowSearch="N">
+                <description>Numero de tentativas de processamento</description>
+            </field>
+            <field name="LAST_ERROR" dataType="TEXTO" size="4000" mandatory="N" allowSearch="N">
+                <description>Ultimo erro de processamento</description>
+            </field>
+            <field name="PRIORITY" dataType="INTEIRO" size="5" mandatory="N" allowSearch="S">
+                <description>Prioridade de processamento (maior = mais prioritario)</description>
+            </field>
+            <field name="DH_CRIACAO" dataType="DATA_HORA" mandatory="N" allowSearch="S" visibleOnSearch="S">
+                <description>Data/hora de criacao</description>
+            </field>
+            <field name="DH_PROCESSAMENTO" dataType="DATA_HORA" mandatory="N" allowSearch="S">
+                <description>Data/hora do processamento</description>
+            </field>
+            <field name="DH_ALTERACAO" dataType="DATA_HORA" mandatory="N" allowSearch="N">
+                <description>Data/hora da ultima alteracao</description>
+            </field>
+        </fields>
+    </table>
+</metadados>

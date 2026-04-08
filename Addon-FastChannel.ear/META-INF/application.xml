@@ -1,0 +1,13 @@
+<application>
+    <display-name>addon-fastchannel</display-name>
+    <module>
+        <java>ejb/addon-fastchannel-model.jar</java>
+    </module>
+    <module>
+        <web>
+            <web-uri>web/addon-fastchannel-web.war</web-uri>
+            <context-root>/addon-fastchannel</context-root>
+        </web>
+    </module>
+    <library-directory>lib</library-directory>
+</application>

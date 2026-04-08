@@ -1,0 +1,9 @@
+/*
+    Para mais informações de como efetuar a correta configuração desse arquivo,
+    consulte a documentação oficial da Sankkhya no link abaixo:
+    <a href="https://developer.sankhya.com.br/docs/03_conf_addonstudio"/>
+ */
+
+rootProject.name = 'Addon-FastChannel'
+include 'model'
+include 'vc'

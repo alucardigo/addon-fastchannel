@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V17: Compatibilidade de schema - colunas AD_ em tabelas Sankhya padrao -->
+    <!-- Colunas customizadas que existem em homolog/prod mas nao em dev local -->
+    <!-- Todos com SE_NAO_EXISTIR para seguranca em ambientes que ja possuem -->
+
+    <!-- TGFTAB: mapeamento de tabela de preco para Fastchannel -->
+    <sql nomeTabela="TGFTAB" nomeObjeto="AD_FAST" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFTAB ADD AD_FAST NUMBER(10)
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFTAB ADD AD_FAST INT
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="TGFTAB" nomeObjeto="AD_TIPO_FAST" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFTAB ADD AD_TIPO_FAST CHAR(1)
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFTAB ADD AD_TIPO_FAST CHAR(1)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="TGFTAB" nomeObjeto="AD_TIPO_FAS" ordem="3" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFTAB ADD AD_TIPO_FAS VARCHAR2(10)
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFTAB ADD AD_TIPO_FAS VARCHAR(10)
+        </mssql>
+    </sql>
+
+    <!-- TGFTPV: mapeamento de tipo de venda para Fastchannel -->
+    <sql nomeTabela="TGFTPV" nomeObjeto="AD_IDFAST" ordem="4" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFTPV ADD AD_IDFAST NUMBER(10)
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFTPV ADD AD_IDFAST INT
+        </mssql>
+    </sql>
+
+    <!-- TGFCAB: campos adicionais para pedidos Fastchannel -->
+    <sql nomeTabela="TGFCAB" nomeObjeto="AD_NUMFAST" ordem="5" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFCAB ADD AD_NUMFAST VARCHAR2(100)
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFCAB ADD AD_NUMFAST VARCHAR(100)
+        </mssql>
+    </sql>
+
+    <sql nomeTabela="TGFCAB" nomeObjeto="AD_CODVENDEXEC" ordem="6" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFCAB ADD AD_CODVENDEXEC NUMBER(5)
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFCAB ADD AD_CODVENDEXEC SMALLINT
+        </mssql>
+    </sql>
+
+    <!-- AD_ESCFASTSYNC: tabela de controle de sincronizacao batch de precos -->
+    <sql nomeTabela="AD_ESCFASTSYNC" nomeObjeto="AD_ESCFASTSYNC" ordem="7" executar="SE_NAO_EXISTIR" tipoObjeto="TABLE">
+        <oracle>
+            CREATE TABLE AD_ESCFASTSYNC (
+                NUPROMOCAO NUMBER(10),
+                QTDE       NUMBER,
+                BATCHID    NUMBER(10),
+                PRODUCTID  VARCHAR2(100),
+                DTALTER    DATE,
+                MSG        VARCHAR2(100),
+                STATUS     VARCHAR2(10),
+                TIPDESC    VARCHAR2(100),
+                PERCDESC   NUMBER,
+                QTDEMIN    NUMBER,
+                LISTPRICE  VARCHAR2(100)
+            )
+        </oracle>
+        <mssql>
+            CREATE TABLE AD_ESCFASTSYNC (
+                NUPROMOCAO INT,
+                QTDE       FLOAT,
+                BATCHID    INT,
+                PRODUCTID  VARCHAR(100),
+                DTALTER    DATETIME,
+                MSG        VARCHAR(100),
+                STATUS     VARCHAR(10),
+                TIPDESC    VARCHAR(100),
+                PERCDESC   FLOAT,
+                QTDEMIN    FLOAT,
+                LISTPRICE  VARCHAR(100)
+            )
+        </mssql>
+    </sql>
+
+</alteracoes>

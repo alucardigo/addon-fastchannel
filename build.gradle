@@ -1,0 +1,933 @@
+
+/*
+    Para mais informações de como efetuar a correta configuração desse arquivo,
+    consulte a documentação oficial da Sankkhya no link abaixo:
+    <a href="https://developer.sankhya.com.br/docs/03_conf_addonstudio"/>
+ */
+
+buildscript {
+
+    repositories{
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url = uri("https://artifacts-partners.sankhya.com.br/repository/maven-releases")
+        }
+    }
+
+    dependencies {
+        classpath "br.com.sankhya.studio:gradle-plugin:2.0.0"
+        classpath "com.google.devtools.ksp:symbol-processing-gradle-plugin:2.0.0-1.0.24"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0"
+    }
+}
+
+//Substitua o valor inserido em 'group' por seu domínio, por exemplo: 'br.com.suaempresa'.
+group = 'br.com.bellube.fastchannel'
+//Especifica a versão do addon. É útil para controle de versões, deploys e compatibilidade com o sistema.
+version = (project.findProperty('ADDON_VERSION') ?: System.getenv('ADDON_VERSION') ?: "1.2.62")
+//Define uma breve descrição do addon, explicando sua funcionalidade ou objetivo principal.
+description = "Integração Fastchannel Data Lake - Monitoramento e Ingestão de Dados"
+
+apply(plugin: "br.com.sankhya.addonstudio")
+
+// Load local.properties for machine-specific configuration
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localProps.load(localPropsFile.newDataInputStream())
+}
+
+snkmodule {
+    // Server folder from local.properties or environment variable SNK_SERVER_FOLDER
+    def server = localProps.getProperty('snk.serverFolder') ?: System.getenv('SNK_SERVER_FOLDER') ?: ''
+    if (server.isEmpty()) {
+        logger.warn("WARNING: snk.serverFolder not configured. Create local.properties with snk.serverFolder=<path>")
+    }
+    serverFolder = server
+    plataformaMinima = "4.28"
+}
+
+addon {
+    /*
+        Ao habilitar o autoDDL, os scripts de criação de tabelas em dbscripts são ignorados,
+        e as tabelas são geradas automaticamente com base nas entidades definidas em datadictionary*.
+        Para usar scripts manuais, defina autoDDL=true. Para mais informações, consulte:
+        <a href="https://developer.sankhya.com.br/docs/02_autoddl">
+    */
+    autoDDL=false
+    //Informe aqui a sua APPKEY. Lembre-se de criar previamente sua solução e componente no Portal do Desenvolvedor.
+    appKey="b262dd0f-3ca5-4219-8053-7a492f792590"
+    //Informe aqui o nome da sua empresa
+    parceiroNome = "BEL DISTRIBUIDOR DE LUBRIFICANTES LTDA"
+}
+
+// Garante display-name no extension.xml gerado
+tasks.register('patchExtension') {
+    dependsOn 'createExtensionFile'
+    doLast {
+        def f = file("build/dist/extension.xml")
+        if (!f.exists()) return
+        def parser = new XmlParser(false, false)
+        def xml = parser.parse(f)
+        def displayNameNode = xml.'display-name'
+        if (!displayNameNode || !displayNameNode.text()) {
+            // insere logo após o id
+            def children = xml.children()
+            def insertIdx = children.findIndexOf { it instanceof Node && it.name() == 'id' } + 1
+            children.add(insertIdx, new Node(null, 'display-name', 'Fastchannel Integration'))
+        }
+        def vendorNode = (xml.'vendor' && xml.'vendor'.size() > 0) ? xml.'vendor'[0] : null
+        if (!vendorNode) {
+            vendorNode = new Node(xml, 'vendor')
+            new Node(vendorNode, 'name', 'BEL DISTRIBUIDOR DE LUBRIFICANTES LTDA')
+        }
+
+        def licenseId = System.getenv('ADDON_LICENSE_ID') ?: (project.hasProperty('ADDON_LICENSE_ID') ? project.getProperty('ADDON_LICENSE_ID') : null)
+        def normalizedLicenseId = licenseId?.trim()
+        if (normalizedLicenseId) {
+            def vendorId = (vendorNode.'id' && vendorNode.'id'.size() > 0) ? vendorNode.'id'[0] : null
+            if (vendorId) {
+                vendorId.value = [normalizedLicenseId]
+            } else {
+                new Node(vendorNode, 'id', normalizedLicenseId)
+            }
+
+            def licenseNode = (xml.'license-by-resource' && xml.'license-by-resource'.size() > 0) ? xml.'license-by-resource'[0] : null
+            if (!licenseNode) {
+                licenseNode = new Node(xml, 'license-by-resource')
+            }
+            def defaultMod = (licenseNode.'default-module' && licenseNode.'default-module'.size() > 0) ? licenseNode.'default-module'[0] : null
+            if (defaultMod) {
+                defaultMod.value = [normalizedLicenseId]
+            } else {
+                new Node(licenseNode, 'default-module', normalizedLicenseId)
+            }
+        } else {
+            // Keep template-compatible shape: <license-by-resource><default-module/></license-by-resource>
+            if (vendorNode.'id') {
+                vendorNode.'id'.each { vendorNode.remove(it) }
+            }
+            def licenseNode = (xml.'license-by-resource' && xml.'license-by-resource'.size() > 0) ? xml.'license-by-resource'[0] : null
+            if (!licenseNode) {
+                licenseNode = new Node(xml, 'license-by-resource')
+            }
+            def defaultMod = (licenseNode.'default-module' && licenseNode.'default-module'.size() > 0) ? licenseNode.'default-module'[0] : null
+            if (!defaultMod) {
+                new Node(licenseNode, 'default-module', '')
+            } else {
+                defaultMod.value = ['']
+            }
+        }
+        def writer = new StringWriter()
+        def printer = new XmlNodePrinter(new PrintWriter(writer))
+        printer.preserveWhitespace = true
+        printer.print(xml)
+        f.setText(writer.toString(), 'UTF-8')
+    }
+}
+
+// Evita multiplos WARs no dist/web ainda na fase de configuracao do addon
+tasks.matching { it.name == 'configureAddon' }.all { task ->
+    task.doLast {
+        def webDir = file("$buildDir/dist/web")
+        if (webDir.exists()) {
+            fileTree(webDir) {
+                include '*.war'
+                exclude 'addon-fastchannel-web.war'
+            }.files.each { it.delete() }
+        }
+    }
+}
+
+// No template, extension.xml fica apenas no EAR (build/dist/extension.xml).
+// Evita copiar extension.xml para dentro do WAR para nao duplicar inicializacao.
+tasks.register('syncExtensionResources') {
+    dependsOn 'patchExtension'
+    doLast {
+        def targets = [
+            "vc/buildGradle/resources/main/WEB-INF/extension.xml",
+            "vc/buildGradle/resources/main/extension.xml"
+        ]
+        targets.each { t ->
+            def dest = file(t)
+            if (dest.exists()) {
+                dest.delete()
+            }
+        }
+    }
+}
+
+// Ensure dbscripts XML are available for ddmigration
+  tasks.register('syncDbScripts') {
+      doLast {
+          def srcDir = file("dbscripts")
+          if (!srcDir.exists()) return
+          def destDir = file("build/dist/dbscripts")
+          destDir.mkdirs()
+          project.copy {
+              from(srcDir)
+              into(destDir)
+              include "V*.xml"
+          }
+      }
+  }
+
+  // Ensure model jar is available in EAR lib (shared classloader) AND ejb/ (EJB module)
+  tasks.register('syncModelJarToLib') {
+      doLast {
+          def modelJar = file("${buildDir}/dist/ejb/addon-fastchannel-model.jar")
+          if (!modelJar.exists()) return
+          def libDir = file("${buildDir}/dist/lib")
+          libDir.mkdirs()
+          project.copy {
+              from(modelJar)
+              into(libDir)
+          }
+          // NAO deletar modelJar - precisa estar em ejb/ para o application.xml (modulo EJB)
+      }
+  }
+
+tasks.register('prepareServiceProviders') {
+    doLast {
+        def manualSp = file("vc/src/main/webapp/WEB-INF/resources/service-providers.xml.manual")
+        def baseSp = file("vc/src/main/webapp/WEB-INF/resources/service-providers.xml")
+        def spSource = manualSp.exists() ? manualSp : baseSp
+        if (!spSource.exists()) return
+        def targets = [
+            "vc/buildGradle/resources/main/WEB-INF/resources/service-providers.xml",
+            "vc/buildGradle/resources/main/WEB-INF/resources/service-providers.xml.manual",
+            "vc/buildGradle/studioGenerated/resources/WEB-INF/resources/service-providers.xml",
+            "vc/buildGradle/studioGenerated/resources/WEB-INF/resources/service-providers.xml.manual"
+        ]
+        targets.each { t ->
+            def dest = file(t)
+            dest.parentFile.mkdirs()
+            dest.text = spSource.getText('ISO-8859-1')
+        }
+    }
+}
+
+// Enriquece metadata.xml com tabelas/campos/instancias garantidos (padrao ICONIC)
+tasks.whenTaskAdded { task ->
+    if (task.name == 'convertMetadata') {
+        task.doLast {
+            def metaFile = file("$buildDir/dist/datadictionary/metadata.xml")
+            if (!metaFile.exists()) {
+                return
+            }
+
+            def meta = new XmlParser().parse(metaFile)
+            def tablesNode = meta.tables[0]
+            def fieldsNode = meta.fields[0]
+            def propsNode = meta.fieldProperties[0]
+            def instancesNode = meta.instances[0]
+
+            def ensureTable = { name, desc ->
+                if (!tablesNode.table.find { it.@name == name }) {
+                    def t = tablesNode.appendNode('table', [name: name, sequenceType: 'N'])
+                    t.appendNode('description').setValue(desc)
+                }
+            }
+            def ensureField = { table, f ->
+                def expectedPresentation = f.presentationType ?: 'P'
+                def expectedAllowSearch = f.allowSearch ?: 'N'
+                def expectedVisibleOnSearch = f.visibleOnSearch ?: 'N'
+                def expectedIsPresentation = f.isPresentation ?: 'N'
+
+                def node = fieldsNode.field.find { it.@table == table && it.@name == f.name }
+                if (node) {
+                    node.@dataType = f.dataType
+                    node.@presentationType = expectedPresentation
+                    node.@allowSearch = expectedAllowSearch
+                    node.@visibleOnSearch = expectedVisibleOnSearch
+                    node.@isPresentation = expectedIsPresentation
+                    node.@allowDefault = 'S'
+                    node.@order = node.@order ?: '0'
+                } else {
+                    def attrs = [
+                            name            : f.name,
+                            table           : table,
+                            dataType        : f.dataType,
+                            presentationType: expectedPresentation,
+                            calculated      : 'N',
+                            allowSearch     : expectedAllowSearch,
+                            allowDefault    : 'S',
+                            visibleOnSearch : expectedVisibleOnSearch,
+                            isPresentation  : expectedIsPresentation,
+                            order           : '0'
+                    ]
+                    node = fieldsNode.appendNode('field', attrs)
+                    node.appendNode('description').setValue(f.desc)
+                }
+
+                def ensurePropValue = { propName, propValue ->
+                    def propNode = propsNode.prop.find { it.@table == table && it.@field == f.name && it.@name == propName }
+                    if (propNode) {
+                        propNode.setValue(propValue)
+                    } else {
+                        propsNode.appendNode('prop', [table: table, field: f.name, name: propName]).setValue(propValue)
+                    }
+                }
+
+                ensurePropValue('visivel', 'S')
+                ensurePropValue('requerido', 'N')
+            }
+            def ensureInstance = { name, table, desc ->
+                if (!instancesNode.instance.find { it.@name == name }) {
+                    def inst = instancesNode.appendNode('instance', [name: name, tableName: table])
+                    inst.appendNode('description').setValue(desc)
+                }
+            }
+
+            // Garante tabelas FastChannel
+            ensureTable('AD_FCCONFIG', 'Configuracao da Integracao Fastchannel Commerce')
+            ensureTable('AD_FCQUEUE', 'Fila de Sincronizacao Fastchannel (Outbox Pattern)')
+            ensureTable('AD_FCDEPARA', 'De-Para de Entidades Sankhya x Fastchannel')
+            ensureTable('AD_FCPEDIDO', 'Mapeamento de Pedidos Fastchannel x Sankhya')
+            ensureTable('AD_FCLOG', 'Log de Operacoes Fastchannel')
+
+            // Garante campos criticos de cada tabela
+            [
+                    // AD_FCCONFIG
+                    [table: 'AD_FCCONFIG', name: 'CODCONFIG', desc: 'Codigo', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S', isPresentation: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'ATIVO', desc: 'Ativo', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'BASE_URL', desc: 'URL Base da API', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'AUTH_URL', desc: 'URL de Autenticacao', dataType: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'CLIENT_ID', desc: 'Client ID OAuth2', dataType: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'CLIENT_SECRET', desc: 'Client Secret OAuth2', dataType: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'SCOPE', desc: 'Scope OAuth2', dataType: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'RESELLER_ID', desc: 'ID do Revendedor', dataType: 'S', allowSearch: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'STORAGE_ID', desc: 'ID do Deposito', dataType: 'S', allowSearch: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'CODEMP', desc: 'Empresa Padrao', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'CODLOCAL', desc: 'Local de Estoque', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'CODTIPOPER', desc: 'Tipo de Operacao', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'BATCH_SIZE', desc: 'Tamanho do Lote', dataType: 'I'],
+                    [table: 'AD_FCCONFIG', name: 'LAST_ORDER_SYNC', desc: 'Ultima Sync Pedidos', dataType: 'H', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCCONFIG', name: 'LAST_STOCK_SYNC', desc: 'Ultima Sync Estoque', dataType: 'H'],
+                    [table: 'AD_FCCONFIG', name: 'LAST_PRICE_SYNC', desc: 'Ultima Sync Precos', dataType: 'H'],
+                    // AD_FCQUEUE
+                    [table: 'AD_FCQUEUE', name: 'IDQUEUE', desc: 'ID do item na fila', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S', isPresentation: 'S'],
+                    [table: 'AD_FCQUEUE', name: 'ENTITY_TYPE', desc: 'Tipo da entidade', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCQUEUE', name: 'OPERATION', desc: 'Operacao', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCQUEUE', name: 'ENTITY_ID', desc: 'ID da entidade no Sankhya', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCQUEUE', name: 'STATUS', desc: 'Status do Item', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCQUEUE', name: 'RETRY_COUNT', desc: 'Tentativas', dataType: 'I'],
+                    [table: 'AD_FCQUEUE', name: 'DH_CRIACAO', desc: 'Data/hora de criacao', dataType: 'H', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCQUEUE', name: 'DH_PROCESSAMENTO', desc: 'Data/hora processamento', dataType: 'H', allowSearch: 'S'],
+                    // AD_FCDEPARA
+                    [table: 'AD_FCDEPARA', name: 'IDDEPARA', desc: 'ID do mapeamento', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S', isPresentation: 'S'],
+                    [table: 'AD_FCDEPARA', name: 'TIPO_ENTIDADE', desc: 'Tipo da Entidade', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCDEPARA', name: 'COD_SANKHYA', desc: 'Codigo no Sankhya', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCDEPARA', name: 'COD_EXTERNO', desc: 'Codigo no Fastchannel', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCDEPARA', name: 'INTEGRA_AUTO', desc: 'Integracao automatica (S/N)', dataType: 'S', allowSearch: 'S'],
+                    // AD_FCPEDIDO
+                    [table: 'AD_FCPEDIDO', name: 'IDPEDIDO', desc: 'ID do registro', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCPEDIDO', name: 'ORDER_ID', desc: 'ID do pedido no Fastchannel', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S', isPresentation: 'S'],
+                    [table: 'AD_FCPEDIDO', name: 'NUNOTA', desc: 'Numero unico da nota', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCPEDIDO', name: 'CODPARC', desc: 'Codigo do parceiro', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCPEDIDO', name: 'STATUS_FC', desc: 'Status no Fastchannel', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCPEDIDO', name: 'STATUS_SKW', desc: 'Status no Sankhya', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCPEDIDO', name: 'DH_IMPORTACAO', desc: 'Data/hora importacao', dataType: 'H', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCPEDIDO', name: 'STATUS_IMPORT', desc: 'Status da importacao', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCPEDIDO', name: 'NOME_CLIENTE', desc: 'Nome do cliente', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCPEDIDO', name: 'CPF_CNPJ', desc: 'CPF ou CNPJ', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    // AD_FCLOG
+                    [table: 'AD_FCLOG', name: 'IDLOG', desc: 'ID do log', dataType: 'I', allowSearch: 'S', visibleOnSearch: 'S', isPresentation: 'S'],
+                    [table: 'AD_FCLOG', name: 'NIVEL', desc: 'Nivel', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCLOG', name: 'OPERACAO', desc: 'Tipo de Operacao', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCLOG', name: 'MENSAGEM', desc: 'Mensagem do log', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCLOG', name: 'REFERENCIA', desc: 'Referencia', dataType: 'S', allowSearch: 'S', visibleOnSearch: 'S'],
+                    [table: 'AD_FCLOG', name: 'DH_REGISTRO', desc: 'Data/hora do registro', dataType: 'H', allowSearch: 'S', visibleOnSearch: 'S'],
+            ].each { f ->
+                ensureField(f.table, f)
+            }
+
+            // Garante instancias
+            ensureInstance('FC_Configuracao', 'AD_FCCONFIG', 'Configuracao Fastchannel')
+            ensureInstance('FC_FilaSincronizacao', 'AD_FCQUEUE', 'Fila de Sincronizacao Fastchannel')
+            ensureInstance('FC_DePara', 'AD_FCDEPARA', 'De-Para Sankhya x Fastchannel')
+            ensureInstance('FC_Pedidos', 'AD_FCPEDIDO', 'Pedidos Fastchannel')
+            ensureInstance('FC_Logs', 'AD_FCLOG', 'Logs da Integracao Fastchannel')
+
+            metaFile.withOutputStream { os ->
+                def writer = new PrintWriter(new OutputStreamWriter(os, 'ISO-8859-1'))
+                def printer = new groovy.xml.XmlNodePrinter(writer)
+                printer.setPreserveWhitespace(true)
+                printer.print(meta)
+                writer.flush()
+            }
+            println ">>> metadata.xml enriquecido com tabelas/campos/instancias FastChannel"
+        }
+    }
+}
+
+afterEvaluate {
+    tasks.register('prepareDeployDir') {
+        doLast {
+            def serverPath = project.extensions.getByName("snkmodule").serverFolder.get()
+            if (!serverPath) {
+                throw new GradleException("snk.serverFolder not configured. Create local.properties with snk.serverFolder=<path>")
+            }
+            serverPath = serverPath.replace('\\', '/')
+            def deployDir = file("${serverPath}/standalone/deployments")
+            def earName = "${rootProject.name}.ear"
+            def targetPath = new File(deployDir, earName)
+            if (targetPath.exists()) {
+                if (targetPath.isDirectory()) {
+                    targetPath.deleteDir()
+                } else {
+                    targetPath.delete()
+                }
+            }
+            def markers = [
+                new File(deployDir, "${earName}.deployed"),
+                new File(deployDir, "${earName}.failed"),
+                new File(deployDir, "${earName}.dodeploy"),
+                new File(deployDir, "${earName}.isdeploying")
+            ]
+            markers.each { f -> if (f.exists()) f.delete() }
+        }
+    }
+    tasks.named('configureAddon') {
+        dependsOn project(':vc').tasks.named('war')
+    }
+
+    project(':vc').tasks.named('war') {
+        dependsOn rootProject.tasks.named('patchExtension')
+        dependsOn rootProject.tasks.named('syncExtensionResources')
+        dependsOn rootProject.tasks.named('prepareServiceProviders')
+        dependsOn rootProject.tasks.named('processDashboards')
+        def dbScriptsDir = rootProject.file("dbscripts")
+        if (dbScriptsDir.exists()) {
+            from(dbScriptsDir) {
+                into 'dbscripts'
+                include "V*.xml"
+            }
+            from(dbScriptsDir) {
+                into 'WEB-INF/classes/dbscripts'
+                include "V*.xml"
+            }
+        }
+    }
+
+    project(':model') {
+        dependencies {
+            testImplementation 'junit:junit:4.13.2'
+            testImplementation 'org.mockito:mockito-core:4.11.0'
+            testImplementation 'com.h2database:h2:2.2.224'
+            testRuntimeOnly 'org.beanshell:bsh:2.0b5'
+        }
+        tasks.whenTaskAdded { task ->
+            if (task.name == 'generateFiles') {
+                task.doLast {
+                    def rootSp = new File(rootDir, 'WEB-INF/resources/service-providers.xml')
+                    def manualSp = new File(rootDir, 'vc/src/main/webapp/WEB-INF/resources/service-providers.xml.manual')
+                    def spSource = manualSp.exists() ? manualSp : rootSp
+                    def studioSp = new File(rootDir, 'vc/buildGradle/studioGenerated/resources/WEB-INF/resources/service-providers.xml')
+                    if (spSource.exists()) {
+                        studioSp.parentFile.mkdirs()
+                        studioSp.text = spSource.getText('ISO-8859-1')
+                    }
+                    def vcSp = new File(rootDir, 'vc/src/main/webapp/WEB-INF/resources/service-providers.xml')
+                    if (spSource.exists()) {
+                        vcSp.parentFile.mkdirs()
+                        vcSp.text = spSource.getText('ISO-8859-1')
+                    }
+                    def buildSp = new File(rootDir, 'vc/buildGradle/resources/main/WEB-INF/resources/service-providers.xml')
+                    if (spSource.exists()) {
+                        buildSp.parentFile.mkdirs()
+                        buildSp.text = spSource.getText('ISO-8859-1')
+                    }
+                    // extension-listeners.xml: NÃO sobrescrever aqui pois gerarAddon valida classes
+                    // no classpath do vc. A injeção real é feita em injectExtensionIntoWar (pós-validação).
+                    // Corrige pagina-inicial no mgemodule-cfg.xml gerado pelo Studio
+                    // O plugin gera com idTela=6755 (ID especifico do banco de dev que nao existe no cliente)
+                    def moduleCfg = new File(rootDir, 'vc/buildGradle/studioGenerated/resources/META-INF/mgemodule-cfg.xml')
+                    if (moduleCfg.exists()) {
+                        def cfgText = moduleCfg.getText('ISO-8859-1')
+                        cfgText = cfgText.replaceAll(
+                            'pagina-inicial="[^"]*"',
+                            'pagina-inicial="html5/FastchannelMonitor/FastchannelMonitor.html"'
+                        )
+                        moduleCfg.setText(cfgText, 'ISO-8859-1')
+                    }
+                }
+            }
+        }
+        tasks.matching { it.name == 'processResources' }.all { t ->
+            t.duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.EXCLUDE
+        }
+    }
+
+    project(':vc').tasks.matching { it.name == 'processResources' }.all { t ->
+        t.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        t.doLast {
+            // Corrige pagina-inicial no mgemodule-cfg.xml apos processResources copiar os studioGenerated
+            def moduleCfgLocations = [
+                new File(rootDir, 'vc/buildGradle/studioGenerated/resources/META-INF/mgemodule-cfg.xml'),
+                new File(rootDir, 'vc/buildGradle/resources/main/META-INF/mgemodule-cfg.xml')
+            ]
+            moduleCfgLocations.each { mcf ->
+                if (mcf.exists()) {
+                    def cfgText = mcf.getText('ISO-8859-1')
+                    if (cfgText.contains('idTela')) {
+                        cfgText = cfgText.replaceAll(
+                            'pagina-inicial="[^"]*"',
+                            'pagina-inicial="html5/FastchannelMonitor/FastchannelMonitor.html"'
+                        )
+                        mcf.setText(cfgText, 'ISO-8859-1')
+                    }
+                }
+            }
+        }
+    }
+
+    project(':vc').tasks.matching { it.name == 'war' }.configureEach {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    project(':vc').tasks.matching { it.name == 'buildWar' }.configureEach {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        dependsOn rootProject.tasks.named('prepareServiceProviders')
+        doLast {
+            def webDir = rootProject.file("${rootProject.buildDir}/dist/web")
+            if (webDir.exists()) {
+                def extra = new File(webDir, "vc.war")
+                if (extra.exists()) {
+                    logger.warn("[buildWar] Removendo WAR extra gerado pelo Studio: ${extra.name}")
+                    extra.delete()
+                }
+            }
+        }
+    }
+
+    tasks.register('injectExtensionIntoWar') {
+        dependsOn project(':vc').tasks.matching { it.name == 'buildWar' || it.name == 'war' }
+        dependsOn rootProject.tasks.named('patchExtension')
+        doLast {
+            def warFile = file("${buildDir}/dist/web/addon-fastchannel-web.war")
+            if (!warFile.exists()) {
+                throw new GradleException("WAR not found at ${warFile}")
+            }
+            def tempDir = file("${buildDir}/tmp/warWithExtension")
+            if (tempDir.exists()) {
+                tempDir.deleteDir()
+            }
+            project.copy {
+                from zipTree(warFile)
+                into tempDir
+            }
+            def spManual = file("vc/src/main/webapp/WEB-INF/resources/service-providers.xml.manual")
+            def spBase = file("vc/src/main/webapp/WEB-INF/resources/service-providers.xml")
+            def spSource = spManual.exists() ? spManual : spBase
+            if (spSource.exists()) {
+                def spTargets = [
+                    new File(tempDir, "WEB-INF/resources/service-providers.xml"),
+                    new File(tempDir, "WEB-INF/resources/service-providers.xml.manual"),
+                    new File(tempDir, "WEB-INF/classes/WEB-INF/resources/service-providers.xml"),
+                    new File(tempDir, "WEB-INF/classes/WEB-INF/resources/service-providers.xml.manual")
+                ]
+                spTargets.each { t ->
+                    t.parentFile.mkdirs()
+                    t.text = spSource.getText('ISO-8859-1')
+                }
+              }
+              // extension-listeners.xml: inject from model build output or vc source
+              def listenersModel = file("model/buildGradle/resources/main/META-INF/extension-listeners.xml")
+              def listenersVc = file("vc/src/main/resources/META-INF/extension-listeners.xml")
+              def listenersSource = listenersModel.exists() ? listenersModel : listenersVc
+              if (listenersSource.exists()) {
+                  def listenersTargets = [
+                      new File(tempDir, "WEB-INF/classes/META-INF/extension-listeners.xml"),
+                      new File(tempDir, "META-INF/extension-listeners.xml")
+                  ]
+                  listenersTargets.each { t ->
+                      t.parentFile.mkdirs()
+                      t.text = listenersSource.getText('ISO-8859-1')
+                  }
+                  logger.lifecycle("Injected extension-listeners.xml from ${listenersSource}")
+              }
+              // Remove duplicated EAR block in web.xml (avoids double module init)
+              // but preserve critical listeners and chave_desenvolvimento
+              def webXml = new File(tempDir, "WEB-INF/web.xml")
+              if (webXml.exists()) {
+                  def xmlText = webXml.getText('ISO-8859-1')
+                  def earMarker = "<!-- EAR -->"
+                  if (xmlText.contains(earMarker)) {
+                      def before = xmlText.substring(0, xmlText.indexOf(earMarker)).trim()
+                      def after = xmlText.substring(xmlText.indexOf(earMarker))
+                      def chaveMatcher = (after =~ /(?s)<context-param>\s*<param-name>chave_desenvolvimento<\/param-name>\s*<param-value>[^<]+<\/param-value>\s*<\/context-param>/)
+                      def chaveBlock = chaveMatcher.find() ? chaveMatcher.group(0) : null
+                      // Extract all listener blocks from the EAR section
+                      def listenerMatcher = (after =~ /(?s)<listener>\s*<listener-class>[^<]+<\/listener-class>\s*<\/listener>/)
+                      def listenerBlocks = []
+                      while (listenerMatcher.find()) {
+                          listenerBlocks << listenerMatcher.group(0)
+                      }
+                      def rebuilt = new StringBuilder()
+                      rebuilt.append(before).append('\n')
+                      if (chaveBlock && !before.contains("chave_desenvolvimento")) {
+                          rebuilt.append(chaveBlock).append('\n')
+                      }
+                      // Re-inject preserved listeners from EAR block
+                      listenerBlocks.each { lb ->
+                          if (!before.contains(lb)) {
+                              rebuilt.append(lb).append('\n')
+                          }
+                      }
+                      rebuilt.append("</web-app>")
+                      webXml.setText(rebuilt.toString(), 'ISO-8859-1')
+                  }
+                  // Ensure critical addon listeners are always present
+                  xmlText = webXml.getText('ISO-8859-1')
+                  def requiredListeners = [
+                      'org.tinyejb.web.TinyEJBModuleLoader',
+                      'br.com.sankhya.addonmodule.AddonModuleServletContextListener'
+                  ]
+                  def missing = requiredListeners.findAll { cls -> !xmlText.contains(cls) }
+                  if (missing) {
+                      def insertPoint = xmlText.lastIndexOf('</web-app>')
+                      def sb = new StringBuilder(xmlText.substring(0, insertPoint))
+                      missing.each { cls ->
+                          sb.append("    <listener>\n        <listener-class>${cls}</listener-class>\n    </listener>\n")
+                      }
+                      sb.append('</web-app>')
+                      webXml.setText(sb.toString(), 'ISO-8859-1')
+                  }
+              }
+              // Corrige pagina-inicial no mgemodule-cfg.xml dentro do WAR
+              def moduleCfgInWar = new File(tempDir, "META-INF/mgemodule-cfg.xml")
+              if (moduleCfgInWar.exists()) {
+                  def cfgText = moduleCfgInWar.getText('ISO-8859-1')
+                  cfgText = cfgText.replaceAll(
+                      'pagina-inicial="[^"]*"',
+                      'pagina-inicial="html5/FastchannelMonitor/FastchannelMonitor.html"'
+                  )
+                  moduleCfgInWar.setText(cfgText, 'ISO-8859-1')
+              }
+              // extension.xml deve ficar apenas no EAR (template)
+              // Garante extension.xml no WAR para o ModuleBootLoader em ambientes que exigem WEB-INF/extension.xml
+              def extensionFile = file("${buildDir}/dist/extension.xml")
+              if (extensionFile.exists()) {
+                  project.copy {
+                      from(extensionFile)
+                      into(new File(tempDir, "WEB-INF"))
+                      rename { "extension.xml" }
+                  }
+              }
+              // Copy metadata.xml to WAR for bootloader (multiple locations)
+              def metadataFile = file("${buildDir}/dist/datadictionary/metadata.xml")
+              def datadictDir = file("${buildDir}/dist/datadictionary")
+              if (metadataFile.exists()) {
+                  // WEB-INF/classes/datadictionary
+                  project.copy {
+                      from(metadataFile)
+                      into(new File(tempDir, "WEB-INF/classes/datadictionary"))
+                  }
+                  // WEB-INF/datadictionary
+                  project.copy {
+                      from(metadataFile)
+                      into(new File(tempDir, "WEB-INF/datadictionary"))
+                  }
+                  // WEB-INF/dictionary (expected by ddmigration)
+                  project.copy {
+                      from(metadataFile)
+                      into(new File(tempDir, "WEB-INF/dictionary"))
+                  }
+                  // datadictionary (root)
+                  project.copy {
+                      from(metadataFile)
+                      into(new File(tempDir, "datadictionary"))
+                  }
+                  // WEB-INF/dd (alternative path)
+                  project.copy {
+                      from(datadictDir)
+                      into(new File(tempDir, "WEB-INF/dd"))
+                  }
+                  // WEB-INF/resources/datadictionary
+                  project.copy {
+                      from(metadataFile)
+                      into(new File(tempDir, "WEB-INF/resources/datadictionary"))
+                  }
+              }
+              // Ensure embedded dashboards config is available in WEB-INF/resources (expected by loader)
+              def dashboardsCfg = new File(tempDir, "WEB-INF/customization/addon-fastchannel-embedded-dashboards-cfg.xml")
+              if (dashboardsCfg.exists()) {
+                  def resourcesDir = new File(tempDir, "WEB-INF/resources")
+                  resourcesDir.mkdirs()
+                  project.copy {
+                      from(dashboardsCfg)
+                      into(resourcesDir)
+                  }
+                  def classesResourcesDir = new File(tempDir, "WEB-INF/classes/WEB-INF/resources")
+                  classesResourcesDir.mkdirs()
+                  project.copy {
+                      from(dashboardsCfg)
+                      into(classesResourcesDir)
+                  }
+              }
+              def dbScriptDistDir = file("${buildDir}/dist/dbscripts")
+              def oracleSql = new File(dbScriptDistDir, "oracle.sql")
+              def mssqlSql = new File(dbScriptDistDir, "mssqlserver.sql")
+            if (oracleSql.exists() || mssqlSql.exists()) {
+                def scriptDir = new File(tempDir, "WEB-INF/script")
+                scriptDir.mkdirs()
+                if (oracleSql.exists()) {
+                    project.copy {
+                        from(oracleSql)
+                        into(scriptDir)
+                    }
+                }
+                if (mssqlSql.exists()) {
+                    project.copy {
+                        from(mssqlSql)
+                        into(scriptDir)
+                    }
+                }
+            }
+            // web.xml já configurado corretamente para addons - não é necessário modificar
+            // Create jboss-web.xml to force context-root
+            def jbossWebXml = new File(tempDir, "WEB-INF/jboss-web.xml")
+            jbossWebXml.text = '''<?xml version="1.0" encoding="UTF-8"?>
+<jboss-web>
+    <context-root>/addon-fastchannel</context-root>
+</jboss-web>
+'''
+            // Copy extension.xml to META-INF (required by module-toolkit validation)
+            def extensionForMeta = file("${buildDir}/dist/extension.xml")
+            if (extensionForMeta.exists()) {
+                project.copy {
+                    from(extensionForMeta)
+                    into(new File(tempDir, "META-INF"))
+                    rename { "extension.xml" }
+                }
+            }
+            // Generate license.properties with webHash (required by module-toolkit)
+            def licenseProps = new File(tempDir, "META-INF/license.properties")
+            // Calculate MD5 hash of all WAR content files (excluding license.properties itself)
+            def warMd5 = java.security.MessageDigest.getInstance("MD5")
+            def warFiles = new File(tempDir, ".").listFiles()
+            project.fileTree(tempDir).sort { it.path }.each { f ->
+                if (f.isFile() && f.name != 'license.properties') {
+                    warMd5.update(f.bytes)
+                }
+            }
+            def hashHex = warMd5.digest().encodeHex().toString()
+            def timestamp = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US).format(new Date())
+            licenseProps.text = "#${timestamp}\nwebHash=${hashHex}\n"
+            logger.lifecycle("[injectExtensionIntoWar] Generated license.properties with webHash=${hashHex}")
+
+            if (warFile.exists()) {
+                warFile.delete()
+            }
+            ant.zip(destfile: warFile, baseDir: tempDir)
+
+            // Copy all META-INF descriptors (application.xml, jboss-deployment-structure.xml, jboss-all.xml, jboss-app.xml)
+            def metaInfSrcDir = file("Addon-FastChannel.ear/META-INF")
+            def metaInfDestDir = file("${buildDir}/dist/META-INF")
+            metaInfDestDir.mkdirs()
+            ['application.xml', 'jboss-all.xml', 'jboss-app.xml', 'jboss-deployment-structure.xml', 'deployment.properties', 'module.xml'].each { fname ->
+                def src = new File(metaInfSrcDir, fname)
+                if (!src.exists()) {
+                    src = file("META-INF/${fname}")
+                }
+                if (src.exists()) {
+                    new File(metaInfDestDir, fname).text = src.text
+                }
+            }
+        }
+    }
+
+      tasks.named('deployAddon') {
+          dependsOn 'patchExtension'
+          dependsOn 'syncExtensionResources'
+          dependsOn 'syncDbScripts'
+          dependsOn 'syncModelJarToLib'
+          dependsOn 'injectExtensionIntoWar'
+          dependsOn 'prepareDeployDir'
+        actions.clear()
+          doLast {
+              def serverPath = project.extensions.getByName("snkmodule").serverFolder.get()
+              if (!serverPath) {
+                  throw new GradleException("snk.serverFolder not configured. Create local.properties with snk.serverFolder=<path>")
+              }
+              serverPath = serverPath.replace('\\', '/')
+              def deployDir = file("${serverPath}/standalone/deployments")
+              def earName = "${rootProject.name}.ear"
+              def sourceDir = file("${buildDir}/dist")
+              if (!sourceDir.exists()) {
+                  throw new GradleException("build/dist not found at ${sourceDir}")
+              }
+              // Copy all META-INF descriptors from source template
+              def metaInfSrc = file("Addon-FastChannel.ear/META-INF")
+              def metaInfDest = file("${buildDir}/dist/META-INF")
+              metaInfDest.mkdirs()
+              project.copy {
+                  from(metaInfSrc) {
+                      include 'application.xml'
+                      include 'jboss-all.xml'
+                      include 'jboss-app.xml'
+                      include 'jboss-deployment-structure.xml'
+                      include 'deployment.properties'
+                  }
+                  into(metaInfDest)
+              }
+              // Also copy module.xml from root META-INF if exists
+              def moduleXml = file("META-INF/module.xml")
+              if (moduleXml.exists()) {
+                  project.copy {
+                      from(moduleXml)
+                      into(metaInfDest)
+                  }
+              }
+              // syncModelJarToLib moves model jar from ejb/ to lib/ (shared classloader)
+              // Mantem extension.xml no EAR (template)
+              def targetPath = new File(deployDir, earName)
+              if (targetPath.exists()) {
+                  if (targetPath.isDirectory()) {
+                      targetPath.deleteDir()
+                } else {
+                    targetPath.delete()
+                }
+            }
+            def markers = [
+                new File(deployDir, "${earName}.deployed"),
+                new File(deployDir, "${earName}.failed"),
+                new File(deployDir, "${earName}.dodeploy"),
+                new File(deployDir, "${earName}.isdeploying")
+            ]
+            markers.each { f -> if (f.exists()) f.delete() }
+            project.copy {
+                from(sourceDir)
+                into(targetPath)
+            }
+            new File(deployDir, "${earName}.dodeploy").text = ""
+            println "Package copiado para ${deployDir}"
+            def deployed = new File(deployDir, "${earName}.deployed")
+            def failed = new File(deployDir, "${earName}.failed")
+            def start = System.currentTimeMillis()
+            def timeoutMs = 5 * 60 * 1000
+            while (!deployed.exists() && !failed.exists()) {
+                if (System.currentTimeMillis() - start > timeoutMs) {
+                    throw new GradleException("Deploy timeout waiting for ${earName}.deployed")
+                }
+                sleep(2000)
+            }
+            if (failed.exists()) {
+                throw new GradleException("Deploy failed. See server.log for details.")
+            }
+        }
+    }
+
+      tasks.named('publishAddon') {
+          dependsOn 'patchExtension'
+          dependsOn 'syncDbScripts'
+          dependsOn 'syncModelJarToLib'
+          dependsOn 'injectExtensionIntoWar'
+          // Windows can transiently lock generated artifacts; avoid Gradle output snapshot failure after publish.
+          doNotTrackState("Evita falha de snapshot por lock de arquivo no Windows apos publicacao")
+      }
+
+      tasks.register('releaseAreaDevVersion') {
+          group = 'publishing'
+          description = 'Promove automaticamente a versão publicada para RELEASED na Área Dev Sankhya.'
+          doLast {
+              def publishEnabled = ((project.findProperty('publish')
+                      ?: System.getenv('PUBLISH')
+                      ?: 'false').toString().toLowerCase() in ['true', '1', 'yes', 'y'])
+              if (!publishEnabled) {
+                  println "[releaseAreaDevVersion] publish=false, promoção automática ignorada."
+                  return
+              }
+
+              def areaDevBaseUrl = (project.findProperty('AREADEV_BASE_URL')
+                      ?: System.getenv('AREADEV_BASE_URL')
+                      ?: 'https://areadev.sankhya.com.br').toString().trim().replaceAll('/+$', '')
+              def bearerToken = (project.findProperty('AREADEV_BEARER_TOKEN')
+                      ?: System.getenv('AREADEV_BEARER_TOKEN')
+                      ?: '').toString().trim()
+              def autoReleaseStrict = ((project.findProperty('AREADEV_AUTO_RELEASE_STRICT')
+                      ?: System.getenv('AREADEV_AUTO_RELEASE_STRICT')
+                      ?: 'false').toString().toLowerCase() in ['true', '1', 'yes', 'y'])
+              def solutionIdRaw = (project.findProperty('AREADEV_SOLUTION_ID')
+                      ?: System.getenv('AREADEV_SOLUTION_ID')
+                      ?: '169614').toString().trim()
+
+              if (!bearerToken) {
+                  if (autoReleaseStrict) {
+                      throw new GradleException("[releaseAreaDevVersion] Token ausente. Defina AREADEV_BEARER_TOKEN para promover a versão automaticamente.")
+                  }
+                  println "[releaseAreaDevVersion] Token ausente. Pulando promoção automática (não estrito)."
+                  return
+              }
+              if (!solutionIdRaw.isInteger()) {
+                  throw new GradleException("[releaseAreaDevVersion] AREADEV_SOLUTION_ID inválido: ${solutionIdRaw}")
+              }
+
+              Integer solutionId = solutionIdRaw.toInteger()
+              String targetVersion = project.version.toString()
+              println "[releaseAreaDevVersion] Procurando versão ${targetVersion} da solução ${solutionId}..."
+
+              def versionsUrl = new URL("${areaDevBaseUrl}/api/solution-versions/solution/${solutionId}")
+              HttpURLConnection listConn = (HttpURLConnection) versionsUrl.openConnection()
+              listConn.setRequestMethod('GET')
+              listConn.setRequestProperty('Accept', 'application/json')
+              listConn.setRequestProperty('Authorization', "Bearer ${bearerToken}")
+              listConn.setConnectTimeout(30000)
+              listConn.setReadTimeout(60000)
+
+              int listStatus = listConn.responseCode
+              def listBody = (listStatus >= 200 && listStatus < 300)
+                      ? listConn.inputStream.getText('UTF-8')
+                      : listConn.errorStream?.getText('UTF-8')
+              if (listStatus < 200 || listStatus >= 300) {
+                  throw new GradleException("[releaseAreaDevVersion] Falha ao consultar versões (${listStatus}): ${listBody}")
+              }
+
+              def slurper = new groovy.json.JsonSlurper()
+              def versions = slurper.parseText(listBody)
+              def versionEntry = versions?.find { it?.version?.toString() == targetVersion }
+              if (!versionEntry?.id) {
+                  throw new GradleException("[releaseAreaDevVersion] Versão ${targetVersion} não encontrada para solução ${solutionId}.")
+              }
+
+              Integer versionId = (versionEntry.id as Number).intValue()
+              println "[releaseAreaDevVersion] Promovendo versão id=${versionId}..."
+
+              def payload = new groovy.json.JsonBuilder([
+                      solution_id               : solutionId,
+                      version_id                : versionId,
+                      deploy_in_test_environment: false
+              ]).toString()
+
+              def deployUrl = new URL("${areaDevBaseUrl}/api/solution-versions/deploy")
+              HttpURLConnection deployConn = (HttpURLConnection) deployUrl.openConnection()
+              deployConn.setRequestMethod('POST')
+              deployConn.setRequestProperty('Accept', 'application/json')
+              deployConn.setRequestProperty('Content-Type', 'application/json')
+              deployConn.setRequestProperty('Authorization', "Bearer ${bearerToken}")
+              deployConn.setConnectTimeout(30000)
+              deployConn.setReadTimeout(60000)
+              deployConn.doOutput = true
+              deployConn.outputStream.withWriter('UTF-8') { it << payload }
+
+              int deployStatus = deployConn.responseCode
+              def deployBody = (deployStatus >= 200 && deployStatus < 300)
+                      ? deployConn.inputStream.getText('UTF-8')
+                      : deployConn.errorStream?.getText('UTF-8')
+              if (deployStatus < 200 || deployStatus >= 300) {
+                  throw new GradleException("[releaseAreaDevVersion] Falha ao promover versão (${deployStatus}): ${deployBody}")
+              }
+
+              println "[releaseAreaDevVersion] Promoção concluída: ${deployBody}"
+          }
+      }
+
+      tasks.named('publishAddon') {
+          finalizedBy 'releaseAreaDevVersion'
+      }
+
+}
+
+

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<filter-login>
+	<pages>
+		<page path="/login.jsp" />
+		<page path="/erro.jsp" />
+		<page path="/logout.jsp" />
+	</pages>
+	<dwr path="/dwr">
+		<path block="/exec/DWRController.execute">
+			<command-liberado name="login" />
+			<command-liberado name="logout" />
+			<command-liberado name="stackCommand" />
+		</path>
+		<path block="/exec/DWRController.execute.dwr">
+			<command-liberado name="login" />
+			<command-liberado name="logout" />
+			<command-liberado name="stackCommand" />
+		</path>
+	</dwr>
+</filter-login>

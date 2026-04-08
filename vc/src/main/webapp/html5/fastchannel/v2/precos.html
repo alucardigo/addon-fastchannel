@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - Precos</title>
+    <link rel="stylesheet" href="fc-design-system.css">
+    <style>
+        /* Page-specific overrides only */
+        .fc-toolbar-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .fc-btn-batch { background: #6366f1; color: white; }
+        .fc-btn-batch:hover:not(:disabled) { background: #4f46e5; }
+        .detail-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid var(--border-primary);
+            font-size: 13px;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: var(--text-tertiary); font-size: 12px; }
+        .detail-value { font-weight: 500; color: var(--text-primary); }
+        .batch-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+        .batch-table th {
+            padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary);
+            background: var(--bg-tertiary); border-bottom: 1px solid var(--border-primary);
+        }
+        .batch-table td {
+            padding: 8px 12px; border-bottom: 1px solid var(--border-primary);
+            color: var(--text-primary);
+        }
+        .batch-section-title {
+            margin: 16px 0 8px; color: var(--text-tertiary);
+            font-size: 13px; font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="fc-page">
+        <header class="fc-header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="fc-header-logo">
+            <span class="fc-header-title">Fast<span style="color:var(--accent);">channel</span></span>
+            <span class="fc-header-subtitle">Precos</span>
+            <div class="fc-theme-toggle" onclick="toggleTheme()">
+                <span id="themeLabel">Escuro</span>
+                <div class="fc-theme-toggle-track"></div>
+            </div>
+        </header>
+
+        <nav class="fc-nav">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="config.html">Configuracao</a>
+            <a href="depara.html">De-Para</a>
+            <a href="pedidos.html">Pedidos</a>
+            <a href="estoque.html">Estoque</a>
+            <a href="precos.html" class="active">Precos</a>
+            <a href="fila.html">Fila de Sincronizacao</a>
+            <a href="logs.html">Logs</a>
+        </nav>
+
+        <div class="fc-card">
+            <div class="fc-card-title">Gestao de Precos</div>
+
+            <div class="fc-filters" style="margin-bottom: 20px;">
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">SKU</span>
+                    <input type="text" id="filterSku" class="fc-filter-input" placeholder="Buscar..."
+                           onkeyup="debounceSearch()">
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Cod Produto</span>
+                    <input type="number" id="filterCodProd" class="fc-filter-input">
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Tabela</span>
+                    <input type="number" id="filterNuTab" class="fc-filter-input">
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">PriceTableId</span>
+                    <input type="number" id="filterPriceTableId" class="fc-filter-input">
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Fonte de Dados</span>
+                    <select id="filterSource" class="fc-filter-input fc-filter-select" onchange="onSourceChange()">
+                        <option value="1">1 - Sankhya (Banco local)</option>
+                    </select>
+                </div>
+                <div class="fc-filter-group" style="justify-content: flex-end;">
+                    <button class="fc-btn fc-btn-primary" onclick="loadPrecos()">
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+
+            <div class="fc-toolbar">
+                <div class="fc-toolbar-actions">
+                    <button class="fc-btn fc-btn-success" onclick="syncSelecionados()" id="btnSyncLote" disabled>
+                        Sincronizar Selecionados
+                    </button>
+                    <label class="fc-toggle">
+                        <input type="checkbox" id="autoCompareToggle" onchange="toggleAutoCompare()" checked>
+                        <span class="fc-toggle-track"></span>
+                        Auto comparar FC
+                    </label>
+                </div>
+                <div class="fc-toolbar-spacer"></div>
+                <span class="fc-toolbar-count" id="selectedCount"></span>
+            </div>
+
+            <div class="fc-table-container">
+                <table class="fc-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                            <th class="sortable" data-col="sku" onclick="sortBy('sku')">SKU <span class="sort-icon">&#8597;</span></th>
+                            <th class="sortable" data-col="descricao" onclick="sortBy('descricao')">Descricao <span class="sort-icon">&#8597;</span></th>
+                            <th class="sortable" data-col="nuTab" onclick="sortBy('nuTab')">Tabela <span class="sort-icon">&#8597;</span></th>
+                            <th class="sortable" data-col="priceTableId" onclick="sortBy('priceTableId')">PriceTableId <span class="sort-icon">&#8597;</span></th>
+                            <th class="sortable" data-col="vlrVenda" onclick="sortBy('vlrVenda')">Preco Venda (R$) <span class="sort-icon">&#8597;</span></th>
+                            <th class="sortable" data-col="vlrTabela" onclick="sortBy('vlrTabela')">Preco Tabela (R$) <span class="sort-icon">&#8597;</span></th>
+                            <th>Preco FC (R$)</th>
+                            <th>Delta (R$)</th>
+                            <th>Status</th>
+                            <th>Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="precosTable">
+                        <tr>
+                            <td colspan="11" class="fc-empty">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="fc-pagination">
+                <span class="fc-pagination-info" id="paginationInfo">Mostrando 0 de 0</span>
+                <div class="fc-pagination-pages" id="paginationPages"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Comparacao -->
+    <div id="modalCompare" class="fc-modal-overlay">
+        <div class="fc-modal" style="position:relative;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <span class="fc-modal-title">Comparar com Fastchannel</span>
+                <button class="fc-btn fc-btn-ghost fc-btn-icon" onclick="closeModal()" style="font-size:20px;">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+            <div style="margin-top: 20px; display: flex; gap: 12px;">
+                <button class="fc-btn fc-btn-primary" onclick="forcarSync()">Forcar Sincronizacao</button>
+                <button class="fc-btn fc-btn-ghost" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Precos Escalonados -->
+    <div id="modalBatches" class="fc-modal-overlay">
+        <div class="fc-modal" style="position:relative;max-width:700px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <span class="fc-modal-title">Precos Escalonados</span>
+                <button class="fc-btn fc-btn-ghost fc-btn-icon" onclick="closeBatchModal()" style="font-size:20px;">&times;</button>
+            </div>
+            <div id="batchModalBody"></div>
+            <div style="margin-top: 20px;">
+                <button class="fc-btn fc-btn-ghost" onclick="closeBatchModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ===== Theme Toggle ===== */
+        (function initTheme() {
+            const saved = localStorage.getItem('fc-theme');
+            const theme = saved || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+            document.addEventListener('DOMContentLoaded', function() {
+                updateThemeLabel(theme);
+            });
+        })();
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('fc-theme', next);
+            updateThemeLabel(next);
+        }
+
+        function updateThemeLabel(theme) {
+            const label = document.getElementById('themeLabel');
+            if (label) label.textContent = theme === 'dark' ? 'Escuro' : 'Claro';
+        }
+
+        /* ===== Addon Context Resolution ===== */
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
+                }
+                return null;
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
+
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        /* ===== State ===== */
+        const addonContexts = resolveAddonContexts();
+        console.log('[Fastchannel] contexts', addonContexts);
+        let currentPage = 1;
+        let totalPages = 1;
+        let pageSize = 20;
+        let searchTimeout = null;
+        let selectedItem = null;
+        let appConfig = null;
+        let currentSource = 1;
+        let selectedItems = new Set();
+        let currentItems = [];
+        let sortCol = null;
+        let sortDir = 'asc';
+
+        /* ===== Sorting (server-side) ===== */
+        function sortBy(col) {
+            if (sortCol === col) {
+                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortCol = col;
+                sortDir = 'asc';
+            }
+            // Update visual indicators
+            document.querySelectorAll('.fc-table th.sortable').forEach(th => {
+                th.classList.remove('sorted');
+                const icon = th.querySelector('.sort-icon');
+                if (icon) { icon.innerHTML = '&#8597;'; }
+                if (th.dataset.col === col) {
+                    th.classList.add('sorted');
+                    if (icon) { icon.innerHTML = sortDir === 'asc' ? '&#8593;' : '&#8595;'; }
+                }
+            });
+            currentPage = 1;
+            loadPrecos();
+        }
+
+        /* ===== Utility ===== */
+        function getStorage(key, fallback) {
+            const value = localStorage.getItem(key);
+            return value == null ? fallback : value;
+        }
+
+        function setStorage(key, value) {
+            localStorage.setItem(key, value);
+        }
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+                    if (resp.ok) return await resp.json();
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    lastErr = errMsg;
+                } catch (e) { lastErr = e.message; }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        function parseBackendDate(dateStr) {
+            if (!dateStr) return null;
+            const match = typeof dateStr === 'string'
+                ? dateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/)
+                : null;
+            if (match) {
+                return new Date(
+                    Number(match[1]),
+                    Number(match[2]) - 1,
+                    Number(match[3]),
+                    Number(match[4]),
+                    Number(match[5]),
+                    Number(match[6])
+                );
+            }
+            const parsed = new Date(dateStr);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function formatDate(dateStr) {
+            const parsed = parseBackendDate(dateStr);
+            return parsed ? parsed.toLocaleDateString('pt-BR') : (dateStr || '--');
+        }
+
+        function readNumberFilter(id) {
+            const raw = (document.getElementById(id).value || '').trim();
+            if (!raw) return null;
+            const n = Number(raw);
+            return Number.isFinite(n) ? n : null;
+        }
+
+        function formatMoneyFromCentavos(value) {
+            if (value == null) return '--';
+            const num = typeof value === 'number' ? value : parseInt(value, 10);
+            if (Number.isNaN(num)) return '--';
+            const decimal = num / 100;
+            return decimal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatMoney(value) {
+            if (value == null) return '--';
+            const num = typeof value === 'number' ? value : parseFloat(value);
+            if (Number.isNaN(num)) return '--';
+            return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function getStatusBadge(status) {
+            if (!status) return '<span class="fc-badge fc-badge-success">OK</span>';
+            const map = {
+                'PENDENTE': 'fc-badge-warning',
+                'PROCESSANDO': 'fc-badge-info',
+                'ERRO': 'fc-badge-danger'
+            };
+            return `<span class="fc-badge ${map[status] || 'fc-badge-info'}">${status}</span>`;
+        }
+
+        function escapeHtml(text) {
+            return (text || '').toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        /* ===== Config ===== */
+        async function loadConfig() {
+            try {
+                const data = await callService('FCConfigSP.get', {});
+                appConfig = data;
+                populateSourceSelector();
+            } catch (e) {
+                console.error('Erro ao carregar config:', e);
+                appConfig = {
+                    uiSourceDefault: 1,
+                    uiEnableSource2: false,
+                    uiEnableSource3: false
+                };
+                populateSourceSelector();
+            }
+        }
+
+        function populateSourceSelector() {
+            const select = document.getElementById('filterSource');
+            select.innerHTML = '<option value="1">1 - Sankhya (Banco local)</option>';
+
+            if (appConfig.uiEnableSource2) {
+                const opt = document.createElement('option');
+                opt.value = '2';
+                opt.textContent = '2 - API Fastchannel';
+                select.appendChild(opt);
+            }
+
+            if (appConfig.uiEnableSource3) {
+                const opt = document.createElement('option');
+                opt.value = '3';
+                opt.textContent = '3 - Fila / Logs';
+                select.appendChild(opt);
+            }
+
+            const defaultSrc = appConfig.uiSourceDefault || 1;
+            if (defaultSrc === 2 && appConfig.uiEnableSource2) {
+                select.value = '2';
+                currentSource = 2;
+            } else if (defaultSrc === 3 && appConfig.uiEnableSource3) {
+                select.value = '3';
+                currentSource = 3;
+            } else {
+                select.value = '1';
+                currentSource = 1;
+            }
+
+            const autoCompare = getStorage('fc_ui_price_auto_compare', 'true') === 'true';
+            document.getElementById('autoCompareToggle').checked = autoCompare;
+        }
+
+        function toggleAutoCompare() {
+            const enabled = document.getElementById('autoCompareToggle').checked;
+            setStorage('fc_ui_price_auto_compare', enabled ? 'true' : 'false');
+            loadPrecos();
+        }
+
+        function onSourceChange() {
+            const select = document.getElementById('filterSource');
+            currentSource = parseInt(select.value) || 1;
+            currentPage = 1;
+            loadPrecos();
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => loadPrecos(), 500);
+        }
+
+        /* ===== Load & Render ===== */
+        async function loadPrecos() {
+            const tbody = document.getElementById('precosTable');
+            tbody.innerHTML = '<tr><td colspan="11"><div style="display:flex;justify-content:center;padding:32px;"><div class="fc-spinner"></div></div></td></tr>';
+            selectedItems.clear();
+            updateSelectedCount();
+
+            try {
+                const filters = {
+                    source: currentSource,
+                    includeFc: document.getElementById('autoCompareToggle').checked,
+                    sku: (document.getElementById('filterSku').value || '').trim(),
+                    codProd: readNumberFilter('filterCodProd'),
+                    nuTab: readNumberFilter('filterNuTab'),
+                    priceTableId: readNumberFilter('filterPriceTableId'),
+                    page: currentPage,
+                    pageSize: pageSize
+                };
+                if (sortCol) {
+                    filters.sortBy = sortCol;
+                    filters.sortDir = sortDir;
+                }
+
+                const data = await callService('FCPrecosSP.list', filters);
+
+                if (data.items && data.items.length > 0) {
+                    currentItems = data.items;
+                    renderItems(currentItems);
+
+                    totalPages = Math.ceil((data.total || 0) / pageSize);
+                    updatePagination(data.total || 0);
+                    if (document.getElementById('autoCompareToggle').checked && !data.includesFc) {
+                        await compareBatch(data.items);
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="11"><div class="fc-empty"><div class="fc-empty-icon">&#128269;</div><div class="fc-empty-title">Nenhum item encontrado</div><div class="fc-empty-desc">Ajuste os filtros e tente novamente.</div></div></td></tr>';
+                    updatePagination(0);
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="11"><div class="fc-empty"><div class="fc-empty-icon">&#9888;</div><div class="fc-empty-title">Erro ao carregar</div><div class="fc-empty-desc">${escapeHtml(e.message)}</div></div></td></tr>`;
+            }
+        }
+
+        function renderItems(items) {
+            const tbody = document.getElementById('precosTable');
+            tbody.innerHTML = items.map((p, idx) => {
+                const statusInfo = getStatusInfo(p, currentSource);
+                return `
+                <tr>
+                    <td class="text-center"><input type="checkbox" class="item-checkbox" value="${escapeHtml(p.sku)}" data-codprod="${p.codProd || ''}" onchange="toggleItem('${escapeHtml(p.sku)}', ${p.codProd})"></td>
+                    <td class="text-mono"><strong>${escapeHtml(p.sku || '--')}</strong></td>
+                    <td>${escapeHtml(p.descricao || '--')}</td>
+                    <td class="text-center">${p.nuTab || '--'}</td>
+                    <td class="text-center">${p.priceTableId || '--'}</td>
+                    <td class="text-right text-mono">${formatMoney(p.vlrVenda)}</td>
+                    <td class="text-right text-mono">${formatMoney(p.vlrTabela)}</td>
+                    <td class="text-right text-mono" id="fc-${makeKey(p)}">${formatMoney(p.precoFastchannel)}</td>
+                    <td class="text-right text-mono" id="delta-${makeKey(p)}">${formatMoney(p.delta)}</td>
+                    <td class="text-center">${statusInfo}</td>
+                    <td style="white-space:nowrap;">
+                        <button class="fc-btn fc-btn-sm fc-btn-outline" onclick="comparar(${idx})">Comparar</button>
+                        ${p.hasBatches ? `<button class="fc-btn fc-btn-sm fc-btn-batch" onclick="showBatches(${idx})" style="margin-left:4px;">Escalonado</button>` : ''}
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function makeKey(item) {
+            const raw = [item.sku || '', item.codProd || '', item.nuTab || ''].join('_');
+            return raw.replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
+        /* ===== Auto-compare batch ===== */
+        async function compareBatch(items) {
+            const concurrency = 3;
+            let idx = 0;
+            async function worker() {
+                while (idx < items.length) {
+                    const item = items[idx++];
+                    await compareAndApply(item);
+                }
+            }
+            const workers = [];
+            for (let i = 0; i < concurrency; i++) workers.push(worker());
+            await Promise.all(workers);
+        }
+
+        async function compareAndApply(item) {
+            const key = makeKey(item);
+            const fcCell = document.getElementById(`fc-${key}`);
+            const deltaCell = document.getElementById(`delta-${key}`);
+            if (fcCell) fcCell.innerHTML = '<div class="fc-spinner" style="width:14px;height:14px;display:inline-block;"></div>';
+            try {
+                const data = await callService('FCPrecosSP.compararFC', {
+                    sku: item.sku,
+                    codProd: item.codProd
+                });
+                if (fcCell) {
+                    if (data.precoFastchannel == null) {
+                        fcCell.innerHTML = '<span class="text-muted" style="font-size:11px;">N/A</span>';
+                    } else {
+                        fcCell.textContent = formatMoney(data.precoFastchannel);
+                    }
+                }
+                if (deltaCell) {
+                    if (data.delta == null || data.precoFastchannel == null) {
+                        deltaCell.innerHTML = '<span class="text-muted" style="font-size:11px;">N/A</span>';
+                    } else {
+                        const val = typeof data.delta === 'number' ? data.delta : parseFloat(data.delta) || 0;
+                        deltaCell.textContent = formatMoney(data.delta);
+                        if (val !== 0) deltaCell.style.color = 'var(--warning)';
+                    }
+                }
+            } catch (e) {
+                if (fcCell) fcCell.innerHTML = '<span class="text-danger" style="font-size:11px;">Erro</span>';
+                if (deltaCell) deltaCell.innerHTML = '<span class="text-danger" style="font-size:11px;">Erro</span>';
+            }
+        }
+
+        function getStatusInfo(item, source) {
+            if (source === 2) {
+                if (item.apiStatus === 'OK') return '<span class="fc-badge fc-badge-success">API OK</span>';
+                if (item.apiStatus === 'NAO_ENCONTRADO') return '<span class="fc-badge fc-badge-warning">Nao Cadastrado</span>';
+                if (item.apiStatus === 'ERRO') return '<span class="fc-badge fc-badge-danger">API Erro</span>';
+            } else if (source === 3) {
+                return getStatusBadge(item.queueStatus);
+            } else {
+                return getStatusBadge(item.queueStatus);
+            }
+        }
+
+        /* ===== Selection ===== */
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            selectedItems.clear();
+            checkboxes.forEach(cb => {
+                cb.checked = selectAll.checked;
+                if (selectAll.checked) {
+                    const sku = cb.value;
+                    const codProd = cb.dataset.codprod || null;
+                    selectedItems.add(JSON.stringify({sku, codProd}));
+                }
+            });
+            updateSelectedCount();
+        }
+
+        function toggleItem(sku, codProd) {
+            const key = JSON.stringify({sku, codProd});
+            if (selectedItems.has(key)) {
+                selectedItems.delete(key);
+            } else {
+                selectedItems.add(key);
+            }
+            updateSelectedCount();
+            document.getElementById('selectAll').checked =
+                selectedItems.size === document.querySelectorAll('.item-checkbox').length;
+        }
+
+        function updateSelectedCount() {
+            const count = selectedItems.size;
+            document.getElementById('selectedCount').textContent =
+                count > 0 ? `${count} item(ns) selecionado(s)` : '';
+            document.getElementById('btnSyncLote').disabled = count === 0;
+        }
+
+        async function syncSelecionados() {
+            if (selectedItems.size === 0) {
+                alert('Selecione ao menos um item');
+                return;
+            }
+
+            const items = Array.from(selectedItems).map(s => JSON.parse(s));
+            const skus = items.map(i => i.sku);
+
+            if (!confirm(`Sincronizar ${skus.length} item(ns)?`)) return;
+
+            try {
+                const result = await callService('FCPrecosSP.syncEmLote', { items });
+
+                let msg = result.message || 'Sincronizacao concluida';
+                if (result.errors && result.errors.length > 0) {
+                    msg += '\n\nErros:\n' + result.errors.slice(0, 5).join('\n');
+                    if (result.errors.length > 5) {
+                        msg += `\n... e mais ${result.errors.length - 5} erro(s)`;
+                    }
+                }
+
+                alert(msg);
+                selectedItems.clear();
+                updateSelectedCount();
+                loadPrecos();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        /* ===== Pagination ===== */
+        function updatePagination(total) {
+            const start = total === 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+            const end = total === 0 ? 0 : Math.min(currentPage * pageSize, total);
+            document.getElementById('paginationInfo').textContent =
+                total === 0 ? 'Mostrando 0 de 0' : `Mostrando ${start}-${end} de ${total}`;
+
+            const container = document.getElementById('paginationPages');
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            html += `<button class="fc-pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>&laquo;</button>`;
+
+            const maxVisible = 7;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                html += `<button class="fc-pagination-btn" onclick="goToPage(1)">1</button>`;
+                if (startPage > 2) html += `<span style="padding:0 4px;color:var(--text-tertiary);">...</span>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="fc-pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<span style="padding:0 4px;color:var(--text-tertiary);">...</span>`;
+                html += `<button class="fc-pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            html += `<button class="fc-pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>&raquo;</button>`;
+            container.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages || page === currentPage) return;
+            currentPage = page;
+            loadPrecos();
+        }
+
+        function prevPage() {
+            if (currentPage > 1) { currentPage--; loadPrecos(); }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) { currentPage++; loadPrecos(); }
+        }
+
+        /* ===== Compare Modal ===== */
+        async function comparar(idx) {
+            const item = currentItems[idx];
+            if (!item) return;
+            selectedItem = item;
+            const modal = document.getElementById('modalCompare');
+            const body = document.getElementById('modalBody');
+            body.innerHTML = '<div style="display:flex;justify-content:center;padding:24px;"><div class="fc-spinner"></div></div>';
+            modal.classList.add('active');
+
+            try {
+                const data = await callService('FCPrecosSP.compararFC', { sku: item.sku });
+                const precoSankhya = data.precoSankhya == null ? 0 : data.precoSankhya;
+                const precoFC = data.precoFastchannel;
+                const delta = data.delta == null ? 0 : data.delta;
+                const divergente = data.divergencia || false;
+
+                body.innerHTML = `
+                    <div class="detail-row"><span class="detail-label">SKU</span><span class="detail-value">${escapeHtml(data.sku)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Preco Sankhya (R$)</span><span class="detail-value">${formatMoney(precoSankhya)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Preco Fastchannel (R$)</span><span class="detail-value">${precoFC == null ? 'N/A' : formatMoney(precoFC)}</span></div>
+                    ${data.priceTableId ? `<div class="detail-row"><span class="detail-label">PriceTableId (Sankhya)</span><span class="detail-value">${data.priceTableId}</span></div>` : ''}
+                    ${data.priceTableIdFastchannel ? `<div class="detail-row"><span class="detail-label">PriceTableId (Fastchannel)</span><span class="detail-value">${data.priceTableIdFastchannel}</span></div>` : ''}
+                    <div class="detail-row"><span class="detail-label">Delta (R$)</span><span class="detail-value" style="color: ${divergente ? 'var(--warning)' : 'var(--success)'};">${formatMoney(delta)}</span></div>
+                    ${data.message ? `<div class="detail-row"><span class="detail-label">Obs</span><span class="detail-value">${escapeHtml(data.message)}</span></div>` : ''}
+                    ${data.error ? `<div class="detail-row"><span class="detail-label">Erro</span><span class="detail-value" style="color: var(--danger);">${escapeHtml(data.error)}</span></div>` : ''}
+                `;
+            } catch (e) {
+                body.innerHTML = `<div class="fc-empty"><div class="fc-empty-icon">&#9888;</div><div class="fc-empty-title">Erro</div><div class="fc-empty-desc">${escapeHtml(e.message)}</div></div>`;
+            }
+        }
+
+        /* ===== Batch Modal ===== */
+        async function showBatches(idx) {
+            const item = currentItems[idx];
+            if (!item) return;
+            const modal = document.getElementById('modalBatches');
+            const body = document.getElementById('batchModalBody');
+            body.innerHTML = `
+                <div class="detail-row"><span class="detail-label">SKU</span><span class="detail-value">${escapeHtml(item.sku || '--')}</span></div>
+                <div class="detail-row"><span class="detail-label">Produto</span><span class="detail-value">${escapeHtml(item.descricao || '--')}</span></div>
+                <div class="detail-row"><span class="detail-label">NUTAB</span><span class="detail-value">${item.nuTab || '--'}</span></div>
+                <div style="display:flex;justify-content:center;padding:20px;"><div class="fc-spinner"></div></div>
+            `;
+            modal.classList.add('active');
+
+            try {
+                const data = await callService('FCPrecosSP.listBatches', {
+                    codProd: item.codProd,
+                    nuTab: item.nuTab,
+                    priceTableId: item.priceTableId
+                });
+                const header = `
+                    <div class="detail-row"><span class="detail-label">SKU</span><span class="detail-value">${escapeHtml(item.sku || '--')}</span></div>
+                    <div class="detail-row"><span class="detail-label">Produto</span><span class="detail-value">${escapeHtml(item.descricao || '--')}</span></div>
+                    <div class="detail-row"><span class="detail-label">NUTAB</span><span class="detail-value">${item.nuTab || '--'}</span></div>
+                    <div class="detail-row"><span class="detail-label">PriceTableId</span><span class="detail-value">${item.priceTableId || '--'}</span></div>
+                `;
+                if (!data.items || data.items.length === 0) {
+                    body.innerHTML = header + '<div class="fc-empty" style="padding:24px;"><div class="fc-empty-title">Sem precos escalonados</div><div class="fc-empty-desc">Nenhum preco escalonado configurado para este produto.</div></div>';
+                    return;
+                }
+                body.innerHTML = header + `
+                    <div class="batch-section-title">Faixas de Quantidade (${data.items.length} faixa${data.items.length > 1 ? 's' : ''})</div>
+                    <table class="batch-table">
+                        <thead>
+                            <tr>
+                                <th>Qtd Minima</th>
+                                <th>Qtd Maxima</th>
+                                <th>Preco Unitario (R$)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.items.map(b => `
+                                <tr>
+                                    <td>${b.minimumBatchSize || '--'}</td>
+                                    <td>${b.maximumBatchSize || '--'}</td>
+                                    <td style="font-weight:500;">${formatMoneyFromCentavos(b.unitaryPriceForBatch)}</td>
+                                    <td>
+                                        ${b.batchDisabled ? '<span class="fc-badge fc-badge-danger">Desativado</span>' : '<span class="fc-badge fc-badge-success">Ativo</span>'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (e) {
+                body.innerHTML += `<div style="margin-top:16px;color:var(--danger);">Erro: ${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function closeBatchModal() {
+            document.getElementById('modalBatches').classList.remove('active');
+        }
+
+        /* ===== Force Sync ===== */
+        async function forcarSync() {
+            if (!selectedItem) return;
+            if (!confirm(`Forcar sincronizacao do SKU ${selectedItem.sku}?`)) return;
+            try {
+                const result = await callService('FCPrecosSP.forcarSync', {
+                    codProd: selectedItem.codProd,
+                    sku: selectedItem.sku
+                });
+                alert(result.message || 'Sincronizacao solicitada');
+                closeModal();
+                loadPrecos();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalCompare').classList.remove('active');
+            selectedItem = null;
+        }
+
+        /* ===== Keyboard & Click-outside ===== */
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeBatchModal();
+            }
+        });
+
+        document.getElementById('modalBatches').addEventListener('click', function(e) {
+            if (e.target === this) closeBatchModal();
+        });
+
+        document.getElementById('modalCompare').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        /* ===== Init ===== */
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadConfig();
+            loadPrecos();
+        });
+    </script>
+</body>
+</html>

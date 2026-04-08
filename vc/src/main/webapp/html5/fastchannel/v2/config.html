@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - Configuracao</title>
+    <link rel="stylesheet" href="fc-design-system.css">
+    <style>
+        /* Page-specific layout helpers */
+        .fc-form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .fc-form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+        .fc-form-hint { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+        .fc-form-hint .required { color: var(--danger); }
+        .fc-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        .fc-btn-group { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+        .fc-alert {
+            padding: 14px 16px; border-radius: var(--radius-md);
+            margin-bottom: 20px; display: none; font-size: 13px; font-weight: 500;
+        }
+        .fc-alert-success {
+            background: var(--success-bg); border: 1px solid var(--success);
+            color: var(--success-text);
+        }
+        .fc-alert-error {
+            background: var(--danger-bg); border: 1px solid var(--danger);
+            color: var(--danger-text);
+        }
+        .fc-section-divider {
+            font-size: 15px; font-weight: 600; color: var(--text-primary);
+            padding: 12px 0; margin: 20px 0 12px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+        .fc-filter-input, .fc-filter-select {
+            width: 100%;
+        }
+        .fc-checkbox-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: var(--text-secondary); cursor: pointer;
+        }
+        .fc-checkbox-label input[type="checkbox"] {
+            width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            .fc-form-row { grid-template-columns: 1fr; }
+            .fc-btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="fc-page">
+        <header class="fc-header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="fc-header-logo">
+            <span class="fc-header-title">Fastchannel</span>
+            <span class="fc-header-subtitle">Configuracao</span>
+            <div class="fc-theme-toggle" id="themeToggle" title="Alternar tema">
+                <span class="fc-theme-label">&#9790;</span>
+                <div class="fc-theme-toggle-track"></div>
+                <span class="fc-theme-label">&#9788;</span>
+            </div>
+        </header>
+
+        <nav class="fc-nav">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="config.html" class="active">Configuracao</a>
+            <a href="depara.html">De-Para</a>
+            <a href="pedidos.html">Pedidos</a>
+            <a href="estoque.html">Estoque</a>
+            <a href="precos.html">Precos</a>
+            <a href="fila.html">Fila</a>
+            <a href="logs.html">Logs</a>
+        </nav>
+
+        <div id="alertSuccess" class="fc-alert fc-alert-success"></div>
+        <div id="alertError" class="fc-alert fc-alert-error"></div>
+
+        <form id="configForm">
+            <!-- General Settings -->
+            <div class="fc-card">
+                <div class="fc-card-title">Configuracoes Gerais</div>
+
+                <div class="fc-form-group">
+                    <label class="fc-toggle">
+                        <input type="checkbox" id="ativo" name="ativo">
+                        <span class="fc-toggle-track"></span>
+                        Integracao Ativa
+                    </label>
+                    <div class="fc-form-hint">Ativa ou desativa a integracao com o Fastchannel</div>
+                </div>
+
+                <div class="fc-form-group">
+                    <label class="fc-toggle">
+                        <input type="checkbox" id="syncStatusEnabled" name="syncStatusEnabled">
+                        <span class="fc-toggle-track"></span>
+                        Atualizar status na Fastchannel
+                    </label>
+                    <div class="fc-form-hint">Desative para homologacao sem atualizar status na Fastchannel</div>
+                </div>
+
+                <div class="fc-form-group">
+                    <label class="fc-toggle">
+                        <input type="checkbox" id="disableDuplicateCheck" name="disableDuplicateCheck">
+                        <span class="fc-toggle-track"></span>
+                        Desabilitar verificacao de duplicacao de pedidos
+                    </label>
+                    <div class="fc-form-hint">Use apenas para testes. Permite reimportar pedidos ja mapeados.</div>
+                </div>
+
+                <div class="fc-form-hint">Campos de cabecalho do pedido sao resolvidos automaticamente via De-Para.</div>
+            </div>
+
+            <!-- OAuth2 Authentication -->
+            <div class="fc-card">
+                <div class="fc-card-title">Autenticacao OAuth2</div>
+
+                <div class="fc-form-row">
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="clientId">Client ID <span class="required">*</span></label>
+                        <input type="text" id="clientId" name="clientId" class="fc-filter-input"
+                               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                        <div class="fc-form-hint">Client ID do aplicativo Azure AD</div>
+                    </div>
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="clientSecret">Client Secret <span class="required">*</span></label>
+                        <input type="password" id="clientSecret" name="clientSecret" class="fc-filter-input"
+                               placeholder="Sua chave secreta">
+                        <div class="fc-form-hint">Client Secret do aplicativo Azure AD</div>
+                    </div>
+                </div>
+
+                <div class="fc-form-group">
+                    <label class="fc-filter-label" for="authUrl">URL de Autenticacao</label>
+                    <input type="url" id="authUrl" name="authUrl" class="fc-filter-input"
+                           placeholder="https://login.microsoftonline.com/tenant/oauth2/v2.0/token">
+                    <div class="fc-form-hint">Endpoint de autenticacao OAuth2 (Azure AD)</div>
+                </div>
+
+                <div class="fc-form-group">
+                    <label class="fc-filter-label" for="scope">Scope</label>
+                    <input type="text" id="scope" name="scope" class="fc-filter-input"
+                           placeholder="api://xxxxxxxx/.default">
+                    <div class="fc-form-hint">Scope para solicitacao de token</div>
+                </div>
+            </div>
+
+            <!-- API Fastchannel -->
+            <div class="fc-card">
+                <div class="fc-card-title">API Fastchannel</div>
+
+                <div class="fc-form-group">
+                    <label class="fc-filter-label" for="baseUrl">URL Base da API <span class="required">*</span></label>
+                    <input type="url" id="baseUrl" name="baseUrl" class="fc-filter-input"
+                           placeholder="https://api.fastchannel.com.br">
+                    <div class="fc-form-hint">URL base para chamadas da API Fastchannel</div>
+                </div>
+
+                <div class="fc-form-row">
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="subscriptionKey">Subscription Key (Legado)</label>
+                        <input type="text" id="subscriptionKey" name="subscriptionKey" class="fc-filter-input"
+                               placeholder="Subscription key legado">
+                        <div class="fc-form-hint">Chave legado usada como fallback historico</div>
+                    </div>
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="subscriptionKeyDistribution">Subscription Key Distribuicao</label>
+                        <input type="text" id="subscriptionKeyDistribution" name="subscriptionKeyDistribution" class="fc-filter-input"
+                               placeholder="Subscription key distribuicao">
+                        <div class="fc-form-hint">Chave para APIs de pedidos (distribuicao)</div>
+                    </div>
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="subscriptionKeyConsumption">Subscription Key Consumo</label>
+                        <input type="text" id="subscriptionKeyConsumption" name="subscriptionKeyConsumption" class="fc-filter-input"
+                               placeholder="Subscription key consumo">
+                        <div class="fc-form-hint">Chave para APIs de estoque e preco (consumo)</div>
+                    </div>
+                </div>
+
+                <div class="fc-form-row">
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="timeout">Timeout (ms)</label>
+                        <input type="number" id="timeout" name="timeout" class="fc-filter-input"
+                               placeholder="30000" value="30000">
+                        <div class="fc-form-hint">Timeout para requisicoes HTTP em milissegundos</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Settings (UI) -->
+            <div class="fc-card">
+                <div class="fc-card-title">Configuracoes de Precos (UI)</div>
+
+                <div class="fc-form-row">
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="uiSourceDefault">Fonte Padrao de Precos</label>
+                        <select id="uiSourceDefault" name="uiSourceDefault" class="fc-filter-input fc-filter-select">
+                            <option value="1">1 - Sankhya (Banco local)</option>
+                            <option value="2">2 - API Fastchannel</option>
+                            <option value="3">3 - Fila / Logs</option>
+                        </select>
+                        <div class="fc-form-hint">Define qual fonte aparece como padrao na tela de precos</div>
+                    </div>
+                </div>
+
+                <div class="fc-form-row">
+                    <div class="fc-form-group">
+                        <label class="fc-toggle">
+                            <input type="checkbox" id="uiEnableSource2" name="uiEnableSource2">
+                            <span class="fc-toggle-track"></span>
+                            Habilitar Fonte 2 (API Fastchannel)
+                        </label>
+                        <div class="fc-form-hint">Exibe a opcao da API na tela de precos</div>
+                    </div>
+                    <div class="fc-form-group">
+                        <label class="fc-toggle">
+                            <input type="checkbox" id="uiEnableSource3" name="uiEnableSource3">
+                            <span class="fc-toggle-track"></span>
+                            Habilitar Fonte 3 (Fila / Logs)
+                        </label>
+                        <div class="fc-form-hint">Exibe a opcao de Fila / Logs na tela de precos</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scheduling -->
+            <div class="fc-card">
+                <div class="fc-card-title">Agendamento</div>
+
+                <div class="fc-form-row">
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="intervalOrders">Intervalo Importacao Pedidos (min)</label>
+                        <input type="number" id="intervalOrders" name="intervalOrders" class="fc-filter-input"
+                               placeholder="5" value="5">
+                        <div class="fc-form-hint">Intervalo em minutos para importar pedidos</div>
+                    </div>
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="intervalQueue">Intervalo Processamento Fila (min)</label>
+                        <input type="number" id="intervalQueue" name="intervalQueue" class="fc-filter-input"
+                               placeholder="2" value="2">
+                        <div class="fc-form-hint">Intervalo em minutos para processar fila de saida</div>
+                    </div>
+                </div>
+
+                <div class="fc-form-row">
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="logRetention">Dias para Limpar Logs</label>
+                        <input type="number" id="logRetention" name="logRetention" class="fc-filter-input"
+                               placeholder="30" value="30">
+                        <div class="fc-form-hint">Logs mais antigos que esse periodo serao removidos</div>
+                    </div>
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="maxRetries">Max Retries</label>
+                        <input type="number" id="maxRetries" name="maxRetries" class="fc-filter-input"
+                               placeholder="3" value="3">
+                        <div class="fc-form-hint">Numero maximo de tentativas em caso de erro</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Notifications -->
+            <div class="fc-card">
+                <div class="fc-card-title">Notificacoes por Email</div>
+
+                <div class="fc-form-grid">
+                    <div class="fc-form-group">
+                        <label class="fc-checkbox-label">
+                            <input type="checkbox" id="emailHabilitado" name="emailHabilitado">
+                            Habilitar notificacoes por email
+                        </label>
+                        <div class="fc-form-hint">Envia email quando ocorrem erros criticos na integracao</div>
+                    </div>
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="emailNotificacao">Email(s) Destinatario</label>
+                        <input type="text" id="emailNotificacao" name="emailNotificacao" class="fc-filter-input"
+                               placeholder="admin@empresa.com, ti@empresa.com">
+                        <div class="fc-form-hint">Separar multiplos emails por virgula</div>
+                    </div>
+                    <div class="fc-form-group">
+                        <label class="fc-filter-label" for="smtpHost">SMTP Host</label>
+                        <input type="text" id="smtpHost" name="smtpHost" class="fc-filter-input"
+                               placeholder="localhost">
+                        <div class="fc-form-hint">Servidor SMTP (fallback). Deixe vazio para usar o email do Sankhya</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="fc-btn-group">
+                <button type="submit" id="btnSalvar" class="fc-btn fc-btn-primary">
+                    Salvar Configuracoes
+                </button>
+                <button type="button" id="btnTestar" class="fc-btn fc-btn-outline" onclick="testarConexao()">
+                    Testar Conexao
+                </button>
+                <button type="button" class="fc-btn fc-btn-ghost" onclick="loadConfig()">
+                    Recarregar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        /* --- Theme Toggle --- */
+        (function initTheme() {
+            var saved = localStorage.getItem('fc-theme');
+            if (!saved) saved = 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+        })();
+
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('fc-theme', next);
+        });
+
+        /* --- Addon Context Resolution --- */
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
+                }
+                return null;
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
+
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        console.log('[Fastchannel] contexts', addonContexts);
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+
+                    if (resp.ok) {
+                        return await resp.json();
+                    }
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    lastErr = errMsg;
+                } catch (e) {
+                    lastErr = e.message;
+                }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        function showAlert(type, message) {
+            const alertSuccess = document.getElementById('alertSuccess');
+            const alertError = document.getElementById('alertError');
+
+            alertSuccess.style.display = 'none';
+            alertError.style.display = 'none';
+
+            const alert = type === 'success' ? alertSuccess : alertError;
+            alert.textContent = message;
+            alert.style.display = 'block';
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        async function loadConfig() {
+            try {
+                const data = await callService('FCConfigSP.get', {});
+
+                if (data) {
+                    document.getElementById('ativo').checked = data.ativo === true || data.ativo === 'S';
+                    document.getElementById('clientId').value = data.clientId || '';
+                    document.getElementById('clientSecret').value = data.clientSecret || '';
+                    document.getElementById('authUrl').value = data.authUrl || '';
+                    document.getElementById('scope').value = data.scope || '';
+                    document.getElementById('baseUrl').value = data.baseUrl || '';
+                    document.getElementById('subscriptionKey').value = data.subscriptionKey || '';
+                    document.getElementById('subscriptionKeyDistribution').value = data.subscriptionKeyDistribution || '';
+                    document.getElementById('subscriptionKeyConsumption').value = data.subscriptionKeyConsumption || '';
+                    document.getElementById('timeout').value = data.timeout || 30000;
+                    document.getElementById('intervalOrders').value = data.intervalOrders || 5;
+                    document.getElementById('intervalQueue').value = data.intervalQueue || 2;
+                    document.getElementById('logRetention').value = data.logRetention || 30;
+                    document.getElementById('maxRetries').value = data.maxRetries || 3;
+                    document.getElementById('syncStatusEnabled').checked = data.syncStatusEnabled === true || data.syncStatusEnabled === 'S';
+                    document.getElementById('disableDuplicateCheck').checked = data.disableDuplicateCheck === true || data.disableDuplicateCheck === 'S';
+                    document.getElementById('uiSourceDefault').value = data.uiSourceDefault != null ? data.uiSourceDefault : 1;
+                    document.getElementById('uiEnableSource2').checked = data.uiEnableSource2 === true || data.uiEnableSource2 === 'S';
+                    document.getElementById('uiEnableSource3').checked = data.uiEnableSource3 === true || data.uiEnableSource3 === 'S';
+                    document.getElementById('emailHabilitado').checked = data.emailHabilitado === true || data.emailHabilitado === 'S';
+                    document.getElementById('emailNotificacao').value = data.emailNotificacao || '';
+                    document.getElementById('smtpHost').value = data.smtpHost || '';
+                }
+            } catch (e) {
+                console.error('Erro ao carregar configuracoes:', e);
+                showAlert('error', 'Erro ao carregar configuracoes: ' + e.message);
+            }
+        }
+
+        async function saveConfig(e) {
+            e.preventDefault();
+
+            const requiredFields = [
+                { id: 'clientId', label: 'Client ID' },
+                { id: 'clientSecret', label: 'Client Secret' },
+                { id: 'baseUrl', label: 'Base URL' }
+            ];
+            for (const f of requiredFields) {
+                const val = document.getElementById(f.id).value.trim();
+                if (!val) {
+                    showAlert('error', `Campo obrigatorio "${f.label}" nao preenchido.`);
+                    document.getElementById(f.id).focus();
+                    return;
+                }
+            }
+
+            const btn = document.getElementById('btnSalvar');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="fc-spinner"></div> Salvando...';
+
+            try {
+                const payload = {
+                    ativo: document.getElementById('ativo').checked,
+                    clientId: document.getElementById('clientId').value,
+                    clientSecret: document.getElementById('clientSecret').value,
+                    authUrl: document.getElementById('authUrl').value,
+                    scope: document.getElementById('scope').value,
+                    baseUrl: document.getElementById('baseUrl').value,
+                    subscriptionKey: document.getElementById('subscriptionKey').value,
+                    subscriptionKeyDistribution: document.getElementById('subscriptionKeyDistribution').value,
+                    subscriptionKeyConsumption: document.getElementById('subscriptionKeyConsumption').value,
+                    timeout: parseInt(document.getElementById('timeout').value) || 30000,
+                    intervalOrders: parseInt(document.getElementById('intervalOrders').value) || 5,
+                    intervalQueue: parseInt(document.getElementById('intervalQueue').value) || 2,
+                    logRetention: parseInt(document.getElementById('logRetention').value) || 30,
+                    maxRetries: parseInt(document.getElementById('maxRetries').value) || 3,
+                    syncStatusEnabled: document.getElementById('syncStatusEnabled').checked,
+                    disableDuplicateCheck: document.getElementById('disableDuplicateCheck').checked,
+                    uiSourceDefault: parseInt(document.getElementById('uiSourceDefault').value) || 1,
+                    uiEnableSource2: document.getElementById('uiEnableSource2').checked,
+                    uiEnableSource3: document.getElementById('uiEnableSource3').checked,
+                    emailHabilitado: document.getElementById('emailHabilitado').checked,
+                    emailNotificacao: document.getElementById('emailNotificacao').value,
+                    smtpHost: document.getElementById('smtpHost').value
+                };
+
+                const result = await callService('FCConfigSP.save', payload);
+                showAlert('success', result.message || 'Configuracoes salvas com sucesso!');
+
+            } catch (e) {
+                showAlert('error', 'Erro ao salvar: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Salvar Configuracoes';
+            }
+        }
+
+        async function testarConexao() {
+            const btn = document.getElementById('btnTestar');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="fc-spinner"></div> Testando...';
+
+            try {
+                const result = await callService('FCAdminSP.testarConexao', {});
+                showAlert('success', result.message || 'Conexao OK!');
+            } catch (e) {
+                showAlert('error', 'Erro: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Testar Conexao';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            document.getElementById('configForm').addEventListener('submit', saveConfig);
+        });
+    </script>
+</body>
+</html>

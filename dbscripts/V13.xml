@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!-- V13: Parametros operacionais padrao para fluxo Fastchannel (pedidos/preco/estoque) -->
+
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="UPD_AD_FCCONFIG_FASTCHANNEL_KEYS_AND_RULES" ordem="1" executar="SEMPRE" tipoObjeto="DEFAULT">
+        <oracle>
+            UPDATE AD_FCCONFIG
+               SET SUBSCRIPTION_KEY_DISTRIBUTION = '10564b2abb5e475c84d32d2bdabbb857',
+                   SUBSCRIPTION_KEY_CONSUMPTION = '2729d311c289417fa6c5ff2d33835cd8',
+                   CODTIPOPER = 403,
+                   TOP_PEDIDO = 403,
+                   CODVEND_PADRAO = 167,
+                   DH_ALTERACAO = SYSTIMESTAMP
+             WHERE CODCONFIG = (SELECT MAX(CODCONFIG) FROM AD_FCCONFIG)
+        </oracle>
+        <mssql>
+            UPDATE C
+               SET C.SUBSCRIPTION_KEY_DISTRIBUTION = '10564b2abb5e475c84d32d2bdabbb857',
+                   C.SUBSCRIPTION_KEY_CONSUMPTION = '2729d311c289417fa6c5ff2d33835cd8',
+                   C.CODTIPOPER = 403,
+                   C.TOP_PEDIDO = 403,
+                   C.CODVEND_PADRAO = 167,
+                   C.DH_ALTERACAO = CURRENT_TIMESTAMP
+              FROM AD_FCCONFIG C
+             WHERE C.CODCONFIG = (SELECT MAX(CODCONFIG) FROM AD_FCCONFIG)
+        </mssql>
+    </sql>
+</alteracoes>

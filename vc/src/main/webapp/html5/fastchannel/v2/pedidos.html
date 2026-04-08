@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fastchannel Integration - Pedidos</title>
+    <link rel="stylesheet" href="fc-design-system.css">
+    <style>
+        /* Page-specific styles not covered by design system */
+        .fc-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-primary);
+            font-size: 13px;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: var(--text-tertiary); }
+        .detail-value { font-weight: 500; color: var(--text-primary); }
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .fc-table th.sortable::after { content: ' \2195'; opacity: 0.4; }
+        .fc-table th.sortable.asc::after { content: ' \2191'; opacity: 1; color: var(--accent); }
+        .fc-table th.sortable.desc::after { content: ' \2193'; opacity: 1; color: var(--accent); }
+        .fc-pre {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            color: var(--text-primary);
+        }
+        .fc-section-title {
+            margin: 16px 0 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="fc-page">
+        <header class="fc-header">
+            <img src="../../assets/fastchannel-logo-dark.jpeg" alt="Fastchannel" class="fc-header-logo">
+            <span class="fc-header-title">Fastchannel</span>
+            <span class="fc-header-subtitle">Pedidos</span>
+            <label class="fc-theme-toggle" id="themeToggle">
+                <span id="themeLabel">Escuro</span>
+                <div class="fc-theme-toggle-track"></div>
+            </label>
+        </header>
+
+        <nav class="fc-nav">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="config.html">Configuracao</a>
+            <a href="depara.html">De-Para</a>
+            <a href="pedidos.html" class="active">Pedidos</a>
+            <a href="estoque.html">Estoque</a>
+            <a href="precos.html">Precos</a>
+            <a href="fila.html">Fila</a>
+            <a href="logs.html">Logs</a>
+        </nav>
+
+        <div class="fc-card">
+            <div class="fc-card-header">
+                <span class="fc-card-title">Pedidos Importados</span>
+                <button class="fc-btn fc-btn-primary" onclick="importarPedidos()">
+                    Importar Novos Pedidos
+                </button>
+            </div>
+
+            <div class="fc-filters" style="margin-bottom: 16px;">
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Status</span>
+                    <select id="filterStatus" class="fc-filter-input fc-filter-select" onchange="loadPedidos(true)">
+                        <option value="">Todos</option>
+                        <option value="PENDENTE">Pendente</option>
+                        <option value="PROCESSANDO">Processando</option>
+                        <option value="IMPORTADO">Sucesso</option>
+                        <option value="ERRO">Com Erro</option>
+                    </select>
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Data Inicio</span>
+                    <input type="date" id="filterDataInicio" class="fc-filter-input" onchange="loadPedidos(true)">
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Data Fim</span>
+                    <input type="date" id="filterDataFim" class="fc-filter-input" onchange="loadPedidos(true)">
+                </div>
+                <div class="fc-filter-group">
+                    <span class="fc-filter-label">Order ID</span>
+                    <input type="text" id="filterOrderId" class="fc-filter-input" placeholder="Buscar..."
+                           onkeyup="debounceSearch()">
+                </div>
+                <div class="fc-filter-group" style="justify-content: flex-end;">
+                    <button class="fc-btn fc-btn-primary fc-btn-sm" onclick="loadPedidos()">
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+
+            <div class="fc-table-container">
+                <table class="fc-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-col="orderId" onclick="sortBy('orderId')">Order ID</th>
+                            <th class="sortable" data-col="dataPedido" onclick="sortBy('dataPedido','date')">Data Pedido</th>
+                            <th class="sortable" data-col="nomeCliente" onclick="sortBy('nomeCliente')">Cliente</th>
+                            <th class="sortable" data-col="valorTotal" onclick="sortBy('valorTotal','num')">Valor Total</th>
+                            <th class="sortable" data-col="statusFc" onclick="sortBy('statusFc')">Status FC</th>
+                            <th class="sortable" data-col="statusImport" onclick="sortBy('statusImport')">Status Import</th>
+                            <th class="sortable" data-col="nunota" onclick="sortBy('nunota','num')">NUNOTA</th>
+                            <th class="text-center">Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosTable">
+                        <tr>
+                            <td colspan="8" class="fc-empty">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="fc-pagination">
+                <span class="fc-pagination-info" id="paginationInfo">Mostrando 0 de 0</span>
+                <div class="fc-pagination-pages">
+                    <button class="fc-pagination-btn" id="btnPrev" onclick="prevPage()" disabled>
+                        Anterior
+                    </button>
+                    <button class="fc-pagination-btn" id="btnNext" onclick="nextPage()" disabled>
+                        Proximo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes -->
+    <div id="modalDetails" class="fc-modal-overlay">
+        <div class="fc-modal" style="position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <span class="fc-modal-title" style="margin-bottom: 0;">Detalhes do Pedido</span>
+                <button class="fc-modal-close" onclick="closeModal()" style="position: static;">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+            <div class="modal-actions">
+                <button class="fc-btn fc-btn-primary" onclick="reprocessarPedido()">Reprocessar</button>
+                <button class="fc-btn fc-btn-outline" onclick="consultarFC()">Consultar no FC</button>
+                <button class="fc-btn fc-btn-ghost" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* --- Theme Toggle --- */
+        (function() {
+            var saved = localStorage.getItem('fc-theme');
+            if (!saved) saved = 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+            document.addEventListener('DOMContentLoaded', function() {
+                var label = document.getElementById('themeLabel');
+                if (label) label.textContent = saved === 'dark' ? 'Escuro' : 'Claro';
+            });
+        })();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var toggle = document.getElementById('themeToggle');
+            if (toggle) {
+                toggle.addEventListener('click', function() {
+                    var current = document.documentElement.getAttribute('data-theme');
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('fc-theme', next);
+                    var label = document.getElementById('themeLabel');
+                    if (label) label.textContent = next === 'dark' ? 'Escuro' : 'Claro';
+                });
+            }
+        });
+
+        /* --- Addon Context Resolution --- */
+        function resolveAddonContexts() {
+            const origin = window.location.origin || '';
+            const path = window.location.pathname || '';
+            const search = window.location.search || '';
+            const contexts = ['/addon-fastchannel'];
+            const keys = ['/mge/addon-fastchannel', '/addon-fastchannel'];
+
+            function add(ctx) {
+                if (!ctx) return;
+                if (ctx.endsWith('/')) ctx = ctx.substring(0, ctx.length - 1);
+                if (contexts.indexOf(ctx) === -1) contexts.push(ctx);
+            }
+
+            function findAddonBase(p) {
+                if (!p) return null;
+                for (const key of keys) {
+                    const idx = p.indexOf(key);
+                    if (idx >= 0) {
+                        return p.substring(0, idx + key.length);
+                    }
+                }
+                return null;
+            }
+
+            const htmlIdx = path.indexOf('/html5/');
+            if (htmlIdx > 0) {
+                const base = findAddonBase(path.substring(0, htmlIdx));
+                if (base) add(base);
+            }
+
+            const baseFromPath = findAddonBase(path);
+            if (baseFromPath) add(baseFromPath);
+
+            if (search) {
+                try {
+                    const params = new URLSearchParams(search);
+                    const rawUrl = params.get('url') || params.get('u');
+                    if (rawUrl) {
+                        const decoded = decodeURIComponent(rawUrl);
+                        const decodedHtmlIdx = decoded.indexOf('/html5/');
+                        if (decodedHtmlIdx > 0) {
+                            const base = findAddonBase(decoded.substring(0, decodedHtmlIdx));
+                            if (base) add(base);
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            return contexts.map(ctx => origin + ctx);
+        }
+
+        const addonContexts = resolveAddonContexts();
+        console.log('[Fastchannel] contexts', addonContexts);
+        let currentPage = 1;
+        let totalPages = 1;
+        let pageSize = 20;
+        let searchTimeout = null;
+        let selectedOrderId = null;
+        let currentItems = [];
+        let sortCol = null;
+        let sortDir = 'asc';
+
+        function sortBy(col, type) {
+            type = type || 'str';
+            if (sortCol === col) {
+                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortCol = col;
+                sortDir = 'asc';
+            }
+            document.querySelectorAll('.fc-table th.sortable').forEach(th => {
+                th.classList.remove('asc', 'desc');
+                if (th.dataset.col === col) th.classList.add(sortDir);
+            });
+            if (!currentItems.length) return;
+            currentItems.sort((a, b) => {
+                let va = a[col], vb = b[col];
+                if (va == null) va = '';
+                if (vb == null) vb = '';
+                if (type === 'num') {
+                    va = parseFloat(va) || 0;
+                    vb = parseFloat(vb) || 0;
+                } else if (type === 'date') {
+                    va = va ? new Date(va).getTime() : 0;
+                    vb = vb ? new Date(vb).getTime() : 0;
+                } else {
+                    va = String(va).toLowerCase();
+                    vb = String(vb).toLowerCase();
+                }
+                if (va < vb) return sortDir === 'asc' ? -1 : 1;
+                if (va > vb) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
+            renderItems(currentItems);
+        }
+
+        function escapeHtml(text) {
+            return (text || '').toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderItems(items) {
+            const tbody = document.getElementById('pedidosTable');
+            tbody.innerHTML = items.map((p, idx) => `
+                <tr>
+                    <td><strong>${escapeHtml(p.orderId || '--')}</strong></td>
+                    <td>${formatDate(p.dataPedido)}</td>
+                    <td>${escapeHtml(p.nomeCliente || '--')}</td>
+                    <td>${formatMoney(p.valorTotal)}</td>
+                    <td>${getStatusBadge(p.statusFc)}</td>
+                    <td>${getStatusBadge(p.statusImport)}</td>
+                    <td>${p.nunota || '--'}</td>
+                    <td class="text-center">
+                        <button class="fc-btn fc-btn-sm fc-btn-outline" onclick="showDetails(${idx})">
+                            Detalhes
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getMgeSession() {
+            try {
+                if (window.top && window.top.SNKCONTEXT && window.top.SNKCONTEXT.jsessionid) {
+                    return window.top.SNKCONTEXT.jsessionid;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const sessionParam = params.get('mgeSession');
+                if (sessionParam) return sessionParam;
+            } catch (e) {
+                // ignore
+            }
+
+            const match = document.cookie.match(/(?:^|;\s*)JSESSIONID=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function callService(serviceName, payload) {
+            const payloadStr = JSON.stringify(payload || {});
+            const bases = addonContexts.map(b => `${b}/fc-direct`);
+            let lastErr = null;
+            const session = getMgeSession();
+            for (const base of bases) {
+                try {
+                    const qs = new URLSearchParams({ serviceName, outputType: 'json' });
+                    if (session) qs.append('mgeSession', session);
+                    const resp = await fetch(`${base}?${qs.toString()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payloadStr,
+                        credentials: 'include'
+                    });
+                    if (resp.ok) return await resp.json();
+                    let errMsg = `HTTP ${resp.status} (${base})`;
+                    try {
+                        const text = await resp.text();
+                        const parsed = JSON.parse(text);
+                        if (parsed && parsed.message) errMsg += `: ${parsed.message}`;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    lastErr = errMsg;
+                } catch (e) { lastErr = e.message; }
+            }
+            throw new Error(lastErr || 'Nenhum endpoint respondeu');
+        }
+
+        function parseBackendDate(dateStr) {
+            if (!dateStr) return null;
+            const match = typeof dateStr === 'string'
+                ? dateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/)
+                : null;
+            if (match) {
+                return new Date(
+                    Number(match[1]),
+                    Number(match[2]) - 1,
+                    Number(match[3]),
+                    Number(match[4]),
+                    Number(match[5]),
+                    Number(match[6])
+                );
+            }
+            const parsed = new Date(dateStr);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function formatDate(dateStr) {
+            const parsed = parseBackendDate(dateStr);
+            return parsed ? parsed.toLocaleString('pt-BR') : (dateStr || '--');
+        }
+
+        function formatMoney(value) {
+            if (value == null) return 'R$ 0,00';
+            return 'R$ ' + parseFloat(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        }
+
+        function getStatusBadge(status) {
+            const map = {
+                'PENDENTE': 'fc-badge-warning',
+                'IMPORTADO': 'fc-badge-success',
+                'ERRO': 'fc-badge-danger',
+                'PROCESSANDO': 'fc-badge-info'
+            };
+            return `<span class="fc-badge ${map[status] || 'fc-badge-neutral'}">${status || '--'}</span>`;
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => loadPedidos(), 500);
+        }
+
+        async function loadPedidos(resetPage) {
+            if (resetPage) currentPage = 1;
+            const tbody = document.getElementById('pedidosTable');
+            tbody.innerHTML = '<tr><td colspan="8" class="fc-empty"><div class="fc-spinner" style="margin: 0 auto;"></div></td></tr>';
+
+            try {
+                const filters = {
+                    status: document.getElementById('filterStatus').value,
+                    dataInicio: document.getElementById('filterDataInicio').value,
+                    dataFim: document.getElementById('filterDataFim').value,
+                    orderId: document.getElementById('filterOrderId').value,
+                    page: currentPage,
+                    pageSize: pageSize
+                };
+
+                const data = await callService('FCPedidosSP.list', filters);
+
+                if (data.items && data.items.length > 0) {
+                    currentItems = data.items;
+                    renderItems(currentItems);
+
+                    totalPages = Math.ceil((data.total || 0) / pageSize);
+                    updatePagination(data.total || 0);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="8" class="fc-empty">Nenhum pedido encontrado</td></tr>';
+                    updatePagination(0);
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="8" class="fc-empty">Erro: ${e.message}</td></tr>`;
+            }
+        }
+
+        function updatePagination(total) {
+            const start = total > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+            const end = Math.min(currentPage * pageSize, total);
+            document.getElementById('paginationInfo').textContent =
+                `Mostrando ${start}-${end} de ${total}`;
+            document.getElementById('btnPrev').disabled = currentPage <= 1;
+            document.getElementById('btnNext').disabled = currentPage >= totalPages;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) { currentPage--; loadPedidos(); }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) { currentPage++; loadPedidos(); }
+        }
+
+        async function showDetails(idx) {
+            const item = currentItems[idx];
+            if (!item) return;
+            selectedOrderId = item.orderId;
+            const modal = document.getElementById('modalDetails');
+            const body = document.getElementById('modalBody');
+            body.innerHTML = '<div class="fc-spinner" style="margin: 20px auto;"></div>';
+            modal.classList.add('active');
+
+            try {
+                const data = await callService('FCPedidosSP.get', { orderId: selectedOrderId });
+                body.innerHTML = `
+                    <div class="detail-row"><span class="detail-label">Order ID</span><span class="detail-value">${escapeHtml(data.orderId || '--')}</span></div>
+                    <div class="detail-row"><span class="detail-label">Data Pedido</span><span class="detail-value">${formatDate(data.dataPedido)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Cliente</span><span class="detail-value">${escapeHtml(data.nomeCliente || '--')}</span></div>
+                    <div class="detail-row"><span class="detail-label">CPF/CNPJ</span><span class="detail-value">${escapeHtml(data.cpfCnpj || '--')}</span></div>
+                    <div class="detail-row"><span class="detail-label">Valor Total</span><span class="detail-value">${formatMoney(data.valorTotal)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Frete</span><span class="detail-value">${formatMoney(data.frete)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Status FC</span><span class="detail-value">${getStatusBadge(data.statusFc)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Status Import</span><span class="detail-value">${getStatusBadge(data.statusImport)}</span></div>
+                    <div class="detail-row"><span class="detail-label">NUNOTA</span><span class="detail-value">${data.nunota || '--'}</span></div>
+                    <div class="detail-row"><span class="detail-label">CODPARC</span><span class="detail-value">${data.codparc || '--'}</span></div>
+                    ${data.erro ? `<div class="detail-row"><span class="detail-label">Erro</span><span class="detail-value" style="color: var(--danger);">${escapeHtml(data.erro)}</span></div>` : ''}
+                `;
+            } catch (e) {
+                body.innerHTML = `<div class="fc-empty">Erro: ${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalDetails').classList.remove('active');
+            selectedOrderId = null;
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        document.getElementById('modalDetails').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        function setButtonLoading(btn, loading) {
+            if (!btn) return;
+            if (loading) {
+                btn.disabled = true;
+                btn._origHTML = btn.innerHTML;
+                btn.innerHTML = '<span class="fc-spinner" style="width:14px;height:14px;"></span> Aguarde...';
+            } else {
+                btn.disabled = false;
+                if (btn._origHTML) btn.innerHTML = btn._origHTML;
+            }
+        }
+
+        async function importarPedidos() {
+            if (!confirm('Deseja importar novos pedidos do Fastchannel?')) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
+            try {
+                const result = await callService('FCAdminSP.importarPedidos', {});
+                alert(result.message || 'Importacao concluida');
+                loadPedidos();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+
+        async function reprocessarPedido() {
+            if (!selectedOrderId) return;
+            if (!confirm(`Reprocessar pedido ${selectedOrderId}?`)) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
+            try {
+                const result = await callService('FCPedidosSP.reprocessar', { orderId: selectedOrderId });
+                alert(result.message || 'Reprocessamento solicitado');
+                closeModal();
+                loadPedidos();
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+
+        async function consultarFC() {
+            if (!selectedOrderId) return;
+            const btn = event.currentTarget;
+            setButtonLoading(btn, true);
+            try {
+                const result = await callService('FCPedidosSP.consultarFC', { orderId: selectedOrderId });
+                const body = document.getElementById('modalBody');
+                body.innerHTML += `
+                    <h4 class="fc-section-title">Dados Fastchannel</h4>
+                    <pre class="fc-pre">${escapeHtml(JSON.stringify(result, null, 2))}</pre>
+                `;
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPedidos);
+    </script>
+</body>
+</html>
