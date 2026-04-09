@@ -162,13 +162,19 @@ public class InternalApiStrategy implements OrderCreationStrategy {
         if (codTipVenda == null) {
             codTipVenda = topDefaults.codTipVenda;
         }
-        // Regra de negocio: CODVEND deve SEMPRE refletir o vendedor preferencial do parceiro.
+        // Regra de negocio: CODVEND reflete o vendedor preferencial do parceiro.
+        // Se nao tiver, usa fallback da config ou vendedor FAST (281).
         BigDecimal codVendParceiro = resolveCodVendByParc(codParc);
-        if (isNullOrZero(codVendParceiro)) {
-            throw new Exception("Parceiro " + codParc + " sem vendedor preferencial (TGFPAR.CODVEND).");
-        }
         if (!isNullOrZero(codVendParceiro)) {
             codVend = codVendParceiro;
+        } else {
+            BigDecimal configVend = config.getCodVendPadrao();
+            if (!isNullOrZero(configVend)) {
+                codVend = configVend;
+            } else {
+                codVend = new BigDecimal("281"); // Vendedor FAST padrao
+            }
+            log.warning("Parceiro " + codParc + " sem CODVEND preferencial. Usando fallback: " + codVend);
         }
         if (codNat == null) {
             codNat = topDefaults.codNat;

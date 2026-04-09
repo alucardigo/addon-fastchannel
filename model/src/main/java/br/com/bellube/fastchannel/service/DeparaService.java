@@ -474,19 +474,18 @@ public class DeparaService {
         if (skuOrEan == null || skuOrEan.isEmpty()) return null;
 
         // 1. Prioridade: REFFORN via marca FC (AD_FAST='S', AD_FASTREF='R')
-        // Esta regra e a fonte de verdade para SKUs FC e deve sobrepor qualquer De-Para manual errado
         BigDecimal codProd = getCodProdByRefFornFcBrand(skuOrEan);
         if (codProd != null) return codProd;
 
-        // 2. De-Para explicito (fallback/override quando nao ha REFFORN na marca FC)
+        // 2. De-Para explicito
         codProd = getCodProd(skuOrEan);
         if (codProd != null) return codProd;
 
-        // 3. Tentar por REFERENCIA generica (sem filtro de marca)
+        // 3. Tentar por REFERENCIA generica
         codProd = getCodProdByReferencia(skuOrEan);
         if (codProd != null) return codProd;
 
-        // 4. REFFORN sem filtro de marca (qualquer produto ativo)
+        // 4. REFFORN sem filtro de marca
         codProd = getCodProdByRefForn(skuOrEan);
         if (codProd != null) return codProd;
 
@@ -494,8 +493,97 @@ public class DeparaService {
         codProd = getCodProdByEan(skuOrEan);
         if (codProd != null) return codProd;
 
-        // 6. Fallback final: SKU numerico pode representar o proprio CODPROD
-        return getCodProdByCodigoInterno(skuOrEan);
+        // 6. Fallback: SKU numerico como CODPROD
+        codProd = getCodProdByCodigoInterno(skuOrEan);
+        if (codProd != null) return codProd;
+
+        // 7. Fallback JDBC completo quando JAPE falha nos metodos acima
+        return getCodProdBySkuOrEanJdbc(skuOrEan);
+    }
+
+    /**
+     * Fallback JDBC completo para resolver SKU→CODPROD quando JAPE indisponivel.
+     * Tenta: REFFORN com marca FC, De-Para, REFERENCIA, REFFORN, EAN, CODPROD direto.
+     */
+    private BigDecimal getCodProdBySkuOrEanJdbc(String skuOrEan) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+
+            // 1. REFFORN com marca FC (AD_FAST='S')
+            stmt = conn.prepareStatement(
+                "SELECT TOP 1 P.CODPROD FROM TGFPRO P " +
+                "INNER JOIN TGFMAR M ON M.CODIGO = P.CODMARCA AND M.AD_FAST = 'S' " +
+                "WHERE P.REFFORN = ? AND P.ATIVO = 'S'");
+            stmt.setString(1, skuOrEan);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                BigDecimal r = rs.getBigDecimal("CODPROD");
+                log.info("getCodProdBySkuOrEanJdbc: " + skuOrEan + " → CODPROD " + r + " (REFFORN+marca FC)");
+                return r;
+            }
+            DBUtil.closeResultSet(rs); DBUtil.closeStatement(stmt);
+
+            // 2. De-Para PRODUTO
+            stmt = conn.prepareStatement(
+                "SELECT TOP 1 COD_SANKHYA FROM AD_FCDEPARA " +
+                "WHERE TIPO_ENTIDADE = 'PRODUTO' AND COD_EXTERNO = ?");
+            stmt.setString(1, skuOrEan);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                BigDecimal r = rs.getBigDecimal("COD_SANKHYA");
+                log.info("getCodProdBySkuOrEanJdbc: " + skuOrEan + " → CODPROD " + r + " (De-Para)");
+                return r;
+            }
+            DBUtil.closeResultSet(rs); DBUtil.closeStatement(stmt);
+
+            // 3. REFFORN generico (sem filtro marca)
+            stmt = conn.prepareStatement(
+                "SELECT TOP 1 CODPROD FROM TGFPRO WHERE REFFORN = ? AND ATIVO = 'S'");
+            stmt.setString(1, skuOrEan);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                BigDecimal r = rs.getBigDecimal("CODPROD");
+                log.info("getCodProdBySkuOrEanJdbc: " + skuOrEan + " → CODPROD " + r + " (REFFORN generico)");
+                return r;
+            }
+            DBUtil.closeResultSet(rs); DBUtil.closeStatement(stmt);
+
+            // 4. REFERENCIA
+            stmt = conn.prepareStatement(
+                "SELECT TOP 1 CODPROD FROM TGFPRO WHERE REFERENCIA = ? AND ATIVO = 'S'");
+            stmt.setString(1, skuOrEan);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                BigDecimal r = rs.getBigDecimal("CODPROD");
+                log.info("getCodProdBySkuOrEanJdbc: " + skuOrEan + " → CODPROD " + r + " (REFERENCIA)");
+                return r;
+            }
+            DBUtil.closeResultSet(rs); DBUtil.closeStatement(stmt);
+
+            // 5. SKU numerico = CODPROD direto
+            try {
+                BigDecimal codProdDireto = new BigDecimal(skuOrEan);
+                DBUtil.closeResultSet(rs); DBUtil.closeStatement(stmt);
+                stmt = conn.prepareStatement(
+                    "SELECT CODPROD FROM TGFPRO WHERE CODPROD = ? AND ATIVO = 'S'");
+                stmt.setBigDecimal(1, codProdDireto);
+                rs = stmt.executeQuery();
+                if (rs.next()) {
+                    log.info("getCodProdBySkuOrEanJdbc: " + skuOrEan + " → CODPROD " + codProdDireto + " (CODPROD direto)");
+                    return codProdDireto;
+                }
+            } catch (NumberFormatException ignored) {}
+
+            log.fine("getCodProdBySkuOrEanJdbc: " + skuOrEan + " nao encontrado em nenhuma fonte");
+        } catch (Exception e) {
+            log.log(Level.WARNING, "getCodProdBySkuOrEanJdbc falhou para " + skuOrEan, e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
+        }
+        return null;
     }
 
     /**
