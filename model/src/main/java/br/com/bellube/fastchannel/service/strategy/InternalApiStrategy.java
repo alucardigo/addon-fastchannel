@@ -213,11 +213,14 @@ public class InternalApiStrategy implements OrderCreationStrategy {
 
         Timestamp dhTipOper = resolveDhTipOper(codTipOper);
         Timestamp dhTipVenda = codTipVenda != null ? resolveDhTipVenda(codTipVenda) : null;
+        // DHTIPOPER e DHTIPVENDA sao opcionais - se nao resolvidos, usar timestamp atual
         if (!isNullOrZero(codTipOper) && dhTipOper == null) {
-            throw new Exception("DHTIPOPER nao resolvido para CODTIPOPER " + codTipOper + ".");
+            dhTipOper = new java.sql.Timestamp(System.currentTimeMillis());
+            log.warning("DHTIPOPER nao resolvido para TOP " + codTipOper + ". Usando timestamp atual.");
         }
         if (!isNullOrZero(codTipVenda) && dhTipVenda == null) {
-            throw new Exception("DHTIPVENDA nao resolvido para CODTIPVENDA " + codTipVenda + ".");
+            dhTipVenda = new java.sql.Timestamp(System.currentTimeMillis());
+            log.warning("DHTIPVENDA nao resolvido para TIPVENDA " + codTipVenda + ". Usando timestamp atual.");
         }
         BigDecimal codUsu = resolveCodUsuLogado();
         FluidCreateVO cabBuilder = cabDAO.create()
@@ -518,7 +521,24 @@ public class InternalApiStrategy implements OrderCreationStrategy {
                 return rs.getTimestamp("DHALTER");
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "Nao foi possivel resolver DHTIPOPER para TOP " + codTipOper, e);
+            log.log(Level.FINE, "JAPE falhou ao resolver DHTIPOPER, tentando JDBC", e);
+            // Fallback JDBC
+            java.sql.Connection conn2 = null;
+            java.sql.PreparedStatement stmt2 = null;
+            java.sql.ResultSet rs2 = null;
+            try {
+                conn2 = br.com.bellube.fastchannel.util.DBUtil.getConnection();
+                stmt2 = conn2.prepareStatement("SELECT TOP 1 DHALTER FROM TGFTOP WHERE CODTIPOPER = ? ORDER BY DHALTER DESC");
+                stmt2.setBigDecimal(1, codTipOper);
+                rs2 = stmt2.executeQuery();
+                if (rs2.next()) {
+                    return rs2.getTimestamp("DHALTER");
+                }
+            } catch (Exception e2) {
+                log.log(Level.WARNING, "JDBC fallback DHTIPOPER tambem falhou", e2);
+            } finally {
+                br.com.bellube.fastchannel.util.DBUtil.closeAll(rs2, stmt2, conn2);
+            }
         } finally {
             closeQuietly(rs);
             closeJdbc(jdbc);
