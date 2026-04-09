@@ -122,11 +122,15 @@ public class FCDashboardService {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
-            stmt = conn.prepareStatement("SELECT COUNT(*) AS CNT FROM AD_FCPEDIDO WHERE ORDER_ID = ?");
+            // Verifica AD_FCPEDIDO e TGFCAB (AD_NUMFAST) para alinhar com isOrderAlreadyImported
+            stmt = conn.prepareStatement(
+                "SELECT CASE WHEN EXISTS (SELECT 1 FROM AD_FCPEDIDO WHERE ORDER_ID = ?) " +
+                "OR EXISTS (SELECT 1 FROM TGFCAB WHERE AD_NUMFAST = ?) THEN 1 ELSE 0 END AS IMPORTED");
             stmt.setString(1, orderId);
+            stmt.setString(2, orderId);
             rs = stmt.executeQuery();
             rs.next();
-            return rs.getInt("CNT") > 0;
+            return rs.getInt("IMPORTED") > 0;
         } catch (Exception e) {
             return false;
         } finally {
