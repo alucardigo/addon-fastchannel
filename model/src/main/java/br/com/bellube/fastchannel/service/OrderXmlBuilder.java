@@ -249,11 +249,9 @@ public class OrderXmlBuilder {
                     }
                 }
             }
-            if (supportsItemField("PERCDESC")) {
-                // Garantir que PERCDESC nunca seja negativo (Sankhya rejeita)
-                BigDecimal safePercDesc = percDesc.max(BigDecimal.ZERO);
-                xml.append("          <PERCDESC>").append(safePercDesc).append("</PERCDESC>\n");
-            }
+            // SEMPRE enviar PERCDESC >= 0 (Sankhya rejeita negativo com CORE_E03235)
+            BigDecimal safePercDesc = percDesc.max(BigDecimal.ZERO);
+            xml.append("          <PERCDESC>").append(safePercDesc).append("</PERCDESC>\n");
 
             // Origem do produto (Sankhya)
             if (origProd == null || origProd.isEmpty()) {
