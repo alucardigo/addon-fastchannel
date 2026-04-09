@@ -250,7 +250,9 @@ public class OrderXmlBuilder {
                 }
             }
             if (supportsItemField("PERCDESC")) {
-                xml.append("          <PERCDESC>").append(percDesc).append("</PERCDESC>\n");
+                // Garantir que PERCDESC nunca seja negativo (Sankhya rejeita)
+                BigDecimal safePercDesc = percDesc.max(BigDecimal.ZERO);
+                xml.append("          <PERCDESC>").append(safePercDesc).append("</PERCDESC>\n");
             }
 
             // Origem do produto (Sankhya)
