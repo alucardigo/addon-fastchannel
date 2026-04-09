@@ -2928,16 +2928,24 @@ public class OrderService {
 
     /**
      * Retorna true se JAPE/mge-core esta disponivel.
-     * Usado para skip graceful durante warmup do WildFly.
+     * Testa o path completo: getCoreFacade().getJdbcWrapper().openSession()
+     * porque getCoreFacade() sozinho pode retornar sem erro.
      */
     static boolean isJapeReady() {
         if (japeReady) return true;
+        JdbcWrapper testJdbc = null;
         try {
-            EntityFacadeFactory.getCoreFacade();
+            testJdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            testJdbc.openSession();
             japeReady = true;
+            log.info("OrderService: JAPE/mge-core disponivel.");
             return true;
         } catch (Exception e) {
             return false;
+        } finally {
+            if (testJdbc != null) {
+                try { testJdbc.closeSession(); } catch (Exception ignored) {}
+            }
         }
     }
 
