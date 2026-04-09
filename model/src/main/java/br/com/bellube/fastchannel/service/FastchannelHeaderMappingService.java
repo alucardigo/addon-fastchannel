@@ -89,6 +89,14 @@ public class FastchannelHeaderMappingService {
         public BigDecimal getCodVend() {
             return codVend;
         }
+
+        public void setCodEmp(BigDecimal v) { this.codEmp = v; }
+        public void setCodTipOper(BigDecimal v) { this.codTipOper = v; }
+        public void setCodTipVenda(BigDecimal v) { this.codTipVenda = v; }
+        public void setCodParc(BigDecimal v) { this.codParc = v; }
+        public void setCodNat(BigDecimal v) { this.codNat = v; }
+        public void setCodCenCus(BigDecimal v) { this.codCenCus = v; }
+        public void setCodVend(BigDecimal v) { this.codVend = v; }
     }
 
     private final DeparaLookup deparaLookup;
@@ -194,6 +202,7 @@ public class FastchannelHeaderMappingService {
     }
 
     private boolean existsTopForPedido(BigDecimal codTipOper) {
+        // Tentar JAPE primeiro, fallback JDBC
         JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
@@ -206,11 +215,31 @@ public class FastchannelHeaderMappingService {
             rs = sql.executeQuery();
             return rs.next();
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao validar existencia de TOP " + codTipOper, e);
-            return false;
+            log.log(Level.FINE, "existsTopForPedido via JAPE falhou, tentando JDBC", e);
+            return existsTopForPedidoJdbc(codTipOper);
         } finally {
             closeQuietly(rs);
             closeJdbc(jdbc);
+        }
+    }
+
+    private boolean existsTopForPedidoJdbc(BigDecimal codTipOper) {
+        java.sql.Connection conn = null;
+        java.sql.PreparedStatement stmt = null;
+        java.sql.ResultSet rs = null;
+        try {
+            conn = br.com.bellube.fastchannel.util.DBUtil.getConnection();
+            stmt = conn.prepareStatement("SELECT TOP 1 CODTIPOPER FROM TGFTOP WHERE CODTIPOPER = ? AND TIPMOV = 'P'");
+            stmt.setBigDecimal(1, codTipOper);
+            rs = stmt.executeQuery();
+            boolean exists = rs.next();
+            log.info("existsTopForPedidoJdbc: TOP " + codTipOper + " existe=" + exists);
+            return exists;
+        } catch (Exception e) {
+            log.log(Level.WARNING, "existsTopForPedidoJdbc falhou para TOP " + codTipOper, e);
+            return false;
+        } finally {
+            br.com.bellube.fastchannel.util.DBUtil.closeAll(rs, stmt, conn);
         }
     }
 

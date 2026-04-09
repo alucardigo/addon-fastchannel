@@ -215,36 +215,65 @@ public class OrderService {
                 return null;
             }
 
-            FastchannelHeaderMappingService.ResolvedHeader resolvedHeader = headerMappingService.resolve(order);
+            // Resolver cabecalho: JAPE ou fallback config
+            FastchannelHeaderMappingService.ResolvedHeader resolvedHeader;
+            try {
+                resolvedHeader = headerMappingService.resolve(order);
+            } catch (Exception resolveEx) {
+                if (isJapeUnavailableError(resolveEx)) {
+                    log.warning("importOrder " + order.getOrderId() + ": resolve() falhou por JAPE, usando config defaults");
+                    resolvedHeader = buildDefaultResolvedHeader();
+                } else {
+                    throw resolveEx;
+                }
+            }
             order.setCodEmp(resolvedHeader.getCodEmp());
             order.setCodTipOper(resolvedHeader.getCodTipOper());
-            order.setCodLocal(resolveCodLocalForOrder(order, resolvedHeader.getCodEmp()));
+            BigDecimal codLocal = config.getCodLocal();
+            try {
+                codLocal = resolveCodLocalForOrder(order, resolvedHeader.getCodEmp());
+            } catch (Exception e2) {
+                if (!isJapeUnavailableError(e2)) throw e2;
+            }
+            order.setCodLocal(codLocal);
 
-            // 1. Localizar ou criar parceiro
+            // 1. Localizar parceiro (sem criar quando JAPE indisponivel)
             codParc = resolvedHeader.getCodParc();
             if (codParc == null && order.getCustomer() != null) {
-                codParc = findOrCreateParceiro(order.getCustomer(), order.getShippingAddress());
+                try {
+                    codParc = findOrCreateParceiro(order.getCustomer(), order.getShippingAddress());
+                } catch (Exception e2) {
+                    if (isJapeUnavailableError(e2)) {
+                        codParc = findParceiroByCnpjJdbc(order.getCustomer());
+                    } else {
+                        throw e2;
+                    }
+                }
             }
             if (codParc == null) {
                 codParc = getDefaultCodParc();
-                log.warning("Pedido " + order.getOrderId() + ": parceiro nao resolvido por CNPJ, usando fallback CODPARC=" + codParc);
+                log.warning("Pedido " + order.getOrderId() + ": parceiro nao resolvido, usando fallback CODPARC=" + codParc);
             }
 
             // 2. Validar que todos os produtos existem ANTES de criar o pedido
-            validateAllProductsExist(order);
+            try {
+                validateAllProductsExist(order);
+            } catch (Exception e2) {
+                if (!isJapeUnavailableError(e2)) throw e2;
+                log.warning("importOrder " + order.getOrderId() + ": validateAllProducts falhou por JAPE, prosseguindo");
+            }
 
             // 3. Buscar parametros do pedido
             BigDecimal codTipVenda = resolvedHeader.getCodTipVenda();
-            BigDecimal codVend = getCodVend(codParc);
+            BigDecimal codVend = config.getCodVendPadrao();
+            try {
+                BigDecimal vendFromParc = getCodVend(codParc);
+                if (!isNullOrZero(vendFromParc)) codVend = vendFromParc;
+            } catch (Exception e2) {
+                if (!isJapeUnavailableError(e2)) throw e2;
+            }
             if (isNullOrZero(codVend)) {
-                // Parceiro sem vendedor preferencial: usar CODVEND padrao da config
-                codVend = config.getCodVendPadrao();
-                if (isNullOrZero(codVend)) {
-                    codVend = FastchannelConstants.DEFAULT_CODVEND_PADRAO;
-                }
-                log.info("Parceiro " + codParc + " sem CODVEND. Usando padrao: " + codVend);
-                // Atualizar CODVEND no parceiro para futuras importacoes
-                setCodVendParceiro(codParc, codVend);
+                codVend = FastchannelConstants.DEFAULT_CODVEND_PADRAO;
             }
             BigDecimal codNat = resolvedHeader.getCodNat();
             BigDecimal codCenCus = resolvedHeader.getCodCenCus();
@@ -3034,6 +3063,42 @@ public class OrderService {
             log.info("OrderService: JAPE/mge-core disponivel.");
         }
         return jdbc;
+    }
+
+    private FastchannelHeaderMappingService.ResolvedHeader buildDefaultResolvedHeader() {
+        FastchannelHeaderMappingService.ResolvedHeader h = new FastchannelHeaderMappingService.ResolvedHeader();
+        h.setCodEmp(config.getCodemp());
+        h.setCodTipOper(config.getCodTipOper());
+        h.setCodNat(config.getCodNat());
+        h.setCodCenCus(config.getCodCenCus());
+        h.setCodVend(config.getCodVendPadrao());
+        h.setCodParc(config.getCodParcPadrao());
+        h.setCodTipVenda(config.getTipNeg());
+        return h;
+    }
+
+    private BigDecimal findParceiroByCnpjJdbc(OrderCustomerDTO customer) {
+        if (customer == null || customer.getCpfCnpj() == null) return null;
+        String doc = customer.getCpfCnpj().replaceAll("[^0-9]", "");
+        if (doc.isEmpty()) return null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement(
+                "SELECT TOP 1 CODPARC FROM TGFPAR WHERE REPLACE(REPLACE(REPLACE(CGC_CPF, '.', ''), '-', ''), '/', '') = ?");
+            stmt.setString(1, doc);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("CODPARC");
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "findParceiroByCnpjJdbc falhou", e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
+        }
+        return null;
     }
 
     private static boolean isJapeUnavailableError(Exception e) {
