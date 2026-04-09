@@ -1,0 +1,3 @@
+<jboss-web>
+    <context-root>addon-fastchannel</context-root>
+</jboss-web>
