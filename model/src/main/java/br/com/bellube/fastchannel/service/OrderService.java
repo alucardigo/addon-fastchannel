@@ -78,13 +78,6 @@ public class OrderService {
         int imported = 0;
         int pageSize = config.getBatchSize();
 
-        // Order import REQUER JAPE para criar notas no Sankhya.
-        // Skip graceful se JAPE ainda nao inicializou.
-        if (!isJapeReady()) {
-            log.fine("OrderService: JAPE/mge-core indisponivel. Importacao de pedidos sera tentada no proximo ciclo.");
-            return 0;
-        }
-
         try {
             Timestamp lastSync = config.getLastOrderSync();
             log.info("Iniciando importacao de pedidos. ultima sync: " + lastSync);
@@ -2187,7 +2180,26 @@ public class OrderService {
                 log.info("forceStatusUpdate: pedido " + orderId + " -> " + status +
                         (nuNota != null ? " (NUNOTA=" + nuNota + ")" : "") + " via JDBC direto.");
             } else {
-                log.warning("forceStatusUpdate: UPDATE retornou 0 linhas para orderId=" + orderId);
+                // Registro nao existe - INSERT via JDBC
+                DBUtil.closeStatement(stmt);
+                stmt = conn.prepareStatement(
+                    "INSERT INTO AD_FCPEDIDO (ORDER_ID, STATUS_IMPORT, ERRO_MSG, NUNOTA, DH_IMPORTACAO) " +
+                    "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)");
+                stmt.setString(1, truncatedOrderId);
+                stmt.setString(2, truncatedStatus);
+                stmt.setString(3, truncatedMsg);
+                if (nuNota != null) {
+                    stmt.setBigDecimal(4, nuNota);
+                } else {
+                    stmt.setNull(4, java.sql.Types.NUMERIC);
+                }
+                try {
+                    stmt.executeUpdate();
+                    log.info("forceStatusUpdate: INSERT pedido " + orderId + " -> " + status + " via JDBC direto.");
+                } catch (Exception insertEx) {
+                    // UK violation = outro thread inseriu antes, tudo ok
+                    log.fine("forceStatusUpdate: INSERT falhou (provavel concorrencia): " + insertEx.getMessage());
+                }
             }
         } catch (Exception e) {
             log.log(Level.SEVERE, "forceStatusUpdate FALHOU para orderId=" + orderId + " status=" + status +
