@@ -304,6 +304,7 @@ public class OrderService {
             return OrderImportClaim.claimed();
         }
 
+        // Tentar JAPE primeiro, fallback JDBC
         JdbcWrapper jdbc = null;
         try {
             jdbc = openJdbc();
@@ -342,8 +343,72 @@ public class OrderService {
             }
 
             throw new Exception("Nao foi possivel assumir o processamento idempotente do pedido " + order.getOrderId() + ".");
+        } catch (Exception e) {
+            if (isJapeUnavailableError(e)) {
+                log.info("claimOrderImport: JAPE indisponivel, usando JDBC direto para " + order.getOrderId());
+                return claimOrderImportJdbc(order);
+            }
+            throw e;
         } finally {
             closeJdbc(jdbc);
+        }
+    }
+
+    private OrderImportClaim claimOrderImportJdbc(OrderDTO order) throws Exception {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+
+            // Tentar INSERT (claim PROCESSANDO)
+            try {
+                stmt = conn.prepareStatement(
+                    "INSERT INTO AD_FCPEDIDO (ORDER_ID, STATUS_IMPORT, DH_IMPORTACAO) " +
+                    "VALUES (?, ?, CURRENT_TIMESTAMP)");
+                stmt.setString(1, order.getOrderId());
+                stmt.setString(2, STATUS_IMPORT_PROCESSANDO);
+                stmt.executeUpdate();
+                log.info("claimOrderImportJdbc: INSERT OK para " + order.getOrderId());
+                return OrderImportClaim.claimed();
+            } catch (Exception insertEx) {
+                // UK violation = ja existe, verificar status
+                DBUtil.closeStatement(stmt);
+            }
+
+            // Verificar registro existente
+            stmt = conn.prepareStatement(
+                "SELECT NUNOTA, STATUS_IMPORT, DH_IMPORTACAO FROM AD_FCPEDIDO WHERE ORDER_ID = ?");
+            stmt.setString(1, order.getOrderId());
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                BigDecimal existingNuNota = rs.getBigDecimal("NUNOTA");
+                String existingStatus = rs.getString("STATUS_IMPORT");
+
+                if (existingNuNota != null && existingNuNota.compareTo(BigDecimal.ZERO) > 0) {
+                    return OrderImportClaim.reused(existingNuNota);
+                }
+
+                // Se está ERRO, tomar posse
+                if ("ERRO".equalsIgnoreCase(existingStatus)) {
+                    DBUtil.closeResultSet(rs);
+                    DBUtil.closeStatement(stmt);
+                    stmt = conn.prepareStatement(
+                        "UPDATE AD_FCPEDIDO SET STATUS_IMPORT = ?, DH_IMPORTACAO = CURRENT_TIMESTAMP " +
+                        "WHERE ORDER_ID = ? AND STATUS_IMPORT = 'ERRO'");
+                    stmt.setString(1, STATUS_IMPORT_PROCESSANDO);
+                    stmt.setString(2, order.getOrderId());
+                    int rows = stmt.executeUpdate();
+                    if (rows > 0) {
+                        log.info("claimOrderImportJdbc: takeover ERRO→PROCESSANDO para " + order.getOrderId());
+                        return OrderImportClaim.claimed();
+                    }
+                }
+            }
+
+            throw new Exception("claimOrderImportJdbc: nao foi possivel assumir pedido " + order.getOrderId());
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
         }
     }
 
