@@ -28,13 +28,12 @@ public class HttpServiceStrategy implements OrderCreationStrategy {
     private static final String SERVICE_PATH_MGECOM = "/mgecom/service.sbr";
     private static final String SERVICE_PATH_MGE = "/mge/service.sbr";
     private static final String[][] LOGIN_SERVICE_COMBINATIONS = {
-            // Fluxo legado: service em /mgecom
-            {SERVICE_PATH_MGECOM, SERVICE_PATH_MGECOM},
-            // Ambientes mistos: login no /mgecom e servico no /mge
-            {SERVICE_PATH_MGECOM, SERVICE_PATH_MGE},
-            // Ambientes em que login so funciona via /mge
+            // PRIORIDADE: login /mge + servico /mgecom (confirmado funcional em homolog e prod)
             {SERVICE_PATH_MGE, SERVICE_PATH_MGECOM},
-            // Ultimo recurso totalmente em /mge
+            // Fluxo legado: tudo em /mgecom
+            {SERVICE_PATH_MGECOM, SERVICE_PATH_MGECOM},
+            // Fallbacks
+            {SERVICE_PATH_MGECOM, SERVICE_PATH_MGE},
             {SERVICE_PATH_MGE, SERVICE_PATH_MGE}
     };
 
