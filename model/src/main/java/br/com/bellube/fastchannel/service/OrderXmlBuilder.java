@@ -410,10 +410,31 @@ public class OrderXmlBuilder {
                 }
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "SQL direto tambem falhou ao buscar CODVOL do produto " + codProd, e);
+            log.log(Level.FINE, "NativeSql falhou ao buscar CODVOL, tentando DBUtil", e);
         } finally {
             closeQuietly(rs);
             closeJdbc(jdbc);
+        }
+        // Tentativa 3: DBUtil JDBC direto (quando JAPE indisponivel)
+        java.sql.Connection conn = null;
+        java.sql.PreparedStatement stmt = null;
+        java.sql.ResultSet rs3 = null;
+        try {
+            conn = br.com.bellube.fastchannel.util.DBUtil.getConnection();
+            stmt = conn.prepareStatement("SELECT CODVOL FROM TGFPRO WHERE CODPROD = ?");
+            stmt.setBigDecimal(1, codProd);
+            rs3 = stmt.executeQuery();
+            if (rs3.next()) {
+                String codVol = trimToNull(rs3.getString("CODVOL"));
+                if (codVol != null) {
+                    log.info("[OrderXmlBuilder] CODVOL via DBUtil para CODPROD " + codProd + ": " + codVol);
+                    return codVol;
+                }
+            }
+        } catch (Exception e3) {
+            log.log(Level.WARNING, "DBUtil tambem falhou ao buscar CODVOL do produto " + codProd, e3);
+        } finally {
+            br.com.bellube.fastchannel.util.DBUtil.closeAll(rs3, stmt, conn);
         }
         log.warning("[OrderXmlBuilder] Nao foi possivel determinar CODVOL para CODPROD " + codProd + ". Fallback para 'UN'.");
         return null;
