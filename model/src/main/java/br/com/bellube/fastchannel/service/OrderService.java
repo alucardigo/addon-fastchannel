@@ -78,6 +78,13 @@ public class OrderService {
         int imported = 0;
         int pageSize = config.getBatchSize();
 
+        // Order import REQUER JAPE para criar notas no Sankhya.
+        // Skip graceful se JAPE ainda nao inicializou.
+        if (!isJapeReady()) {
+            log.fine("OrderService: JAPE/mge-core indisponivel. Importacao de pedidos sera tentada no proximo ciclo.");
+            return 0;
+        }
+
         try {
             Timestamp lastSync = config.getLastOrderSync();
             log.info("Iniciando importacao de pedidos. ultima sync: " + lastSync);
@@ -170,7 +177,8 @@ public class OrderService {
                     }
 
                 } catch (Exception e) {
-                    log.log(Level.SEVERE, "Erro ao importar pedido " + target.getOrderId(), e);
+                    Level errorLevel = isJapeUnavailableError(e) ? Level.FINE : Level.SEVERE;
+                    log.log(errorLevel, "Erro ao importar pedido " + target.getOrderId(), e);
                     logService.logOrderImport(target.getOrderId(), null, false,
                             "Cliente=" + (target.getCustomer() != null ? String.valueOf(target.getCustomer().getName()) : "") +
                             " | CPF/CNPJ=" + (target.getCustomer() != null ? String.valueOf(target.getCustomer().getCpfCnpj()) : "") +
@@ -2221,10 +2229,11 @@ public class OrderService {
      * Verifica se pedido ja foi importado.
      */
     private boolean isOrderAlreadyImported(String orderId) {
-        System.err.println("[FC-DIAG] isOrderAlreadyImported called for orderId=" + orderId);
         if (!config.isDuplicateCheckEnabled()) {
             log.warning("Flag DISABLE_DUPLICATE_CHECK esta ativa mas verificacao de duplicidade e obrigatoria. Ignorando flag.");
         }
+
+        // Tentar JAPE primeiro, fallback para JDBC
         JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
@@ -2274,10 +2283,45 @@ public class OrderService {
             }
             return foundInCab;
         } catch (Exception e) {
+            if (isJapeUnavailableError(e)) {
+                log.fine("JAPE indisponivel em isOrderAlreadyImported, tentando JDBC");
+                return isOrderAlreadyImportedJdbc(orderId);
+            }
             log.log(Level.WARNING, "Erro ao verificar pedido existente", e);
         } finally {
             closeQuietly(rs);
             closeJdbc(jdbc);
+        }
+        return false;
+    }
+
+    private boolean isOrderAlreadyImportedJdbc(String orderId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = br.com.bellube.fastchannel.util.DBUtil.getConnection();
+            Timestamp processingCutoff = new Timestamp(System.currentTimeMillis() - (ORDER_IMPORT_CLAIM_TIMEOUT_MINUTES * 60L * 1000L));
+
+            stmt = conn.prepareStatement(
+                "SELECT 1 FROM AD_FCPEDIDO " +
+                "WHERE ORDER_ID = ? " +
+                "AND (NUNOTA IS NOT NULL " +
+                "OR UPPER(COALESCE(STATUS_IMPORT, '')) IN ('SUCESSO', 'IMPORTADO') " +
+                "OR (UPPER(COALESCE(STATUS_IMPORT, '')) = 'PROCESSANDO' " +
+                "AND DH_IMPORTACAO IS NOT NULL AND DH_IMPORTACAO >= ?))");
+            stmt.setString(1, orderId);
+            stmt.setTimestamp(2, processingCutoff);
+
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                log.fine("Pedido " + orderId + " ja importado (JDBC fallback).");
+                return true;
+            }
+        } catch (Exception e2) {
+            log.log(Level.FINE, "Fallback JDBC isOrderAlreadyImported falhou", e2);
+        } finally {
+            br.com.bellube.fastchannel.util.DBUtil.closeAll(rs, stmt, conn);
         }
         return false;
     }
@@ -2880,10 +2924,43 @@ public class OrderService {
         }
     }
 
+    private static volatile boolean japeReady = false;
+
+    /**
+     * Retorna true se JAPE/mge-core esta disponivel.
+     * Usado para skip graceful durante warmup do WildFly.
+     */
+    static boolean isJapeReady() {
+        if (japeReady) return true;
+        try {
+            EntityFacadeFactory.getCoreFacade();
+            japeReady = true;
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private JdbcWrapper openJdbc() throws Exception {
         JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
         jdbc.openSession();
+        if (!japeReady) {
+            japeReady = true;
+            log.info("OrderService: JAPE/mge-core disponivel.");
+        }
         return jdbc;
+    }
+
+    private static boolean isJapeUnavailableError(Exception e) {
+        Throwable current = e;
+        while (current != null) {
+            String msg = current.getMessage();
+            if (msg != null && msg.contains("Erro ao inicializar datasource para provider mge-core")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     private void closeJdbc(JdbcWrapper jdbc) {
