@@ -255,12 +255,16 @@ public class OrderService {
                 log.warning("Pedido " + order.getOrderId() + ": parceiro nao resolvido, usando fallback CODPARC=" + codParc);
             }
 
-            // 2. Validar que todos os produtos existem ANTES de criar o pedido
-            try {
-                validateAllProductsExist(order);
-            } catch (Exception e2) {
-                if (!isJapeUnavailableError(e2)) throw e2;
-                log.warning("importOrder " + order.getOrderId() + ": validateAllProducts falhou por JAPE, prosseguindo");
+            // 2. Validar produtos - pular se JAPE indisponivel
+            // (a criacao do pedido falhara naturalmente se produto nao existir)
+            if (!japeReady) {
+                log.info("importOrder " + order.getOrderId() + ": JAPE indisponivel, pulando validateAllProductsExist");
+            } else {
+                try {
+                    validateAllProductsExist(order);
+                } catch (Exception e2) {
+                    log.warning("importOrder " + order.getOrderId() + ": validateAllProducts falhou, prosseguindo: " + e2.getMessage());
+                }
             }
 
             // 3. Buscar parametros do pedido
