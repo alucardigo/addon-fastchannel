@@ -8,6 +8,7 @@ import br.com.bellube.fastchannel.job.PriceFullSyncJob;
 import br.com.bellube.fastchannel.job.StockFullSyncJob;
 import br.com.bellube.fastchannel.service.DeparaService;
 import br.com.bellube.fastchannel.util.DBUtil;
+import br.com.sankhya.jape.core.JapeSession;
 import br.com.sankhya.jape.vo.DynamicVO;
 
 import java.math.BigDecimal;
@@ -58,6 +59,81 @@ public final class FastchannelAutoProvisioning {
             startInternalFallback();
         } else {
             log.info("AutoProvisionamento: scheduler nativo ativo.");
+        }
+
+        // [CRIT-PURGE] One-shot: processar entradas pendentes em AD_FCDUPPURGE
+        // usando a sessao JDBC do WildFly (inherit corretas SET options do DataSource).
+        // Essas entradas vieram da sessao sqlcmd que falhava em trigger SSPMB
+        // por mismatch de SET ANSI_NULLS/QUOTED_IDENTIFIER com indexed views.
+        try {
+            runOneShotPurgeAdNumFastDups();
+        } catch (Throwable t) {
+            log.log(Level.WARNING, "One-shot purge AD_NUMFAST dups falhou (nao-fatal)", t);
+        }
+    }
+
+    /**
+     * [CRIT-PURGE] Purga duplicatas AD_NUMFAST remanescentes bloqueadas pela trigger
+     * TRG_INC_UPD_DLT_TGFFIN_SSPMB (Sankhya bug com SET options OFF em indexed views).
+     *
+     * Le NUNOTAs de AD_FCDUPPURGE onde TGFCAB.AD_NUMFAST ainda nao foi nullado e
+     * aplica UPDATE via JDBC do DataSource pool - que herda as SET options corretas
+     * do WildFly (opcoes default do MGEDS).
+     *
+     * Fail-open: qualquer erro apenas loga warning, nao bloqueia startup.
+     */
+    private static void runOneShotPurgeAdNumFastDups() {
+        java.sql.Connection conn = null;
+        java.sql.PreparedStatement selectPs = null;
+        java.sql.PreparedStatement updatePs = null;
+        java.sql.ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            selectPs = conn.prepareStatement(
+                "SELECT p.NUNOTA FROM AD_FCDUPPURGE p " +
+                "INNER JOIN TGFCAB c ON c.NUNOTA = p.NUNOTA " +
+                "WHERE c.AD_NUMFAST IS NOT NULL"
+            );
+            rs = selectPs.executeQuery();
+            java.util.List<java.math.BigDecimal> pending = new java.util.ArrayList<>();
+            while (rs.next()) {
+                pending.add(rs.getBigDecimal(1));
+            }
+            DBUtil.closeAll(rs, selectPs, null);
+            rs = null; selectPs = null;
+
+            if (pending.isEmpty()) {
+                log.fine("AutoProvisionamento: nenhuma entrada AD_FCDUPPURGE pendente.");
+                return;
+            }
+
+            log.info("AutoProvisionamento: [CRIT-PURGE] " + pending.size()
+                + " entrada(s) AD_FCDUPPURGE pendentes. Executando UPDATE via JDBC pool.");
+
+            updatePs = conn.prepareStatement(
+                "UPDATE TGFCAB SET AD_NUMFAST = NULL WHERE NUNOTA = ? AND AD_NUMFAST IS NOT NULL");
+
+            int success = 0;
+            int failed = 0;
+            for (java.math.BigDecimal nunota : pending) {
+                try {
+                    updatePs.setBigDecimal(1, nunota);
+                    updatePs.executeUpdate();
+                    success++;
+                } catch (Exception e) {
+                    failed++;
+                    if (failed < 5) {
+                        log.log(Level.WARNING, "[CRIT-PURGE] UPDATE falhou para NUNOTA=" + nunota, e);
+                    }
+                }
+            }
+
+            log.info("AutoProvisionamento: [CRIT-PURGE] concluido. success=" + success + " failed=" + failed);
+        } catch (Exception e) {
+            log.log(Level.WARNING, "[CRIT-PURGE] Erro geral no one-shot purge", e);
+        } finally {
+            DBUtil.closeAll(rs, selectPs, null);
+            DBUtil.closeAll(null, updatePs, conn);
         }
     }
 
@@ -201,7 +277,7 @@ public final class FastchannelAutoProvisioning {
                     return;
                 }
                 LAST_ACTUAL_RUN_MS.put(name, System.currentTimeMillis());
-                task.run();
+                runInJapeSession(name, task);
             } catch (Exception e) {
                 log.log(Level.WARNING, "AutoProvisionamento[" + name + "] falhou.", e);
             } finally {
@@ -224,13 +300,48 @@ public final class FastchannelAutoProvisioning {
                 if (!cfg.isAtivo()) {
                     return;
                 }
-                task.run();
+                runInJapeSession(name, task);
             } catch (Exception e) {
                 log.log(Level.WARNING, "AutoProvisionamento[" + name + "] falhou.", e);
             } finally {
                 running.set(false);
             }
         }, initialDelay, period, unit);
+    }
+
+    /**
+     * [CRIT-4] Executa uma task do scheduler dentro de um contexto JapeSession.
+     *
+     * Por que eh necessario:
+     *  1) O ScheduledExecutorService (daemon thread) nao tem contexto EJB,
+     *     entao EntityFacadeFactory.getCoreFacade() lanca "Erro ao inicializar
+     *     datasource para provider mge-core" porque o DataSourceDescriptor e
+     *     resolvido via JNDI atrelado ao ThreadLocal do JAPE.
+     *  2) Sem JapeSession.open() aberta, AD_FCMAP (upsertOrderMapping) nao e gravado,
+     *     fazendo o Dashboard mentir ("Importados Hoje: 0") e pedidos mostrarem "--"
+     *     em Cliente/Data/ValorTotal (relatorio QA 2026-04-09).
+     *  3) Sem contexto de usuario, CACSP.incluirNota grava as notas com CODUSU=0
+     *     (anonimo) e o AD_NUMFAST pode nao persistir (relatorio homolog 2026-04-09).
+     *
+     * Estrategia: tentar abrir JapeSession; se falhar (classloader ainda quebrado),
+     * cai para execucao crua para NAO bloquear importacao. Fail-open por design.
+     */
+    private static void runInJapeSession(String name, ThrowingRunnable task) throws Exception {
+        JapeSession.SessionHandle hnd = null;
+        try {
+            try {
+                hnd = JapeSession.open();
+            } catch (Throwable openT) {
+                log.log(Level.FINE, "AutoProvisionamento[" + name
+                    + "]: JapeSession.open() falhou, rodando sem session ("
+                    + openT.getClass().getSimpleName() + ")", openT);
+            }
+            task.run();
+        } finally {
+            if (hnd != null) {
+                try { JapeSession.close(hnd); } catch (Throwable ignored) {}
+            }
+        }
     }
 
     private static long readPositiveLong(String key, long fallback) {

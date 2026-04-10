@@ -22,7 +22,10 @@ import java.util.logging.Logger;
 public class FastchannelDirectServlet extends HttpServlet {
 
     private static final Logger log = Logger.getLogger(FastchannelDirectServlet.class.getName());
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    // [P3-7] SimpleDateFormat NAO eh thread-safe. ThreadLocal evita corrupcao de JSON
+    // sob requisicoes concorrentes (ex.: dois admins abrindo a tela simultaneamente).
+    private static final ThreadLocal<SimpleDateFormat> dateFormat =
+        ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
 
     // Registro de services
     private static final Map<String, ServiceInfo> services = new HashMap<>();
@@ -66,11 +69,9 @@ public class FastchannelDirectServlet extends HttpServlet {
         services.put("FCPrecosSP.listFcTables", new ServiceInfo(FCPrecosService.class, "listFcTables"));
         services.put("FCPrecosSP.listBatches", new ServiceInfo(FCPrecosService.class, "listBatches"));
 
-        // Fila
-        services.put("FCFilaSP.stats", new ServiceInfo(FCFilaService.class, "stats"));
-        services.put("FCFilaSP.list", new ServiceInfo(FCFilaService.class, "list"));
-        services.put("FCFilaSP.reprocessar", new ServiceInfo(FCFilaService.class, "reprocessar"));
-        services.put("FCFilaSP.limparErros", new ServiceInfo(FCFilaService.class, "limparErros"));
+        // [CRIT-3] FCFilaSP removido - tela de Fila de Sincronizacao descontinuada.
+        // A tabela AD_FCQUEUE permanece usada internamente por QueueService/OutboxProcessorJob
+        // (Outbox pattern), mas nao ha mais superficie UI ou fc-direct endpoint.
 
         // Logs
         services.put("FCLogsSP.list", new ServiceInfo(FCLogsService.class, "list"));
@@ -236,10 +237,10 @@ public class FastchannelDirectServlet extends HttpServlet {
             return obj.toString();
         }
         if (obj instanceof Date) {
-            return "\"" + dateFormat.format((Date) obj) + "\"";
+            return "\"" + dateFormat.get().format((Date) obj) + "\"";
         }
         if (obj instanceof Timestamp) {
-            return "\"" + dateFormat.format((Timestamp) obj) + "\"";
+            return "\"" + dateFormat.get().format((Timestamp) obj) + "\"";
         }
         if (obj instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) obj;

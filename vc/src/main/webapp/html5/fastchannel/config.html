@@ -511,12 +511,6 @@
                                placeholder="5" value="5">
                         <div class="form-hint">Intervalo em minutos para importar pedidos</div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Intervalo Processamento Fila (min)</label>
-                        <input type="number" id="intervalQueue" name="intervalQueue" class="form-input"
-                               placeholder="2" value="2">
-                        <div class="form-hint">Intervalo em minutos para processar fila de saida</div>
-                    </div>
                 </div>
 
                 <div class="form-row">
@@ -718,7 +712,6 @@
                     document.getElementById('subscriptionKeyConsumption').value = data.subscriptionKeyConsumption || '';
                     document.getElementById('timeout').value = data.timeout || 30000;
                     document.getElementById('intervalOrders').value = data.intervalOrders || 5;
-                    document.getElementById('intervalQueue').value = data.intervalQueue || 2;
                     document.getElementById('logRetention').value = data.logRetention || 30;
                     document.getElementById('maxRetries').value = data.maxRetries || 3;
                     document.getElementById('syncStatusEnabled').checked = data.syncStatusEnabled === true || data.syncStatusEnabled === 'S';
@@ -770,7 +763,6 @@
                     subscriptionKeyConsumption: document.getElementById('subscriptionKeyConsumption').value,
                     timeout: parseInt(document.getElementById('timeout').value) || 30000,
                     intervalOrders: parseInt(document.getElementById('intervalOrders').value) || 5,
-                    intervalQueue: parseInt(document.getElementById('intervalQueue').value) || 2,
                     logRetention: parseInt(document.getElementById('logRetention').value) || 30,
                     maxRetries: parseInt(document.getElementById('maxRetries').value) || 3,
                     syncStatusEnabled: document.getElementById('syncStatusEnabled').checked,

@@ -217,6 +217,39 @@ public class QueueService {
     }
 
     /**
+     * [TASK-2] Claim atomico: marca PENDENTE -> PROCESSANDO apenas se o item ainda estiver PENDENTE.
+     *
+     * Resolve race condition quando OutboxProcessorJob executa em paralelo (schedulerFixedDelay
+     * nao garante serializacao entre execucoes se uma ficar lenta). O SELECT + UPDATE em
+     * duas etapas permitia dois workers pegarem o mesmo IDQUEUE.
+     *
+     * Retorna true se o claim foi efetivo (este caller assumiu processamento),
+     * false se outro thread venceu o race (caller deve pular o item silenciosamente).
+     */
+    public boolean tryMarkAsProcessing(BigDecimal idQueue) {
+        if (idQueue == null) return false;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            conn = DBUtil.getConnection();
+            stmt = conn.prepareStatement(
+                "UPDATE AD_FCQUEUE SET STATUS = ?, DH_PROCESSAMENTO = CURRENT_TIMESTAMP, " +
+                "DH_ALTERACAO = CURRENT_TIMESTAMP " +
+                "WHERE IDQUEUE = ? AND STATUS = ?");
+            stmt.setString(1, FastchannelConstants.QUEUE_STATUS_PROCESSANDO);
+            stmt.setBigDecimal(2, idQueue);
+            stmt.setString(3, FastchannelConstants.QUEUE_STATUS_PENDENTE);
+            int rows = stmt.executeUpdate();
+            return rows > 0;
+        } catch (Exception e) {
+            log.log(Level.WARNING, "tryMarkAsProcessing falhou para IDQUEUE=" + idQueue, e);
+            return false;
+        } finally {
+            DBUtil.closeAll(null, stmt, conn);
+        }
+    }
+
+    /**
      * Marca item como enviado com sucesso.
      */
     public void markAsSuccess(BigDecimal idQueue) {

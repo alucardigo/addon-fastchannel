@@ -127,7 +127,7 @@ public class NotificationService {
     private String buildOrderErrorBody(String orderId, String errorMsg) {
         return "<html><body>" +
             "<h2>Erro na Importacao de Pedido FastChannel</h2>" +
-            "<p><strong>Order ID:</strong> " + orderId + "</p>" +
+            "<p><strong>Order ID:</strong> " + escapeHtml(orderId) + "</p>" +
             "<p><strong>Erro:</strong> " + escapeHtml(errorMsg) + "</p>" +
             "<p><strong>Acao:</strong> Verifique o log de integracao no addon FastChannel.</p>" +
             "<hr><p style='color:#999'>Addon FastChannel - Notificacao Automatica</p>" +
@@ -156,6 +156,10 @@ public class NotificationService {
 
     private String escapeHtml(String s) {
         if (s == null) return "";
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+        return s.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }

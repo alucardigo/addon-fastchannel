@@ -50,9 +50,11 @@ public class HomologFixRegressionTest {
 
     @Test
     public void frontendScreens_mustParseNaiveBackendTimestampAndShowRangePagination() throws Exception {
+        // [CRIT-3/TASK-5] fila.html foi removida definitivamente do addon.
+        // A tela de Fila de Sincronizacao foi descontinuada; AD_FCQUEUE continua usada
+        // internamente pelo QueueService/OutboxProcessorJob (Outbox pattern).
         assertTrue(readWebSource("dashboard.html").contains("function parseBackendDate(dateStr)"));
         assertTrue(readWebSource("estoque.html").contains("function parseBackendDate(dateStr)"));
-        assertTrue(readWebSource("fila.html").contains("function parseBackendDate(dateStr)"));
         assertTrue(readWebSource("logs.html").contains("function parseBackendDate(dateStr)"));
         assertTrue(readWebSource("pedidos.html").contains("function parseBackendDate(dateStr)"));
         assertTrue(readWebSource("precos.html").contains("function parseBackendDate(dateStr)"));
@@ -61,8 +63,17 @@ public class HomologFixRegressionTest {
                 readWebSource("precos.html").contains("`Mostrando ${start}-${end} de ${total}`"));
         assertTrue("Tela de logs deve mostrar intervalo real da pagina",
                 readWebSource("logs.html").contains("`Mostrando ${start}-${end} de ${total}`"));
-        assertTrue("Tela da fila deve mostrar intervalo real da pagina",
-                readWebSource("fila.html").contains("`Mostrando ${start}-${end} de ${total}`"));
+
+        // Nao deve existir fila.html nem backend FCFilaSP
+        assertFalse("fila.html deve ter sido removido", webSourceExists("fila.html"));
+        String servlet = readMainSource("br/com/bellube/fastchannel/web/FastchannelDirectServlet.java");
+        assertFalse("FCFilaSP deve estar fora do servlet", servlet.contains("FCFilaSP."));
+        assertFalse("FCFilaService deve estar removido", servlet.contains("FCFilaService"));
+    }
+
+    private boolean webSourceExists(String fileName) {
+        Path path = Paths.get("..", "vc", "src", "main", "webapp", "html5", "fastchannel", fileName);
+        return Files.exists(path);
     }
 
     private String readMainSource(String relativePath) throws IOException {

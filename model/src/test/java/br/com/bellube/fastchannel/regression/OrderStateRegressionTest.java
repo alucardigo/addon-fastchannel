@@ -281,6 +281,84 @@ public class OrderStateRegressionTest {
                 importarPedidosBody.contains("result.put(\"success\", true);"));
     }
 
+    /**
+     * [TASK-1] claimOrderImportJdbc precisa retomar claims stale (PROCESSANDO vencido,
+     * ERRO, PENDENTE, vazio) quando JAPE esta indisponivel, simetria com takeOverOrderMappingClaim.
+     */
+    @Test
+    public void claimOrderImportJdbc_mustTakeOverStaleProcessingAndPending() throws Exception {
+        String src = readMainSource("br/com/bellube/fastchannel/service/OrderService.java");
+
+        // Primeira assertiva: deve existir menção explicita ao takeover de stale PROCESSANDO
+        assertTrue("claimOrderImportJdbc deve cobrir takeover do estado PROCESSANDO stale",
+                src.contains("PROCESSANDO-STALE"));
+        // Deve aceitar multiplos estados de vacuum
+        assertTrue("claimOrderImportJdbc deve aceitar takeover de ERRO, PENDENTE ou status vazio",
+                src.contains("UPPER(COALESCE(STATUS_IMPORT, '')) IN ('ERRO', 'PENDENTE', '')"));
+        // Deve comparar DH_IMPORTACAO com staleCutoff
+        assertTrue("claimOrderImportJdbc deve comparar DH_IMPORTACAO < staleCutoff",
+                src.contains("DH_IMPORTACAO < ?"));
+        // Deve usar isClaimStale helper ou equivalente com ORDER_IMPORT_CLAIM_TIMEOUT_MINUTES
+        assertTrue("claimOrderImportJdbc deve utilizar ORDER_IMPORT_CLAIM_TIMEOUT_MINUTES",
+                src.contains("ORDER_IMPORT_CLAIM_TIMEOUT_MINUTES"));
+        // Nao deve mais existir o fluxo legado que so aceitava ERRO
+        assertFalse("claimOrderImportJdbc nao deve mais restringir takeover apenas a ERRO",
+                src.contains("STATUS_IMPORT = 'ERRO'")
+                && src.contains("AND STATUS_IMPORT = 'ERRO'")
+                && !src.contains("PROCESSANDO-STALE"));
+    }
+
+    /**
+     * [TASK-3] forceStatusUpdateFull deve truncar NOME_CLIENTE e CPF_CNPJ via
+     * truncateToColumn antes de escrever, assim como faz com STATUS_IMPORT e ERRO_MSG.
+     */
+    @Test
+    public void forceStatusUpdateFull_mustTruncateNomeAndCpf() throws Exception {
+        String src = readMainSource("br/com/bellube/fastchannel/service/OrderService.java");
+
+        int start = src.indexOf("private void forceStatusUpdateFull(");
+        assertTrue("metodo forceStatusUpdateFull deve existir", start > 0);
+        int nextMethod = src.indexOf("private void forceStatusUpdate(", start + 1);
+        String body = nextMethod > start ? src.substring(start, nextMethod) : src.substring(start);
+
+        assertTrue("forceStatusUpdateFull deve truncar NOME_CLIENTE via truncateToColumn(..., fieldSizes.nomeCliente)",
+                body.contains("truncateToColumn(order.getCustomer().getName(), fieldSizes.nomeCliente)"));
+        assertTrue("forceStatusUpdateFull deve truncar CPF_CNPJ via truncateToColumn(..., fieldSizes.cpfCnpj)",
+                body.contains("truncateToColumn(order.getCustomer().getCpfCnpj(), fieldSizes.cpfCnpj)"));
+    }
+
+    /**
+     * [TASK-2] QueueService deve expor tryMarkAsProcessing CAS-style (UPDATE com
+     * guard WHERE STATUS='PENDENTE'), e OutboxProcessorJob deve usa-lo.
+     */
+    @Test
+    public void outboxProcessorJob_mustUseAtomicClaim() throws Exception {
+        String queueSrc = readMainSource("br/com/bellube/fastchannel/service/QueueService.java");
+        String jobSrc = readMainSource("br/com/bellube/fastchannel/job/OutboxProcessorJob.java");
+
+        assertTrue("QueueService deve ter metodo tryMarkAsProcessing",
+                queueSrc.contains("public boolean tryMarkAsProcessing(BigDecimal idQueue)"));
+        assertTrue("tryMarkAsProcessing deve usar guard WHERE STATUS = ? (PENDENTE)",
+                queueSrc.contains("WHERE IDQUEUE = ? AND STATUS = ?"));
+        assertTrue("OutboxProcessorJob deve usar tryMarkAsProcessing em vez de markAsProcessing cego",
+                jobSrc.contains("queueService.tryMarkAsProcessing(item.getIdQueue())"));
+    }
+
+    /**
+     * [TASK-6] OrderStatusSyncJob deve usar cache para evitar replay do historico inteiro.
+     */
+    @Test
+    public void orderStatusSyncJob_mustNotReplayEntireHistory() throws Exception {
+        String src = readMainSource("br/com/bellube/fastchannel/job/OrderStatusSyncJob.java");
+
+        assertTrue("OrderStatusSyncJob deve manter cache de orders ja sincronizados",
+                src.contains("alreadyMarkedAsSyncedCache"));
+        assertTrue("OrderStatusSyncJob deve ter marker de bootstrap",
+                src.contains("syncedCacheBootstrapped"));
+        assertTrue("Sql incremental apos bootstrap deve filtrar por DH_IMPORTACAO > ?",
+                src.contains("AND DH_IMPORTACAO > ?"));
+    }
+
     private String readMainSource(String relativeMainJavaPath) throws IOException {
         Path fromRepoRoot = Paths.get("model", "src", "main", "java")
                 .resolve(relativeMainJavaPath);

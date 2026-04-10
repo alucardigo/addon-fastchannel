@@ -47,6 +47,11 @@ public class ProdutoListener extends PersistenceEventAdapter {
             }
 
             DynamicVO vo = (DynamicVO) event.getVo();
+            // [P2-8] event.getVo() pode vir null em cascata - evita NPE
+            if (vo == null) {
+                log.fine("ProdutoListener: event.getVo() null em insert/update, ignorando");
+                return;
+            }
             BigDecimal codProd = vo.asBigDecimal("CODPROD");
             String referencia = vo.asString("REFERENCIA");
             String ativo = vo.asString("ATIVO");
@@ -85,6 +90,11 @@ public class ProdutoListener extends PersistenceEventAdapter {
             }
 
             DynamicVO vo = (DynamicVO) event.getVo();
+            // [P2-8] event.getVo() pode vir null em cascata - evita NPE
+            if (vo == null) {
+                log.fine("ProdutoListener: event.getVo() null em delete, ignorando");
+                return;
+            }
             BigDecimal codProd = vo.asBigDecimal("CODPROD");
 
             DeparaService deparaService = DeparaService.getInstance();

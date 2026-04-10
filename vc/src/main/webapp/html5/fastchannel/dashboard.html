@@ -940,24 +940,7 @@
             }
         }
 
-        // Process queue
-        async function processarFila() {
-            if (!confirm('Processar todos os itens pendentes na fila?')) return;
-            const btn = document.getElementById('btnProcessarFila');
-            btn.disabled = true;
-            btn.innerHTML = '<div class="spinner"></div> Processando...';
-
-            try {
-                const result = await callService('FCAdminSP.processarFila', {});
-                showSuccess(result.message || 'Processamento concluido');
-                loadDashboard();
-            } catch (e) {
-                showError('Erro ao processar: ' + e.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Processar Fila';
-            }
-        }
+        // [CRIT-3] Funcao processarFila() removida - Fila de Sincronizacao foi descontinuada.
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {

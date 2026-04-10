@@ -6,7 +6,6 @@
         <folder id="fc_operacoes" description="Operacoes">
             <ui id="FC_Dashboard" url="/$ctx/html5/fastchannel/dashboard.html" description="Dashboard"/>
             <ui id="FC_Pedidos" url="/$ctx/html5/fastchannel/pedidos.html" description="Pedidos"/>
-            <ui id="FC_Fila" url="/$ctx/html5/fastchannel/fila.html" description="Fila de Sincronizacao"/>
             <ui id="FC_Estoque" url="/$ctx/html5/fastchannel/estoque.html" description="Estoque"/>
             <ui id="FC_Precos" url="/$ctx/html5/fastchannel/precos.html" description="Precos"/>
         </folder>

@@ -19,8 +19,9 @@ public class ConstantsAndConfigTest {
     }
 
     @Test
-    public void defaultCodVendPadrao_is167() {
-        assertEquals(new BigDecimal("167"), FastchannelConstants.DEFAULT_CODVEND_PADRAO);
+    public void defaultCodVendPadrao_is281() {
+        // Bellube production: vendedor FAST = 281 (definido no add-on, doc: knowledge_httpservicestrategy_breakthrough.md)
+        assertEquals(new BigDecimal("281"), FastchannelConstants.DEFAULT_CODVEND_PADRAO);
     }
 
     @Test

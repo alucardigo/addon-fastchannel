@@ -257,7 +257,8 @@ public class OrderService {
 
             // 2. Validar produtos - pular se JAPE indisponivel
             // (a criacao do pedido falhara naturalmente se produto nao existir)
-            if (!japeReady) {
+            // [CRIT-JAPE] Usar isJapeReady() para inicializar lazy o flag japeReady
+            if (!isJapeReady()) {
                 log.info("importOrder " + order.getOrderId() + ": JAPE indisponivel, pulando validateAllProductsExist");
             } else {
                 try {
@@ -405,7 +406,18 @@ public class OrderService {
                 log.info("claimOrderImportJdbc: INSERT OK para " + order.getOrderId());
                 return OrderImportClaim.claimed();
             } catch (Exception insertEx) {
-                // UK violation = ja existe, verificar status
+                // [P0-4] Apenas UK violation deve cair no fluxo "ja existe".
+                // Outras exceptions (DataSource down, schema mismatch, disco cheio, etc.)
+                // precisam ser logadas e relancadas para evitar corrupcao silenciosa.
+                if (!isOrderMappingUniqueViolation(insertEx)) {
+                    log.log(java.util.logging.Level.SEVERE,
+                        "claimOrderImportJdbc: INSERT AD_FCPEDIDO falhou por erro NAO-UK para orderId="
+                            + order.getOrderId(), insertEx);
+                    DBUtil.closeStatement(stmt);
+                    throw insertEx;
+                }
+                log.fine("claimOrderImportJdbc: UK violation detectada para orderId="
+                    + order.getOrderId() + "; verificando registro existente");
                 DBUtil.closeStatement(stmt);
             }
 
@@ -416,25 +428,61 @@ public class OrderService {
             rs = stmt.executeQuery();
             if (rs.next()) {
                 BigDecimal existingNuNota = rs.getBigDecimal("NUNOTA");
-                String existingStatus = rs.getString("STATUS_IMPORT");
+                String existingStatus = trimToNull(rs.getString("STATUS_IMPORT"));
+                Timestamp existingDh = rs.getTimestamp("DH_IMPORTACAO");
+                DBUtil.closeResultSet(rs);
+                DBUtil.closeStatement(stmt);
+                rs = null; stmt = null;
 
                 if (existingNuNota != null && existingNuNota.compareTo(BigDecimal.ZERO) > 0) {
                     return OrderImportClaim.reused(existingNuNota);
                 }
 
-                // Se está ERRO, tomar posse
-                if ("ERRO".equalsIgnoreCase(existingStatus)) {
-                    DBUtil.closeResultSet(rs);
-                    DBUtil.closeStatement(stmt);
+                // [TASK-1] JDBC takeover - espelhar a logica de takeOverOrderMappingClaim (JAPE path).
+                // Aceita takeover em: ERRO, PENDENTE, status nulo/vazio, OU PROCESSANDO com DH vencido.
+                String normalized = existingStatus == null ? "" : existingStatus.toUpperCase();
+                boolean vacant = normalized.isEmpty()
+                    || "ERRO".equals(normalized)
+                    || "PENDENTE".equals(normalized);
+                boolean staleProcessing = "PROCESSANDO".equals(normalized)
+                    && isClaimStale(existingDh);
+
+                if (vacant || staleProcessing) {
+                    long staleMs = System.currentTimeMillis()
+                        - (ORDER_IMPORT_CLAIM_TIMEOUT_MINUTES * 60L * 1000L);
+                    Timestamp staleCutoff = new Timestamp(staleMs);
                     stmt = conn.prepareStatement(
-                        "UPDATE AD_FCPEDIDO SET STATUS_IMPORT = ?, DH_IMPORTACAO = CURRENT_TIMESTAMP " +
-                        "WHERE ORDER_ID = ? AND STATUS_IMPORT = 'ERRO'");
+                        "UPDATE AD_FCPEDIDO SET "
+                        + "NUNOTA = NULL, STATUS_IMPORT = ?, DH_IMPORTACAO = CURRENT_TIMESTAMP, ERRO_MSG = NULL "
+                        + "WHERE ORDER_ID = ? "
+                        + "AND NUNOTA IS NULL "
+                        + "AND ( "
+                        + "  UPPER(COALESCE(STATUS_IMPORT, '')) IN ('ERRO', 'PENDENTE', '') "
+                        + "  OR (UPPER(COALESCE(STATUS_IMPORT, '')) = 'PROCESSANDO' "
+                        + "      AND (DH_IMPORTACAO IS NULL OR DH_IMPORTACAO < ?))"
+                        + ")");
                     stmt.setString(1, STATUS_IMPORT_PROCESSANDO);
                     stmt.setString(2, order.getOrderId());
+                    stmt.setTimestamp(3, staleCutoff);
                     int rows = stmt.executeUpdate();
                     if (rows > 0) {
-                        log.info("claimOrderImportJdbc: takeover ERRO→PROCESSANDO para " + order.getOrderId());
+                        log.info("claimOrderImportJdbc: takeover "
+                            + (staleProcessing ? "PROCESSANDO-STALE" : normalized.isEmpty() ? "VAZIO" : normalized)
+                            + " -> PROCESSANDO para " + order.getOrderId()
+                            + (staleProcessing ? " (timeout=" + ORDER_IMPORT_CLAIM_TIMEOUT_MINUTES + "min)" : ""));
                         return OrderImportClaim.claimed();
+                    }
+                    // Concorrencia: outro thread vence no CAS. Reler estado para decidir.
+                    DBUtil.closeStatement(stmt);
+                    stmt = conn.prepareStatement(
+                        "SELECT NUNOTA FROM AD_FCPEDIDO WHERE ORDER_ID = ?");
+                    stmt.setString(1, order.getOrderId());
+                    rs = stmt.executeQuery();
+                    if (rs.next()) {
+                        BigDecimal concurrentNuNota = rs.getBigDecimal("NUNOTA");
+                        if (concurrentNuNota != null && concurrentNuNota.compareTo(BigDecimal.ZERO) > 0) {
+                            return OrderImportClaim.reused(concurrentNuNota);
+                        }
                     }
                 }
             }
@@ -443,6 +491,17 @@ public class OrderService {
         } finally {
             DBUtil.closeAll(rs, stmt, conn);
         }
+    }
+
+    /**
+     * [TASK-1] Retorna true se o timestamp DH_IMPORTACAO eh anterior ao cutoff do timeout
+     * (ou eh null, que tratamos como "mais velho que qualquer cutoff possivel").
+     */
+    private boolean isClaimStale(Timestamp dhImportacao) {
+        if (dhImportacao == null) return true;
+        long cutoffMs = System.currentTimeMillis()
+            - (ORDER_IMPORT_CLAIM_TIMEOUT_MINUTES * 60L * 1000L);
+        return dhImportacao.getTime() < cutoffMs;
     }
 
     private OrderMappingSnapshot loadOrderMapping(JdbcWrapper jdbc, String orderId) throws Exception {
@@ -2186,6 +2245,17 @@ public class OrderService {
      */
     private void upsertOrderMapping(OrderDTO order, BigDecimal nuNota, BigDecimal codParc,
                                     String statusImport, String errorMsg) {
+        String oid = order != null ? order.getOrderId() : "null";
+
+        // Se JAPE nao esta disponivel, ir direto para JDBC sem tentar NativeSql
+        // [CRIT-JAPE] Usar isJapeReady() para inicializar lazy o flag japeReady
+        if (!isJapeReady()) {
+            if (oid != null && !"null".equals(oid)) {
+                forceStatusUpdateFull(oid, order, nuNota, codParc, statusImport, errorMsg);
+            }
+            return;
+        }
+
         JdbcWrapper jdbc = null;
         try {
             jdbc = openJdbc();
@@ -2220,20 +2290,10 @@ public class OrderService {
             }
 
         } catch (Exception e) {
-            String oid = order != null ? order.getOrderId() : "null";
-            log.log(Level.SEVERE, "ERRO CRITICO ao registrar mapeamento na AD_FCPEDIDO (orderId=" +
-                    oid + ", nuNota=" + nuNota +
-                    ", status=" + statusImport + "): " + e.getMessage() +
-                    ". Verifique se a tabela AD_FCPEDIDO existe e tem as colunas corretas.", e);
-            // Backup via JDBC direto - nao pode lancar excecao aqui
+            log.log(Level.FINE, "upsertOrderMapping via JAPE falhou para " + oid + ", usando JDBC direto: " + e.getMessage());
+            japeReady = false;
             if (oid != null && !"null".equals(oid)) {
-                forceStatusUpdate(oid, nuNota, statusImport, errorMsg != null ? errorMsg : e.getMessage());
-            }
-            try {
-                logService.error(LogService.OP_ORDER_IMPORT,
-                        "upsertOrderMapping falhou para " + oid + " (status=" + statusImport + "): " + e.getMessage(), e);
-            } catch (Exception logEx) {
-                // ignora falha de log
+                forceStatusUpdateFull(oid, order, nuNota, codParc, statusImport, errorMsg);
             }
         } finally {
             closeJdbc(jdbc);
@@ -2246,6 +2306,78 @@ public class OrderService {
      */
     private void forceStatusErro(String orderId, String errorMsg) {
         forceStatusUpdate(orderId, null, STATUS_IMPORT_ERRO, errorMsg);
+    }
+
+    /**
+     * JDBC completo para salvar todos os campos do pedido quando JAPE nao esta disponivel.
+     * Substitui upsertOrderMapping quando japeReady=false.
+     */
+    private void forceStatusUpdateFull(String orderId, OrderDTO order, BigDecimal nuNota,
+                                       BigDecimal codParc, String statusImport, String errorMsg) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            conn = DBUtil.getConnection();
+            OrderMappingFieldSizes fieldSizes = getOrderMappingFieldSizes();
+            String sql = "UPDATE AD_FCPEDIDO SET NUNOTA = ?, CODPARC = ?, STATUS_IMPORT = ?, " +
+                    "DH_IMPORTACAO = CURRENT_TIMESTAMP, ERRO_MSG = ?, " +
+                    "VALOR_TOTAL = ?, VALOR_FRETE = ?, " +
+                    "NOME_CLIENTE = COALESCE(?, NOME_CLIENTE), CPF_CNPJ = COALESCE(?, CPF_CNPJ) " +
+                    "WHERE ORDER_ID = ?";
+            stmt = conn.prepareStatement(sql);
+            int idx = 1;
+            if (nuNota != null) { stmt.setBigDecimal(idx++, nuNota); } else { stmt.setNull(idx++, java.sql.Types.NUMERIC); }
+            if (codParc != null) { stmt.setBigDecimal(idx++, codParc); } else { stmt.setNull(idx++, java.sql.Types.NUMERIC); }
+            stmt.setString(idx++, truncateToColumn(statusImport, fieldSizes.statusImport));
+            stmt.setString(idx++, truncateToColumn(errorMsg, fieldSizes.erroMsg));
+            if (order != null && order.getTotal() != null) { stmt.setBigDecimal(idx++, order.getTotal()); } else { stmt.setNull(idx++, java.sql.Types.NUMERIC); }
+            BigDecimal frete = order != null ? getFrete(order) : null;
+            if (frete != null) { stmt.setBigDecimal(idx++, frete); } else { stmt.setNull(idx++, java.sql.Types.NUMERIC); }
+            // [TASK-3] Truncar NOME_CLIENTE e CPF_CNPJ para os limites de coluna resolvidos.
+            // Sem isso, o ultimo recurso falha com "String or binary data would be truncated"
+            // e o pedido fica em PROCESSANDO perpetuo.
+            String nome = order != null && order.getCustomer() != null
+                ? truncateToColumn(order.getCustomer().getName(), fieldSizes.nomeCliente)
+                : null;
+            stmt.setString(idx++, nome);
+            String cpf = order != null && order.getCustomer() != null
+                ? truncateToColumn(order.getCustomer().getCpfCnpj(), fieldSizes.cpfCnpj)
+                : null;
+            stmt.setString(idx++, cpf);
+            stmt.setString(idx++, truncateToColumn(orderId, fieldSizes.orderId));
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                log.info("upsertOrderMapping(JDBC): pedido " + orderId + " -> " + statusImport +
+                        (nuNota != null ? " (NUNOTA=" + nuNota + ")" : ""));
+            } else {
+                // INSERT
+                DBUtil.closeStatement(stmt);
+                stmt = conn.prepareStatement(
+                    "INSERT INTO AD_FCPEDIDO (ORDER_ID, NUNOTA, CODPARC, STATUS_IMPORT, ERRO_MSG, " +
+                    "VALOR_TOTAL, VALOR_FRETE, NOME_CLIENTE, CPF_CNPJ, DH_IMPORTACAO) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
+                idx = 1;
+                stmt.setString(idx++, truncateToColumn(orderId, fieldSizes.orderId));
+                if (nuNota != null) { stmt.setBigDecimal(idx++, nuNota); } else { stmt.setNull(idx++, java.sql.Types.NUMERIC); }
+                if (codParc != null) { stmt.setBigDecimal(idx++, codParc); } else { stmt.setNull(idx++, java.sql.Types.NUMERIC); }
+                stmt.setString(idx++, truncateToColumn(statusImport, fieldSizes.statusImport));
+                stmt.setString(idx++, truncateToColumn(errorMsg, fieldSizes.erroMsg));
+                if (order != null && order.getTotal() != null) { stmt.setBigDecimal(idx++, order.getTotal()); } else { stmt.setNull(idx++, java.sql.Types.NUMERIC); }
+                if (frete != null) { stmt.setBigDecimal(idx++, frete); } else { stmt.setNull(idx++, java.sql.Types.NUMERIC); }
+                stmt.setString(idx++, nome);
+                stmt.setString(idx++, cpf);
+                try {
+                    stmt.executeUpdate();
+                    log.info("upsertOrderMapping(JDBC): INSERT pedido " + orderId + " -> " + statusImport);
+                } catch (Exception insertEx) {
+                    log.fine("upsertOrderMapping(JDBC): INSERT falhou (concorrencia): " + insertEx.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "forceStatusUpdateFull FALHOU para orderId=" + orderId, e);
+        } finally {
+            br.com.bellube.fastchannel.util.DBUtil.closeAll(null, stmt, conn);
+        }
     }
 
     /**
@@ -3050,7 +3182,14 @@ public class OrderService {
             japeReady = true;
             log.info("OrderService: JAPE/mge-core disponivel.");
             return true;
-        } catch (Exception e) {
+        } catch (Throwable t) {
+            // [CRIT-2/BUG-2] catch Throwable (nao Exception) para tambem capturar
+            // NoClassDefFoundError/LinkageError quando jape-api/jape-core/mge-core
+            // estiverem ausentes ou em conflito de classloader. Sem isso o health-check
+            // propaga LinkageError e o fallback JDBC nao e usado.
+            log.log(java.util.logging.Level.WARNING,
+                "OrderService.isJapeReady: JAPE indisponivel ("
+                    + t.getClass().getSimpleName() + ": " + t.getMessage() + "). Usando fallback JDBC.", t);
             return false;
         } finally {
             if (testJdbc != null) {

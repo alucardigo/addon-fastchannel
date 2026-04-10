@@ -140,6 +140,78 @@ tasks.matching { it.name == 'configureAddon' }.all { task ->
     }
 }
 
+// [CRIT-JAPE] Remove jars Sankhya do WAR final que causam classloader conflict.
+//
+// Root cause: libs-master.jar contem br.com.sankhya.jape.core.JapeSessionLifeCycle (interface)
+// e mge-modelcore-master.jar contem utils/VOs de JAPE. Quando o WAR carrega essas classes
+// via seu classloader isolado, a implementacao JapeSessionLifeCycleImpl (do erpcore) que
+// implementa a interface do classloader pai NAO pode ser castada para a interface da nossa
+// copia - java.lang.ClassCastException em Jape.parametersLoaded:342.
+//
+// Esses jars sao dependencias do plugin addonstudio usadas apenas em COMPILE-TIME. Em runtime
+// o WildFly ja fornece via erpcore.ear (classloader pai). Removemos do WAR/EAR final para
+// forcar o uso das classes do classloader pai. Nao afeta compilacao.
+//
+// Jars filtrados:
+//   - libs-master.jar             (~1.5MB, contem br.com.sankhya.jape.*, parameter.*, dwf.*)
+//   - mge-modelcore-master.jar    (~5.5MB, contem br.com.sankhya.modelcore.*)
+def BLOCKED_RUNTIME_JARS = [
+    'libs-master.jar',
+    'mge-modelcore-master.jar'
+] as Set
+
+// Configuracao apos a evaluation de subprojects para pegar :vc:war corretamente
+gradle.projectsEvaluated {
+    def stripAction = {
+        ['vc/buildGradle/libs', 'build/dist/web', 'build/tmp/warWithExtension/WEB-INF/lib', 'build/dist/lib']
+            .collect { file(it) }
+            .findAll { it.exists() }
+            .each { dir ->
+                fileTree(dir).include('*.war', '**/*.war').files.each { warFile ->
+                    stripJarsFromWar(warFile, BLOCKED_RUNTIME_JARS)
+                }
+                fileTree(dir).include('*.jar').files.each { jarFile ->
+                    if (BLOCKED_RUNTIME_JARS.contains(jarFile.name)) {
+                        logger.lifecycle("[CRIT-JAPE] removing conflicting jar from dir: ${jarFile}")
+                        jarFile.delete()
+                    }
+                }
+            }
+    }
+    [':vc:war', ':vc:buildWar', 'configureAddon', 'gerarAddon', 'publishAddon'].each { taskPath ->
+        def t = tasks.findByPath(taskPath)
+        if (t != null) {
+            t.doLast(stripAction)
+        }
+    }
+}
+
+ext.stripJarsFromWar = { java.io.File warFile, Set blockedNames ->
+    if (!warFile.exists()) return
+    def tmpDir = new File(buildDir, "tmp/warStrip-${warFile.name}-${System.currentTimeMillis()}")
+    tmpDir.mkdirs()
+    try {
+        def anyRemoved = false
+        def ant = new groovy.ant.AntBuilder()
+        ant.unzip(src: warFile.absolutePath, dest: tmpDir.absolutePath, overwrite: 'true')
+        new File(tmpDir, 'WEB-INF/lib').with { libDir ->
+            if (libDir.exists()) {
+                libDir.listFiles()?.findAll { blockedNames.contains(it.name) }?.each { conflict ->
+                    logger.lifecycle("[CRIT-JAPE] removing from ${warFile.name}: WEB-INF/lib/${conflict.name}")
+                    conflict.delete()
+                    anyRemoved = true
+                }
+            }
+        }
+        if (anyRemoved) {
+            warFile.delete()
+            ant.zip(destfile: warFile.absolutePath, basedir: tmpDir.absolutePath)
+        }
+    } finally {
+        tmpDir.deleteDir()
+    }
+}
+
 // No template, extension.xml fica apenas no EAR (build/dist/extension.xml).
 // Evita copiar extension.xml para dentro do WAR para nao duplicar inicializacao.
 tasks.register('syncExtensionResources') {
@@ -345,7 +417,7 @@ tasks.whenTaskAdded { task ->
 
             // Garante instancias
             ensureInstance('FC_Configuracao', 'AD_FCCONFIG', 'Configuracao Fastchannel')
-            ensureInstance('FC_FilaSincronizacao', 'AD_FCQUEUE', 'Fila de Sincronizacao Fastchannel')
+            // [CRIT-3] FC_FilaSincronizacao removida - Fila de Sincronizacao descontinuada
             ensureInstance('FC_DePara', 'AD_FCDEPARA', 'De-Para Sankhya x Fastchannel')
             ensureInstance('FC_Pedidos', 'AD_FCPEDIDO', 'Pedidos Fastchannel')
             ensureInstance('FC_Logs', 'AD_FCLOG', 'Logs da Integracao Fastchannel')

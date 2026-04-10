@@ -107,7 +107,14 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
 
             for (QueueItemDTO item : items) {
                 try {
-                    queueService.markAsProcessing(item.getIdQueue());
+                    // [TASK-2] Claim atomico: so processa se ninguem mais pegou este item.
+                    // Evita double processing quando duas execucoes do job rodam em paralelo
+                    // (por exemplo quando uma execucao anterior ficou lenta e nao terminou a tempo).
+                    if (!queueService.tryMarkAsProcessing(item.getIdQueue())) {
+                        log.fine("Item IDQUEUE=" + item.getIdQueue()
+                            + " ja foi claimado por outra execucao, pulando.");
+                        continue;
+                    }
 
                     switch (item.getEntityType()) {
                         case FastchannelConstants.ENTITY_ESTOQUE:

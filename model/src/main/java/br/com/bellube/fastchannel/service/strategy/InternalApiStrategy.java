@@ -58,8 +58,13 @@ public class InternalApiStrategy implements OrderCreationStrategy {
             // Verificar se consegue obter EntityFacade
             EntityFacade facade = EntityFacadeFactory.getCoreFacade();
             return facade != null;
-        } catch (Exception e) {
-            log.log(Level.WARNING, "InternalAPI nao disponivel", e);
+        } catch (Throwable t) {
+            // [CRIT-2/BUG-1] catch Throwable (nao Exception) para tambem capturar
+            // NoClassDefFoundError/LinkageError quando jape-api/jape-core/mge-core
+            // estiverem ausentes ou em conflito de classloader. Sem isso, o orchestrator
+            // nao consegue cair para a proxima strategy e a importacao trava.
+            log.log(Level.WARNING, "InternalAPI nao disponivel: " + t.getClass().getSimpleName()
+                + " - " + t.getMessage(), t);
             return false;
         }
     }
@@ -213,14 +218,11 @@ public class InternalApiStrategy implements OrderCreationStrategy {
 
         Timestamp dhTipOper = resolveDhTipOper(codTipOper);
         Timestamp dhTipVenda = codTipVenda != null ? resolveDhTipVenda(codTipVenda) : null;
-        // DHTIPOPER e DHTIPVENDA sao opcionais - se nao resolvidos, usar timestamp atual
         if (!isNullOrZero(codTipOper) && dhTipOper == null) {
-            dhTipOper = new java.sql.Timestamp(System.currentTimeMillis());
-            log.warning("DHTIPOPER nao resolvido para TOP " + codTipOper + ". Usando timestamp atual.");
+            throw new Exception("DHTIPOPER nao resolvido para CODTIPOPER " + codTipOper + ".");
         }
         if (!isNullOrZero(codTipVenda) && dhTipVenda == null) {
-            dhTipVenda = new java.sql.Timestamp(System.currentTimeMillis());
-            log.warning("DHTIPVENDA nao resolvido para TIPVENDA " + codTipVenda + ". Usando timestamp atual.");
+            throw new Exception("DHTIPVENDA nao resolvido para CODTIPVENDA " + codTipVenda + ".");
         }
         BigDecimal codUsu = resolveCodUsuLogado();
         FluidCreateVO cabBuilder = cabDAO.create()
@@ -2795,7 +2797,24 @@ public class InternalApiStrategy implements OrderCreationStrategy {
         return value == null || value.compareTo(BigDecimal.ZERO) <= 0;
     }
 
+    // [P0-7] Cache de existencia de colunas por JVM lifetime.
+    // Antes: cada chamada abria uma sessao JdbcWrapper + query a INFORMATION_SCHEMA.
+    // Pedidos com 10 itens disparavam ~600 queries de metadata (60 por item).
+    // Agora: 1 query por (tabela.coluna) por JVM.
+    private static final java.util.concurrent.ConcurrentHashMap<String, Boolean> COLUMN_EXISTS_CACHE
+        = new java.util.concurrent.ConcurrentHashMap<>();
+
     private boolean hasTableColumn(String tableName, String columnName) {
+        if (tableName == null || columnName == null) return false;
+        String key = tableName.toUpperCase() + "." + columnName.toUpperCase();
+        Boolean cached = COLUMN_EXISTS_CACHE.get(key);
+        if (cached != null) return cached;
+        boolean exists = doHasTableColumn(tableName, columnName);
+        COLUMN_EXISTS_CACHE.put(key, exists);
+        return exists;
+    }
+
+    private boolean doHasTableColumn(String tableName, String columnName) {
         JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {

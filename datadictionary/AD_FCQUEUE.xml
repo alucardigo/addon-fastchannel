@@ -6,21 +6,9 @@
         <primaryKey>
             <field name="IDQUEUE"/>
         </primaryKey>
-        <instances>
-            <instance name="FC_FilaSincronizacao">
-                <description>Fila de Sincronizacao Fastchannel</description>
-                <toolbar>
-                    <action name="reprocessarItem" description="Reprocessar Selecionados"
-                            icon="fa-refresh" type="JAVA"
-                            classname="br.com.bellube.fastchannel.action.ReprocessarItemAction">
-                    </action>
-                    <action name="limparErros" description="Limpar Itens com Erro Fatal"
-                            icon="fa-trash" type="JAVA"
-                            classname="br.com.bellube.fastchannel.action.LimparErrosFataisAction">
-                    </action>
-                </toolbar>
-            </instance>
-        </instances>
+        <!-- [CRIT-3] Instancia DWF FC_FilaSincronizacao removida - Fila de Sincronizacao descontinuada.
+             A tabela AD_FCQUEUE permanece para uso interno do Outbox Pattern (QueueService). -->
+        <instances/>
         <fields>
             <field name="IDQUEUE" dataType="INTEIRO" size="10" mandatory="S" allowSearch="S" visibleOnSearch="S">
                 <description>ID do item na fila</description>

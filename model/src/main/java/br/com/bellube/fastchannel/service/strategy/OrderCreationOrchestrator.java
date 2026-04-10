@@ -49,6 +49,17 @@ public class OrderCreationOrchestrator {
 
         log.info("=== Iniciando criacao de pedido " + order.getOrderId() + " com fallback automatico ===");
 
+        // [CRIT-1] Idempotency: ANTES de tentar qualquer strategy, verificar se ja existe NUNOTA
+        // com este AD_NUMFAST. Resolve os 1981 duplicados encontrados no homolog (33% das notas FC)
+        // que aconteciam quando uma strategy comitava no DB mas a resposta perdia o NUNOTA, fazendo
+        // o orchestrator cair para a proxima e criar OUTRA nota.
+        BigDecimal existingNuNota = findExistingNuNotaByAdNumFast(order.getOrderId());
+        if (existingNuNota != null) {
+            log.info("=== IDEMPOTENT: pedido " + order.getOrderId() + " ja existe como NUNOTA "
+                + existingNuNota + " (TGFCAB.AD_NUMFAST). Reutilizando. ===");
+            return existingNuNota;
+        }
+
         List<String> failedStrategies = new ArrayList<>();
         Exception rootException = null;
         Exception lastException = null;
@@ -94,6 +105,34 @@ public class OrderCreationOrchestrator {
             ". Ultimo erro: " + (lastException != null ? lastException.getMessage() : "desconhecido"),
             rootException != null ? rootException : lastException
         );
+    }
+
+    /**
+     * [CRIT-1] Idempotency check: busca NUNOTA existente em TGFCAB.AD_NUMFAST.
+     * Falha de leitura nao bloqueia o fluxo (apenas loga warning) - eh fail-open por design,
+     * para nao impedir importacao caso o DB esteja indisponivel.
+     */
+    private BigDecimal findExistingNuNotaByAdNumFast(String orderId) {
+        if (orderId == null || orderId.isEmpty()) return null;
+        java.sql.Connection conn = null;
+        java.sql.PreparedStatement ps = null;
+        java.sql.ResultSet rs = null;
+        try {
+            conn = br.com.bellube.fastchannel.util.DBUtil.getConnection();
+            ps = conn.prepareStatement(
+                "SELECT TOP 1 NUNOTA FROM TGFCAB WHERE AD_NUMFAST = ? ORDER BY NUNOTA DESC");
+            ps.setString(1, orderId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal(1);
+            }
+            return null;
+        } catch (Exception e) {
+            log.log(Level.FINE, "Idempotency check AD_NUMFAST=" + orderId + " falhou (fail-open)", e);
+            return null;
+        } finally {
+            br.com.bellube.fastchannel.util.DBUtil.closeAll(rs, ps, conn);
+        }
     }
 
     /**

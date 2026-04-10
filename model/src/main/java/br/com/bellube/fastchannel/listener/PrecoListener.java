@@ -48,6 +48,11 @@ public class PrecoListener extends PersistenceEventAdapter {
             }
 
             DynamicVO vo = (DynamicVO) event.getVo();
+            // [P2-8] Em deletes em cascata, event.getVo() pode vir null - evita NPE silencioso
+            if (vo == null) {
+                log.fine("PrecoListener: event.getVo() null, ignorando evento");
+                return;
+            }
             BigDecimal codProd = vo.asBigDecimal("CODPROD");
             BigDecimal nuTab = vo.asBigDecimal("NUTAB");
 

@@ -75,6 +75,32 @@ public class OrderXmlBuilder {
         return xml.toString();
     }
 
+    /**
+     * Constroi XML em paridade com o legado HTTP (models/erp/sankhya.js).
+     * Este modo deve ser usado apenas no fallback HTTP para manter o mesmo
+     * contrato de campos do integrador antigo.
+     */
+    public String buildLegacyHttpIncluirNotaXml(OrderDTO order, BigDecimal codParc,
+                                                BigDecimal codTipVenda, BigDecimal codVend,
+                                                BigDecimal codNat, BigDecimal codCenCus) throws Exception {
+        BigDecimal codVendResolved = resolveCodVendForOrder(codParc, codVend);
+
+        StringBuilder xml = new StringBuilder();
+        xml.append("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
+        xml.append("<serviceRequest serviceName=\"CACSP.incluirNota\">\n");
+        xml.append("  <requestBody>\n");
+        xml.append("    <nota>\n");
+
+        appendLegacyHttpCabecalho(xml, order, codParc, codTipVenda, codVendResolved, codNat, codCenCus);
+        appendLegacyHttpItens(xml, order);
+
+        xml.append("    </nota>\n");
+        xml.append("  </requestBody>\n");
+        xml.append("</serviceRequest>");
+
+        return xml.toString();
+    }
+
     private BigDecimal resolveCodVendForOrder(BigDecimal codParc, BigDecimal codVendInformado) throws Exception {
         BigDecimal codVendResolved = codVendInformado;
         if (codVendResolved == null || codVendResolved.compareTo(BigDecimal.ZERO) <= 0) {
@@ -100,7 +126,9 @@ public class OrderXmlBuilder {
             codLocal = config.getCodLocal();
         }
 
-        String dtNeg = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
+        // [P3-7] SimpleDateFormat nao eh thread-safe; java.time eh imutavel.
+        String dtNeg = java.time.LocalDate.now()
+            .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
         xml.append("      <cabecalho>\n");
         if (codEmp == null || codTipOper == null) {
@@ -169,6 +197,54 @@ public class OrderXmlBuilder {
         String obsInterna = buildObservacaoInterna(order);
         if (obsInterna != null && !obsInterna.isEmpty() && supportsCabField("OBSERVACAOINTERNA")) {
             xml.append("        <OBSERVACAOINTERNA>").append(xmlEscape(obsInterna)).append("</OBSERVACAOINTERNA>\n");
+        }
+
+        xml.append("      </cabecalho>\n");
+    }
+
+    private void appendLegacyHttpCabecalho(StringBuilder xml, OrderDTO order, BigDecimal codParc,
+                                           BigDecimal codTipVenda, BigDecimal codVend,
+                                           BigDecimal codNat, BigDecimal codCenCus) {
+        BigDecimal codEmp = order.getCodEmp();
+        BigDecimal codTipOper = order.getCodTipOper();
+        if (codTipOper == null) {
+            codTipOper = config.getCodTipOper();
+        }
+
+        // [P3-7] SimpleDateFormat nao eh thread-safe; java.time eh imutavel.
+        String dtNeg = java.time.LocalDate.now()
+            .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+        xml.append("      <cabecalho>\n");
+        if (codEmp == null || codTipOper == null) {
+            throw new IllegalStateException("CODEMP/CODTIPOPER nao resolvidos via de-para");
+        }
+        xml.append("        <NUNOTA/>\n");
+        xml.append("        <TIPMOV>P</TIPMOV>\n");
+        xml.append("        <DTNEG>").append(dtNeg).append("</DTNEG>\n");
+        if (codTipVenda != null) {
+            xml.append("        <CODTIPVENDA>").append(codTipVenda).append("</CODTIPVENDA>\n");
+        }
+        xml.append("        <AD_MCAPORTAL>P</AD_MCAPORTAL>\n");
+        xml.append("        <CIF_FOB>C</CIF_FOB>\n");
+        if (codNat != null) {
+            xml.append("        <CODNAT>").append(codNat).append("</CODNAT>\n");
+        }
+        if (codCenCus != null) {
+            xml.append("        <CODCENCUS>").append(codCenCus).append("</CODCENCUS>\n");
+        }
+        xml.append("        <CODPARC>").append(codParc).append("</CODPARC>\n");
+        xml.append("        <CODTIPOPER>").append(codTipOper).append("</CODTIPOPER>\n");
+        xml.append("        <CODEMP>").append(codEmp).append("</CODEMP>\n");
+        xml.append("        <CODVEND>").append(codVend).append("</CODVEND>\n");
+        xml.append("        <VLRFRETE>").append(normalizeMoney(getFrete(order))).append("</VLRFRETE>\n");
+        xml.append("        <AD_NUMFAST>").append(xmlEscape(order.getOrderId())).append("</AD_NUMFAST>\n");
+
+        String obs = buildObservacao(order);
+        if (obs != null && !obs.isEmpty()) {
+            xml.append("        <OBSERVACAO><![CDATA[")
+                    .append(obs)
+                    .append("]]></OBSERVACAO>\n");
         }
 
         xml.append("      </cabecalho>\n");
@@ -265,6 +341,69 @@ public class OrderXmlBuilder {
         }
 
         xml.append("      </itens>\n");
+    }
+
+    private void appendLegacyHttpItens(StringBuilder xml, OrderDTO order) throws Exception {
+        xml.append("      <itens INFORMARPRECO=\"True\">\n");
+
+        for (OrderItemDTO item : order.getItems()) {
+            BigDecimal codProd = deparaService.resolveCodProdForOrderItem(item);
+            if (codProd == null) {
+                throw new Exception("Produto nao encontrado para SKU: " + item.getSku() +
+                        ". Pedido " + order.getOrderId() + " nao pode ser importado.");
+            }
+
+            String codVol = resolveCodVol(item, codProd);
+            String origProd = getOrigProd(codProd);
+            if (origProd == null || origProd.isEmpty()) {
+                origProd = "0";
+            }
+            BigDecimal quantity = sanitizeQuantity(item, order);
+            quantity = adjustQuantityForEmbalagem(quantity, codProd, item.getSku(), order.getOrderId());
+            BigDecimal unitPrice = sanitizeUnitPrice(item, quantity, order);
+
+            xml.append("        <item>\n");
+            xml.append("          <NUNOTA/>\n");
+            xml.append("          <SEQUENCIA/>\n");
+            xml.append("          <CODPROD>").append(codProd).append("</CODPROD>\n");
+            xml.append("          <CODVOL>").append(xmlEscape(codVol)).append("</CODVOL>\n");
+            xml.append("          <ORIGPROD>").append(xmlEscape(origProd)).append("</ORIGPROD>\n");
+            xml.append("          <ORIGPRODPAD>").append(xmlEscape(origProd)).append("</ORIGPRODPAD>\n");
+            xml.append("          <VLRUNIT>").append(normalizeMoney(unitPrice)).append("</VLRUNIT>\n");
+            xml.append("          <PERCDESC>").append(resolveLegacyPercDesc(item, quantity, unitPrice)).append("</PERCDESC>\n");
+            if (isBlank(item.getGradeControlId())) {
+                xml.append("          <CONTROLE/>\n");
+            } else {
+                xml.append("          <CONTROLE>").append(xmlEscape(item.getGradeControlId().trim())).append("</CONTROLE>\n");
+            }
+            xml.append("          <QTDNEG>").append(quantity).append("</QTDNEG>\n");
+            xml.append("        </item>\n");
+        }
+
+        xml.append("      </itens>\n");
+    }
+
+    private BigDecimal resolveLegacyPercDesc(OrderItemDTO item, BigDecimal quantity, BigDecimal unitPrice) {
+        BigDecimal discount = item != null ? item.getDiscount() : null;
+        if (discount == null || discount.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0 || unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal totalSemDesc = unitPrice.multiply(quantity);
+        if (totalSemDesc.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal percDesc = discount
+                .divide(totalSemDesc, 4, BigDecimal.ROUND_HALF_UP)
+                .multiply(new BigDecimal("100"));
+        if (percDesc.compareTo(BigDecimal.ZERO) < 0 || percDesc.compareTo(new BigDecimal("100")) >= 0) {
+            return BigDecimal.ZERO;
+        }
+        return percDesc;
     }
 
     private BigDecimal resolveItemNuTab(ItemPricingData pricingData) {

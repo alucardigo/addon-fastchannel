@@ -259,6 +259,10 @@
             <module export="true" name="deployment.zxing-javase" optional="true" services="import"/>
             <module export="true" name="deployment.iitext-addons" optional="true" services="import"/>
             <module export="true" name="deployment.jmx-jsr932" optional="true" services="import"/>
+            <!-- [CRIT-5] mge-wrapper / mge-bff dependencies necessarias para resolver
+                 a hierarquia de classes do JapeSessionLifeCycleImpl. Sem isso o provider
+                 'Addon-FastChannel-dwf' falha com ClassCastException no parametersLoaded(). -->
+            <module export="true" name="deployment.mge-wrapper" optional="true" services="import"/>
             <module export="true" name="deployment.mge-modelcore" optional="true" services="import"/>
             <module export="true" name="deployment.mgearmazem-model" optional="true" services="import"/>
             <module export="true" name="deployment.mgecheckout-model" optional="true" services="import"/>

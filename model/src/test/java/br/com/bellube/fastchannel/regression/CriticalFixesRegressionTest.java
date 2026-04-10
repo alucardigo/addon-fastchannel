@@ -73,13 +73,14 @@ public class CriticalFixesRegressionTest {
         assertNotEquals("Canais devem ser diferentes", dist.getChannel(), cons.getChannel());
     }
 
-    // ===================== REGRESSAO: DEFAULT_CODVEND_PADRAO = 167 =====================
+    // ===================== REGRESSAO: DEFAULT_CODVEND_PADRAO = 281 (vendedor FAST Bellube) =====================
 
     @Test
-    public void regression_defaultCodVend_is167_notNull() {
+    public void regression_defaultCodVend_is281_notNull() {
         // Bug original: getDefaultCodVend retornava null porque coluna nao existia
+        // Producao Bellube: vendedor FAST = 281 (nao 167 - 167 era homolog antigo)
         assertNotNull("DEFAULT_CODVEND_PADRAO nao pode ser null", FastchannelConstants.DEFAULT_CODVEND_PADRAO);
-        assertEquals(new BigDecimal("167"), FastchannelConstants.DEFAULT_CODVEND_PADRAO);
+        assertEquals(new BigDecimal("281"), FastchannelConstants.DEFAULT_CODVEND_PADRAO);
     }
 
     // ===================== REGRESSAO: DEFAULT_TOP_PEDIDO = 403 =====================
