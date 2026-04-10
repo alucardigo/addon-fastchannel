@@ -140,24 +140,29 @@ tasks.matching { it.name == 'configureAddon' }.all { task ->
     }
 }
 
-// [CRIT-JAPE] Remove jars Sankhya do WAR final que causam classloader conflict.
+// [CRIT-JAPE] Remove libs-master.jar do WAR final para evitar classloader conflict.
 //
-// Root cause: libs-master.jar contem br.com.sankhya.jape.core.JapeSessionLifeCycle (interface)
-// e mge-modelcore-master.jar contem utils/VOs de JAPE. Quando o WAR carrega essas classes
-// via seu classloader isolado, a implementacao JapeSessionLifeCycleImpl (do erpcore) que
-// implementa a interface do classloader pai NAO pode ser castada para a interface da nossa
-// copia - java.lang.ClassCastException em Jape.parametersLoaded:342.
+// Root cause: libs-master.jar contem br.com.sankhya.jape.core.JapeSessionLifeCycle (interface).
+// Quando o WAR carrega essa interface via seu classloader isolado, a implementacao
+// JapeSessionLifeCycleImpl (do erpcore) que implementa a interface do classloader pai NAO
+// pode ser castada para a copia da interface no WAR -> ClassCastException em
+// Jape.parametersLoaded:342, que quebra a inicializacao do provider JAPE.
 //
-// Esses jars sao dependencias do plugin addonstudio usadas apenas em COMPILE-TIME. Em runtime
-// o WildFly ja fornece via erpcore.ear (classloader pai). Removemos do WAR/EAR final para
-// forcar o uso das classes do classloader pai. Nao afeta compilacao.
+// libs-master.jar eh dependencia do plugin addonstudio usada apenas em COMPILE-TIME.
+// Em runtime o WildFly ja fornece via erpcore.ear (classloader pai).
+//
+// IMPORTANTE: mge-modelcore-master.jar NAO eh removido. Ele contem as VOs de dominio
+// (CabecalhoNotaVO, ItemNotaVO, ParceiroVO), o DynamicEntityLoader do provider DWF do addon,
+// e classes do broker EJB (sun.proxy wrappers) usadas pela ServiceInvokerStrategy.
+// Remove-lo quebra o ServiceInvoker em homolog com "Could not initialize class
+// com.sun.proxy.$Proxy1613" e "Nenhum provedor encontrado para CACSP.incluirNota".
+// Essas VOs sao versoes do addon e nao colidem com o classloader pai porque o pai nao
+// exporta os mesmos FQCNs (ou exporta compativelmente).
 //
 // Jars filtrados:
 //   - libs-master.jar             (~1.5MB, contem br.com.sankhya.jape.*, parameter.*, dwf.*)
-//   - mge-modelcore-master.jar    (~5.5MB, contem br.com.sankhya.modelcore.*)
 def BLOCKED_RUNTIME_JARS = [
-    'libs-master.jar',
-    'mge-modelcore-master.jar'
+    'libs-master.jar'
 ] as Set
 
 // Configuracao apos a evaluation de subprojects para pegar :vc:war corretamente

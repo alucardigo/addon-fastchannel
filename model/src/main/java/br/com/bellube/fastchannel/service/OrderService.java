@@ -949,7 +949,11 @@ public class OrderService {
                 }
             }
         }
-        if (hasColumn(jdbc, "TGFCAB", "AD_DESCONTO_FAST")) {
+        // [AD_DESCONTO_FAST GUARD] Dupla verificacao: coluna fisica + propriedade JAPE do VO.
+        // A coluna pode existir em TGFCAB mas nao estar mapeada no VO de CabecalhoNota
+        // (provider JAPE desatualizado). Sem esse guard, toda importacao explode com
+        // "Propriedade 'AD_DESCONTO_FAST' nao existe para o ValueObject 'CabecalhoNota.ValueObject'".
+        if (hasColumn(jdbc, "TGFCAB", "AD_DESCONTO_FAST") && voHasProperty(cabVO, "TGFCAB", "AD_DESCONTO_FAST")) {
             BigDecimal targetDescontoFast = order != null && order.getProductDiscountCoupon() != null
                     ? order.getProductDiscountCoupon()
                     : BigDecimal.ZERO;
@@ -2469,10 +2473,26 @@ public class OrderService {
 
     /**
      * Verifica se pedido ja foi importado.
+     *
+     * <p>Comportamento controlado pela flag {@link FastchannelConfig#isDuplicateCheckEnabled()}
+     * (AD_FCCONFIG.DISABLE_DUPLICATE_CHECK):</p>
+     * <ul>
+     *   <li><b>Flag desabilitada (default)</b>: bloqueia se existe em AD_FCPEDIDO OU em TGFCAB
+     *       com AD_NUMFAST/AD_FASTCHANNEL_ID correspondente.</li>
+     *   <li><b>Flag ativa</b> (disableDuplicateCheck=S): <b>so</b> bloqueia se houver claim ATIVO
+     *       em AD_FCPEDIDO (NUNOTA setado OU status=PROCESSANDO dentro da janela de timeout).
+     *       NAO consulta TGFCAB. Permite reimportar pedidos historicos do legado sem conflito.</li>
+     * </ul>
+     *
+     * <p>Em ambos os modos a guarda minima (claim ativo) permanece para evitar que duas
+     * execucoes concorrentes criem o mesmo pedido duas vezes na mesma janela - isso nao e
+     * "check de duplicidade historica", e sim "mutex de processamento concorrente".</p>
      */
     private boolean isOrderAlreadyImported(String orderId) {
-        if (!config.isDuplicateCheckEnabled()) {
-            log.warning("Flag DISABLE_DUPLICATE_CHECK esta ativa mas verificacao de duplicidade e obrigatoria. Ignorando flag.");
+        boolean duplicateCheckEnabled = config.isDuplicateCheckEnabled();
+        if (!duplicateCheckEnabled) {
+            log.info("[DISABLE_DUPLICATE_CHECK] Flag ativa para " + orderId
+                + " - verificacao historica desligada. Somente claims ativos bloqueiam.");
         }
 
         // Tentar JAPE primeiro, fallback para JDBC
@@ -2482,26 +2502,49 @@ public class OrderService {
             jdbc = openJdbc();
             Timestamp processingCutoff = new Timestamp(System.currentTimeMillis() - (ORDER_IMPORT_CLAIM_TIMEOUT_MINUTES * 60L * 1000L));
 
+            // [DISABLE_DUPLICATE_CHECK] Com a flag ativa, so bloqueia CLAIM ATIVO (mutex concorrencia):
+            //   - NUNOTA nao-nulo (pedido ja foi criado recentemente e ainda nao foi liberado)
+            //   - STATUS_IMPORT='PROCESSANDO' dentro da janela de timeout (outra execucao esta em voo)
+            // Pedidos em status SUCESSO/IMPORTADO antigos sao REAPROVEITADOS para reimport.
             NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("SELECT 1 FROM AD_FCPEDIDO ");
-            sql.appendSql("WHERE ORDER_ID = :orderId ");
-            sql.appendSql("AND (NUNOTA IS NOT NULL ");
-            sql.appendSql("OR UPPER(COALESCE(STATUS_IMPORT, '')) IN ('SUCESSO', 'IMPORTADO') ");
-            sql.appendSql("OR (UPPER(COALESCE(STATUS_IMPORT, '')) = 'PROCESSANDO' ");
-            sql.appendSql("AND DH_IMPORTACAO IS NOT NULL ");
-            sql.appendSql("AND DH_IMPORTACAO >= :processingCutoff))");
+            if (duplicateCheckEnabled) {
+                sql.appendSql("SELECT 1 FROM AD_FCPEDIDO ");
+                sql.appendSql("WHERE ORDER_ID = :orderId ");
+                sql.appendSql("AND (NUNOTA IS NOT NULL ");
+                sql.appendSql("OR UPPER(COALESCE(STATUS_IMPORT, '')) IN ('SUCESSO', 'IMPORTADO') ");
+                sql.appendSql("OR (UPPER(COALESCE(STATUS_IMPORT, '')) = 'PROCESSANDO' ");
+                sql.appendSql("AND DH_IMPORTACAO IS NOT NULL ");
+                sql.appendSql("AND DH_IMPORTACAO >= :processingCutoff))");
+            } else {
+                // Modo permissivo: apenas claim ATIVO bloqueia (mutex concorrencia)
+                sql.appendSql("SELECT 1 FROM AD_FCPEDIDO ");
+                sql.appendSql("WHERE ORDER_ID = :orderId ");
+                sql.appendSql("AND (UPPER(COALESCE(STATUS_IMPORT, '')) = 'PROCESSANDO' ");
+                sql.appendSql("AND DH_IMPORTACAO IS NOT NULL ");
+                sql.appendSql("AND DH_IMPORTACAO >= :processingCutoff)");
+            }
             sql.setNamedParameter("orderId", orderId);
             sql.setNamedParameter("processingCutoff", processingCutoff);
 
             rs = sql.executeQuery();
             if (rs.next()) {
-                System.err.println("[FC-DIAG] " + orderId + " found in AD_FCPEDIDO -> return true");
+                System.err.println("[FC-DIAG] " + orderId + " found in AD_FCPEDIDO -> return true (mode="
+                    + (duplicateCheckEnabled ? "STRICT" : "PERMISSIVE") + ")");
                 log.fine("Pedido " + orderId + " ja importado via AD_FCPEDIDO.");
                 return true;
             }
             closeQuietly(rs);
 
-            // Protecao anti-duplicidade com pedidos ja criados diretamente no TGFCAB
+            // [DISABLE_DUPLICATE_CHECK] Com a flag ativa NAO consultamos TGFCAB.
+            // Isso permite reimportar pedidos historicos do legado que ja tem AD_NUMFAST
+            // gravado em TGFCAB sem trigger de bloqueio (ambiente de paralelismo addon+legado).
+            if (!duplicateCheckEnabled) {
+                log.fine("[DISABLE_DUPLICATE_CHECK] " + orderId
+                    + " liberado (sem claim ativo, TGFCAB ignorado).");
+                return false;
+            }
+
+            // Modo STRICT: protecao anti-duplicidade com pedidos ja criados diretamente no TGFCAB
             boolean hasNumfast = hasColumn(jdbc, "TGFCAB", "AD_NUMFAST");
             boolean hasFcId = hasColumn(jdbc, "TGFCAB", "AD_FASTCHANNEL_ID");
             NativeSql cabSql = new NativeSql(jdbc);
@@ -2807,6 +2850,46 @@ public class OrderService {
             return vo.asBigDecimal(field);
         } catch (Exception ignored) {
             return null;
+        }
+    }
+
+    /**
+     * Cache de propriedades JAPE testadas em DynamicVO. Evita PersistenceError repetitivo
+     * quando a COLUNA existe em INFORMATION_SCHEMA mas o metadado JAPE do VO nao expoe
+     * a propriedade (ex.: provider antigo, metadados nao recarregados).
+     *
+     * Bug observado em prod+homolog: AD_DESCONTO_FAST existe fisicamente em TGFCAB mas
+     * "Propriedade 'AD_DESCONTO_FAST' nao existe para o ValueObject 'CabecalhoNota.ValueObject'"
+     * em toda tentativa de set, matando a strategy InternalAPI e a paridade pos-import.
+     *
+     * Chave: "TABELA.PROPRIEDADE" -> Boolean (true=propriedade existe no VO).
+     */
+    private static final java.util.concurrent.ConcurrentHashMap<String, Boolean> VO_PROPERTY_SUPPORT
+            = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Retorna true se a propriedade existe no DynamicVO (via reflection defensivo).
+     * Faz um probe via {@link DynamicVO#asString(String)} que lanca PersistenceError se a
+     * propriedade nao existir - resultado cachado por chave {table}.{property}.
+     */
+    private boolean voHasProperty(DynamicVO vo, String table, String property) {
+        if (vo == null || property == null || property.trim().isEmpty()) {
+            return false;
+        }
+        String key = (table == null ? "" : table.toUpperCase()) + "." + property.trim().toUpperCase();
+        Boolean cached = VO_PROPERTY_SUPPORT.get(key);
+        if (cached != null) return cached;
+        try {
+            // Probe: asString nao valida valor, apenas acessa o metadado da propriedade.
+            vo.asString(property);
+            VO_PROPERTY_SUPPORT.put(key, Boolean.TRUE);
+            return true;
+        } catch (Throwable t) {
+            // Qualquer Throwable: PersistenceError, NullPointerException etc. - consideramos nao suportado.
+            VO_PROPERTY_SUPPORT.put(key, Boolean.FALSE);
+            log.info("[VO-PROPERTY] " + key + " NAO suportada pelo JAPE VO ("
+                + t.getClass().getSimpleName() + "). Sets futuros serao pulados.");
+            return false;
         }
     }
 

@@ -193,6 +193,98 @@ public class FCAdminService {
         return result;
     }
 
+    /**
+     * [FCAdminSP.markAsUnsynced] Devolve pedidos da Fastchannel ao pool de pendentes,
+     * zerando IsSynched e ExternalId via PUT /orders/{id}/sync.
+     *
+     * Uso: cenario de coexistencia paralela addon+legado. O addon importa para TOP de
+     * teste isolada; ao terminar o teste, esta operacao "devolve" os pedidos para o
+     * legado consumir de verdade no ambiente.
+     *
+     * Params esperados:
+     *   - orderIds: List<String> ou String com IDs separados por virgula (ex.: "4656,4657,4658")
+     *
+     * Retorno:
+     *   - success: boolean
+     *   - total: int
+     *   - marked: int
+     *   - failed: int
+     *   - errors: List<Map> {orderId, error}
+     *   - message: String human-readable
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> markAsUnsynced(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            FastchannelConfig config = FastchannelConfig.getInstance();
+            if (!config.isAtivo()) {
+                result.put("success", false);
+                result.put("message", "Integracao Fastchannel nao esta ativa.");
+                return result;
+            }
+
+            // Aceita "orderIds" como List ou String separada por virgula
+            List<String> orderIds = new ArrayList<>();
+            Object rawOrderIds = params != null ? params.get("orderIds") : null;
+            if (rawOrderIds instanceof List) {
+                for (Object o : (List<Object>) rawOrderIds) {
+                    if (o != null) {
+                        String s = o.toString().trim();
+                        if (!s.isEmpty()) orderIds.add(s);
+                    }
+                }
+            } else if (rawOrderIds instanceof String) {
+                for (String s : ((String) rawOrderIds).split("[,;\\s]+")) {
+                    String trimmed = s.trim();
+                    if (!trimmed.isEmpty()) orderIds.add(trimmed);
+                }
+            }
+
+            if (orderIds.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "Parametro 'orderIds' obrigatorio (List ou string separada por virgula).");
+                return result;
+            }
+
+            FastchannelOrdersClient ordersClient = new FastchannelOrdersClient();
+            int marked = 0;
+            int failed = 0;
+            List<Map<String, Object>> errors = new ArrayList<>();
+
+            for (String orderId : orderIds) {
+                try {
+                    ordersClient.markAsUnsynced(orderId);
+                    marked++;
+                    log.info("[FCAdminSP.markAsUnsynced] " + orderId + " desmarcado com sucesso.");
+                } catch (Exception e) {
+                    failed++;
+                    Map<String, Object> err = new HashMap<>();
+                    err.put("orderId", orderId);
+                    err.put("error", e.getMessage());
+                    errors.add(err);
+                    log.log(Level.WARNING, "[FCAdminSP.markAsUnsynced] Falha em " + orderId, e);
+                }
+            }
+
+            result.put("success", failed == 0);
+            result.put("total", orderIds.size());
+            result.put("marked", marked);
+            result.put("failed", failed);
+            result.put("errors", errors);
+            result.put("message", marked + " de " + orderIds.size()
+                + " pedido(s) devolvido(s) ao pool FC"
+                + (failed > 0 ? " (" + failed + " falha(s))" : "") + ".");
+
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Erro geral em markAsUnsynced", e);
+            result.put("success", false);
+            result.put("message", "Erro: " + e.getMessage());
+        }
+
+        return result;
+    }
+
     public Map<String, Object> processarFila(Map<String, Object> params) {
         Map<String, Object> result = new HashMap<>();
 

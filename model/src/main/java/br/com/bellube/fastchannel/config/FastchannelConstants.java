@@ -100,4 +100,13 @@ public final class FastchannelConstants {
     public static final String OPERATION_CREATE = "CREATE";
     public static final String OPERATION_UPDATE = "UPDATE";
     public static final String OPERATION_DELETE = "DELETE";
+
+    /**
+     * [CODLOCALORIG DEFAULT] CODLOCAL usado como fallback quando resolveItemCodLocal
+     * nao encontra um local especifico para o produto. Vira o CD virtual "99000000".
+     *
+     * Resolve o bug de itens mistos (item 1: CODLOCALORIG=99000000, item 2: CODLOCALORIG=0)
+     * que causava inconsistencia de estoque na mesma NUNOTA.
+     */
+    public static final java.math.BigDecimal DEFAULT_CODLOCAL_FALLBACK = new java.math.BigDecimal("99000000");
 }

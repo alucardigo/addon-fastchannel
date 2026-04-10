@@ -277,6 +277,31 @@ public class FastchannelOrdersClient {
     }
 
     /**
+     * [FCAdminSP.markAsUnsynced] Operacao inversa de markAsSynced: devolve o pedido ao
+     * pool de pendentes da Fastchannel zerando IsSynched e ExternalId.
+     *
+     * Uso tipico: cenario de coexistencia parallel addon+legado em producao. O addon
+     * importa para uma TOP de teste isolada; ao final, desmarca o pedido para o legado
+     * consumir de verdade na TOP real.
+     *
+     * @param orderId ID do pedido no Fastchannel
+     */
+    public void markAsUnsynced(String orderId) throws Exception {
+        String endpoint = String.format(FastchannelConstants.ENDPOINT_ORDER_SYNC, orderId);
+        // ExternalId esvaziado: removemos o vinculo ao NUNOTA anterior
+        String json = "{\"IsSynched\":false,\"ExternalId\":\"\"}";
+
+        FastchannelHttpClient.HttpResult result = httpClient.putOrders(endpoint, json);
+
+        if (!result.isSuccess()) {
+            log.warning("Erro ao marcar como NAO sincronizado: HTTP " + result.getStatusCode());
+            throw new Exception("Erro ao marcar como nao sincronizado: " + result.getErrorMessage());
+        }
+
+        log.info("Pedido " + orderId + " marcado como NAO sincronizado (devolvido ao pool FC).");
+    }
+
+    /**
      * Notifica que o pedido foi negado/cancelado.
      *
      * @param orderId ID do pedido

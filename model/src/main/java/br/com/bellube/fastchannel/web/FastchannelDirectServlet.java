@@ -42,6 +42,7 @@ public class FastchannelDirectServlet extends HttpServlet {
         services.put("FCAdminSP.testarConexao", new ServiceInfo(FCAdminService.class, "testarConexao"));
         services.put("FCAdminSP.importarPedidos", new ServiceInfo(FCAdminService.class, "importarPedidos"));
         services.put("FCAdminSP.processarFila", new ServiceInfo(FCAdminService.class, "processarFila"));
+        services.put("FCAdminSP.markAsUnsynced", new ServiceInfo(FCAdminService.class, "markAsUnsynced"));
         services.put("FCAdminSP.diagnosticoSchema", new ServiceInfo(FCAdminService.class, "diagnosticoSchema"));
         services.put("FCAdminSP.autocorrigirCentroResultado", new ServiceInfo(FCAdminService.class, "autocorrigirCentroResultado"));
         services.put("FCAdminSP.syncPrecosCompleto", new ServiceInfo(FCAdminService.class, "syncPrecosCompleto"));

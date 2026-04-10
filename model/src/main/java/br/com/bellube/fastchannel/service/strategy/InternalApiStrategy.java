@@ -39,6 +39,17 @@ public class InternalApiStrategy implements OrderCreationStrategy {
     private static final Map<String, Boolean> CAB_FIELD_REQUIRED = new ConcurrentHashMap<>();
     private static final Map<String, Boolean> ITEM_FIELD_SUPPORT = new ConcurrentHashMap<>();
 
+    /**
+     * [VO-PROPERTY GUARD] Cache de propriedades JAPE que NAO existem no VO do CabecalhoNota
+     * mesmo a coluna fisica existindo em TGFCAB. Exemplo: AD_DESCONTO_FAST.
+     *
+     * Quando um set() lanca PersistenceError "Propriedade 'X' nao existe para o ValueObject",
+     * adicionamos "CabecalhoNota.X" aqui. Sets futuros sao pulados silenciosamente.
+     * Chave: "EntityName.PROPERTY" (ex.: "CabecalhoNota.AD_DESCONTO_FAST").
+     */
+    private static final java.util.Set<String> VO_PROPERTY_NOT_SUPPORTED =
+            java.util.Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+
     private final FastchannelConfig config;
     private final DeparaService deparaService;
 
@@ -328,9 +339,23 @@ public class InternalApiStrategy implements OrderCreationStrategy {
             cabBuilder = cabBuilder.set("AD_MCAPORTAL", "P");
         }
 
-        // Desconto cupom FC
-        if (supportsCabField("AD_DESCONTO_FAST") && order.getProductDiscountCoupon() != null) {
-            cabBuilder = cabBuilder.set("AD_DESCONTO_FAST", order.getProductDiscountCoupon());
+        // [AD_DESCONTO_FAST GUARD] Verifica coluna fisica + cache de propriedade JAPE.
+        // Mesmo se a coluna existe em TGFCAB, o ValueObject do JAPE pode nao ter a
+        // propriedade mapeada (provider antigo). Sem esse cache, toda import com
+        // order.getProductDiscountCoupon()!=null explode com PersistenceError.
+        // O cache VO_PROPERTY_NOT_SUPPORTED marca "nao mexer" apos primeira falha.
+        if (order.getProductDiscountCoupon() != null
+                && supportsCabField("AD_DESCONTO_FAST")
+                && !VO_PROPERTY_NOT_SUPPORTED.contains("CabecalhoNota.AD_DESCONTO_FAST")) {
+            try {
+                cabBuilder = cabBuilder.set("AD_DESCONTO_FAST", order.getProductDiscountCoupon());
+            } catch (Throwable t) {
+                // PersistenceError / NullPointerException / LinkageError -> marcar como nao suportado
+                VO_PROPERTY_NOT_SUPPORTED.add("CabecalhoNota.AD_DESCONTO_FAST");
+                log.log(java.util.logging.Level.INFO,
+                    "[VO-PROPERTY] CabecalhoNota.AD_DESCONTO_FAST nao esta mapeada no VO JAPE ("
+                        + t.getClass().getSimpleName() + "). Pulando set desta e futuras.");
+            }
         }
 
         // Observacao publica sem numero Fast
@@ -1257,11 +1282,19 @@ public class InternalApiStrategy implements OrderCreationStrategy {
                     itemBuilder = itemBuilder.set("CODTRIB", codTrib);
                 }
             }
-            if (!isNullOrZero(itemCodLocal) && supportsItemField("CODLOCAL")) {
-                itemBuilder = itemBuilder.set("CODLOCAL", itemCodLocal);
+            // [CODLOCALORIG DEFAULT] Se resolveItemCodLocal nao conseguiu resolver o local
+            // especifico do produto (sem saldo cadastrado em nenhum local configurado),
+            // usamos 99000000 (CD virtual) como default em vez de deixar o JAPE/trigger
+            // gravar 0 - o 0 causa inconsistencia de estoque entre itens do mesmo pedido
+            // (um item fica com 99000000 e outro com 0 na mesma NUNOTA).
+            BigDecimal effectiveItemCodLocal = isNullOrZero(itemCodLocal)
+                    ? FastchannelConstants.DEFAULT_CODLOCAL_FALLBACK
+                    : itemCodLocal;
+            if (supportsItemField("CODLOCAL")) {
+                itemBuilder = itemBuilder.set("CODLOCAL", effectiveItemCodLocal);
             }
-            if (!isNullOrZero(itemCodLocal) && supportsItemField("CODLOCALORIG")) {
-                itemBuilder = itemBuilder.set("CODLOCALORIG", itemCodLocal);
+            if (supportsItemField("CODLOCALORIG")) {
+                itemBuilder = itemBuilder.set("CODLOCALORIG", effectiveItemCodLocal);
             }
             if (!isBlank(item.getGradeControlId()) && supportsItemField("CONTROLE")) {
                 itemBuilder = itemBuilder.set("CONTROLE", item.getGradeControlId().trim());
