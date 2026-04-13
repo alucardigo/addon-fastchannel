@@ -971,18 +971,14 @@
         async function syncTodosFiltrado() {
             const tabela = getCurrentFilterTabela();
             const priceTableId = getCurrentFilterPriceTableId();
-            if (!tabela && !priceTableId) {
-                alert('Informe ao menos Tabela ou PriceTableId no filtro antes de sincronizar tudo.');
-                return;
-            }
-            if (!confirm(`Sincronizar TODOS os ${totalFilteredCount} itens do filtro atual? (pode demorar)`)) return;
+            const filterDesc = tabela ? `Tabela ${tabela}` : priceTableId ? `PriceTableId ${priceTableId}` : 'TODAS as tabelas elegiveis';
+            if (!confirm(`Sincronizar TODOS os ${totalFilteredCount} itens (${filterDesc})? Isso pode demorar alguns minutos.`)) return;
 
             setSyncButtonsLoading(true);
             try {
-                const result = await callService('FCPrecosSP.syncEmLote', {
-                    syncAll: true,
-                    tabela: tabela,
-                    priceTableId: priceTableId,
+                const result = await callService('FCPrecosSP.syncAll', {
+                    tabela: tabela || '',
+                    priceTableId: priceTableId || '',
                     source: currentSource
                 });
 
@@ -1005,11 +1001,8 @@
         async function espelharTabela() {
             const tabela = getCurrentFilterTabela();
             const priceTableId = getCurrentFilterPriceTableId();
-            if (!tabela && !priceTableId) {
-                alert('Informe ao menos Tabela ou PriceTableId no filtro para espelhar.');
-                return;
-            }
-            if (!confirm('Itens que existem na Fastchannel mas NAO existem mais na tabela Sankhya serao zerados. Continuar?')) return;
+            const filterDesc = tabela ? `Tabela ${tabela}` : priceTableId ? `PriceTableId ${priceTableId}` : 'TODAS as tabelas elegiveis';
+            if (!confirm(`Espelhar ${filterDesc}: itens que existem na Fastchannel mas NAO existem mais na tabela Sankhya serao ZERADOS. Continuar?`)) return;
 
             setSyncButtonsLoading(true);
             try {

@@ -1071,13 +1071,45 @@ public class FCPrecosService {
         Connection batchConn = null;
         try {
             String priceTableId = getString(params, "priceTableId");
-            if (priceTableId == null || priceTableId.isEmpty()) {
-                result.put("success", false);
-                result.put("message", "priceTableId obrigatorio para mirror.");
-                return result;
-            }
 
             batchConn = DBUtil.getConnection();
+
+            // Se nenhum priceTableId informado, resolver todas as tabelas elegiveis
+            // e processar cada uma sequencialmente
+            if (priceTableId == null || priceTableId.isEmpty()) {
+                Map<String, BigDecimal> fcTableMap = new PriceTableResolver().resolveTableToNuTabMap();
+                if (fcTableMap.isEmpty()) {
+                    result.put("success", false);
+                    result.put("message", "Nenhuma tabela de preco elegivel encontrada na configuracao.");
+                    return result;
+                }
+                int totalOrphans = 0;
+                int totalZeroed = 0;
+                int totalFailed = 0;
+                List<String> allErrors = new ArrayList<>();
+                for (Map.Entry<String, BigDecimal> entry : fcTableMap.entrySet()) {
+                    Map<String, Object> subParams = new HashMap<>(params);
+                    subParams.put("priceTableId", entry.getKey());
+                    // Liberar mutex para chamada recursiva
+                    SYNC_EM_LOTE_RUNNING.set(false);
+                    Map<String, Object> subResult = mirrorCleanup(subParams);
+                    totalOrphans += getInt(subResult, "orphanCount", 0);
+                    totalZeroed += getInt(subResult, "zeroed", 0);
+                    totalFailed += getInt(subResult, "failed", 0);
+                    Object subErrors = subResult.get("errors");
+                    if (subErrors instanceof List) {
+                        allErrors.addAll((List<String>) subErrors);
+                    }
+                }
+                result.put("success", totalFailed == 0);
+                result.put("orphanCount", totalOrphans);
+                result.put("zeroed", totalZeroed);
+                result.put("failed", totalFailed);
+                if (!allErrors.isEmpty()) result.put("errors", allErrors);
+                result.put("message", String.format("Mirror TODAS tabelas: %d orfao(s) encontrado(s), %d zerado(s)%s.",
+                    totalOrphans, totalZeroed, totalFailed > 0 ? ", " + totalFailed + " falha(s)" : ""));
+                return result;
+            }
 
             // 1) Buscar todos os SKUs ativos nesta tabela Sankhya
             Set<String> sankhyaSkus = new HashSet<>();
