@@ -145,6 +145,10 @@
         .btn-danger:hover { background: #dc2626; }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-danger-outline { background: transparent; border: 1px solid var(--danger); color: var(--danger); font-weight: 600; }
+        .btn-danger-outline:hover { background: rgba(239, 68, 68, 0.15); }
+        .select-all-filter { display: none; margin-left: 8px; font-size: 12px; color: var(--accent); cursor: pointer; text-decoration: underline; }
+        .select-all-filter:hover { color: #00b8d9; }
 
         .table-container { overflow-x: auto; }
 
@@ -334,9 +338,15 @@
                     </button>
                 </div>
             </div>
-            <div style="margin-bottom: 16px; display: flex; gap: 12px; align-items: center;">
+            <div style="margin-bottom: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                 <button class="btn btn-primary" onclick="syncSelecionados()" id="btnSyncLote" disabled>
                     Sincronizar Selecionados
+                </button>
+                <button class="btn btn-warning" onclick="syncTodosFiltrado()" id="btnSyncAll">
+                    Sincronizar Tudo (Filtrado)
+                </button>
+                <button class="btn btn-danger-outline" onclick="espelharTabela()" id="btnMirror">
+                    Espelhar Tabela (Limpar Ausentes)
                 </button>
                 <label style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;">
                     <input type="checkbox" id="autoCompareToggle" onchange="toggleAutoCompare()" checked>
@@ -349,7 +359,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                            <th style="white-space:nowrap;"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"><span id="selectAllFilterLink" class="select-all-filter" onclick="selectAllFiltered()"></span></th>
                             <th class="sortable" data-col="sku" onclick="sortBy('sku')">SKU</th>
                             <th class="sortable" data-col="descricao" onclick="sortBy('descricao')">Descricao</th>
                             <th class="sortable" data-col="nuTab" onclick="sortBy('nuTab','num')">Tabela</th>
@@ -480,6 +490,8 @@
         let currentItems = [];
         let sortCol = null;
         let sortDir = 'asc';
+        let totalFilteredCount = 0;
+        let allFilteredSelected = false;
 
         function sortBy(col, type) {
             type = type || 'str';
@@ -704,6 +716,7 @@
             const tbody = document.getElementById('precosTable');
             tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
             selectedItems.clear();
+            allFilteredSelected = false;
             updateSelectedCount();
 
             try {
@@ -724,6 +737,7 @@
 
                 if (data.items && data.items.length > 0) {
                     currentItems = data.items;
+                    totalFilteredCount = data.total || data.items.length;
                     renderItems(currentItems);
 
                     totalPages = Math.ceil((data.total || 0) / pageSize);
@@ -844,6 +858,7 @@
             const selectAll = document.getElementById('selectAll');
             const checkboxes = document.querySelectorAll('.item-checkbox');
             selectedItems.clear();
+            allFilteredSelected = false;
             checkboxes.forEach(cb => {
                 cb.checked = selectAll.checked;
                 if (selectAll.checked) {
@@ -853,6 +868,13 @@
                 }
             });
             updateSelectedCount();
+            const link = document.getElementById('selectAllFilterLink');
+            if (selectAll.checked && totalFilteredCount > pageSize) {
+                link.textContent = `Selecionar todos os ${totalFilteredCount} do filtro`;
+                link.style.display = 'inline';
+            } else {
+                link.style.display = 'none';
+            }
         }
 
         function toggleItem(sku, codProd) {
@@ -868,13 +890,16 @@
         }
 
         function updateSelectedCount() {
-            const count = selectedItems.size;
+            const count = allFilteredSelected ? totalFilteredCount : selectedItems.size;
             document.getElementById('selectedCount').textContent =
-                count > 0 ? `${count} item(ns) selecionado(s)` : '';
+                count > 0 ? `${count} item(ns) selecionado(s)${allFilteredSelected ? ' (todos do filtro)' : ''}` : '';
             document.getElementById('btnSyncLote').disabled = count === 0;
         }
 
         async function syncSelecionados() {
+            if (allFilteredSelected) {
+                return syncTodosFiltrado();
+            }
             if (selectedItems.size === 0) {
                 alert('Selecione ao menos um item');
                 return;
@@ -885,6 +910,7 @@
 
             if (!confirm(`Sincronizar ${skus.length} item(ns)?`)) return;
 
+            setSyncButtonsLoading(true);
             try {
                 const result = await callService('FCPrecosSP.syncEmLote', { items });
 
@@ -898,10 +924,105 @@
 
                 alert(msg);
                 selectedItems.clear();
+                allFilteredSelected = false;
                 updateSelectedCount();
                 loadPrecos();
             } catch (e) {
                 alert('Erro: ' + e.message);
+            } finally {
+                setSyncButtonsLoading(false);
+            }
+        }
+
+        function selectAllFiltered() {
+            allFilteredSelected = true;
+            const link = document.getElementById('selectAllFilterLink');
+            link.textContent = `Todos os ${totalFilteredCount} itens selecionados`;
+            link.style.textDecoration = 'none';
+            link.style.color = 'var(--success)';
+            link.style.cursor = 'default';
+            updateSelectedCount();
+        }
+
+        function setSyncButtonsLoading(loading) {
+            const btnLote = document.getElementById('btnSyncLote');
+            const btnAll = document.getElementById('btnSyncAll');
+            const btnMirror = document.getElementById('btnMirror');
+            btnLote.disabled = loading;
+            btnAll.disabled = loading;
+            btnMirror.disabled = loading;
+            if (loading) {
+                btnAll.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-top-color:#1a1a2e;"></span> Sincronizando...';
+                btnMirror.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-top-color:var(--danger);"></span> Processando...';
+            } else {
+                btnAll.textContent = 'Sincronizar Tudo (Filtrado)';
+                btnMirror.textContent = 'Espelhar Tabela (Limpar Ausentes)';
+            }
+        }
+
+        function getCurrentFilterTabela() {
+            return readNumberFilter('filterNuTab');
+        }
+
+        function getCurrentFilterPriceTableId() {
+            return readNumberFilter('filterPriceTableId');
+        }
+
+        async function syncTodosFiltrado() {
+            const tabela = getCurrentFilterTabela();
+            const priceTableId = getCurrentFilterPriceTableId();
+            if (!tabela && !priceTableId) {
+                alert('Informe ao menos Tabela ou PriceTableId no filtro antes de sincronizar tudo.');
+                return;
+            }
+            if (!confirm(`Sincronizar TODOS os ${totalFilteredCount} itens do filtro atual? (pode demorar)`)) return;
+
+            setSyncButtonsLoading(true);
+            try {
+                const result = await callService('FCPrecosSP.syncEmLote', {
+                    syncAll: true,
+                    tabela: tabela,
+                    priceTableId: priceTableId,
+                    source: currentSource
+                });
+
+                let msg = result.message || 'Sincronizacao em lote concluida';
+                if (result.errors && result.errors.length > 0) {
+                    msg += '\n\nErros:\n' + result.errors.slice(0, 5).join('\n');
+                    if (result.errors.length > 5) {
+                        msg += `\n... e mais ${result.errors.length - 5} erro(s)`;
+                    }
+                }
+                alert(msg);
+                loadPrecos();
+            } catch (e) {
+                alert('Erro ao sincronizar tudo: ' + e.message);
+            } finally {
+                setSyncButtonsLoading(false);
+            }
+        }
+
+        async function espelharTabela() {
+            const tabela = getCurrentFilterTabela();
+            const priceTableId = getCurrentFilterPriceTableId();
+            if (!tabela && !priceTableId) {
+                alert('Informe ao menos Tabela ou PriceTableId no filtro para espelhar.');
+                return;
+            }
+            if (!confirm('Itens que existem na Fastchannel mas NAO existem mais na tabela Sankhya serao zerados. Continuar?')) return;
+
+            setSyncButtonsLoading(true);
+            try {
+                const result = await callService('FCPrecosSP.mirrorCleanup', {
+                    tabela: tabela,
+                    priceTableId: priceTableId
+                });
+                alert(result.message || 'Espelhamento concluido');
+                loadPrecos();
+            } catch (e) {
+                alert('Erro ao espelhar tabela: ' + e.message);
+            } finally {
+                setSyncButtonsLoading(false);
             }
         }
 
