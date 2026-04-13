@@ -437,6 +437,78 @@ public class FastchannelPriceClient {
     }
 
     /**
+     * Lista TODOS os precos de uma tabela especifica na Fastchannel.
+     *
+     * <p>Usa o endpoint {@code GET /prices?PriceTableId=X&PageNumber=1&PageSize=5000}
+     * que retorna JSON com {@code Payload} array de {@code ProductPrice} contendo
+     * {@code ProductId} (=SKU), {@code SalePrice}, {@code ListPrice}, {@code PriceTableId},
+     * {@code PriceTableName}, {@code SellerName}.</p>
+     *
+     * <p>Usado pelo {@code FCPrecosService.mirrorCleanup} para comparacao server-side
+     * completa FC vs Sankhya sem depender do frontend.</p>
+     *
+     * @param priceTableId ID numerico da tabela FC (ex.: 31)
+     * @return lista de PriceDTO com SKU, price, listPrice, priceTableId
+     */
+    public List<PriceDTO> listPricesForTable(BigDecimal priceTableId) throws Exception {
+        if (priceTableId == null) {
+            return new ArrayList<>();
+        }
+
+        List<PriceDTO> allPrices = new ArrayList<>();
+        int pageNumber = 1;
+        int pageSize = 500; // FC max documented is 5000, usamos 500 para ser conservador
+        int totalPages = 1;
+
+        while (pageNumber <= totalPages) {
+            String endpoint = "/prices?PriceTableId=" + priceTableId.intValue()
+                + "&PageNumber=" + pageNumber + "&PageSize=" + pageSize;
+
+            FastchannelHttpClient.HttpResult result = httpClient.getPrice(endpoint, getSubscriptionKeyForChannel());
+
+            if (!result.isSuccess()) {
+                if (result.getStatusCode() == 404) {
+                    log.info("listPricesForTable: tabela " + priceTableId + " nao encontrada na FC.");
+                    return allPrices;
+                }
+                throw new Exception("Erro ao listar precos FC tabela " + priceTableId
+                    + ": HTTP " + result.getStatusCode() + " " + result.getBody());
+            }
+
+            String body = result.getBody();
+            if (body == null || body.trim().isEmpty()) break;
+
+            com.google.gson.JsonObject root = new com.google.gson.JsonParser()
+                .parse(body.trim()).getAsJsonObject();
+
+            if (root.has("TotalPages") && !root.get("TotalPages").isJsonNull()) {
+                totalPages = root.get("TotalPages").getAsInt();
+            }
+
+            if (root.has("Payload") && root.get("Payload").isJsonArray()) {
+                com.google.gson.JsonArray arr = root.getAsJsonArray("Payload");
+                for (int i = 0; i < arr.size(); i++) {
+                    com.google.gson.JsonObject item = arr.get(i).getAsJsonObject();
+                    PriceDTO dto = new PriceDTO();
+                    dto.setSku(item.has("ProductId") ? item.get("ProductId").getAsString() : null);
+                    dto.setPriceTableId(priceTableId);
+                    dto.setPrice(item.has("SalePrice") ? item.get("SalePrice").getAsBigDecimal() : null);
+                    dto.setListPrice(item.has("ListPrice") ? item.get("ListPrice").getAsBigDecimal() : null);
+                    if (dto.getSku() != null && !dto.getSku().trim().isEmpty()) {
+                        allPrices.add(dto);
+                    }
+                }
+            }
+
+            pageNumber++;
+        }
+
+        log.info("listPricesForTable: tabela " + priceTableId + " retornou " + allPrices.size()
+            + " precos em " + (pageNumber - 1) + " pagina(s).");
+        return allPrices;
+    }
+
+    /**
      * Consulta preco atual de um SKU.
      *
      * @param sku codigo do produto

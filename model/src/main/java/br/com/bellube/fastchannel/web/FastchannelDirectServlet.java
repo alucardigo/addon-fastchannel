@@ -67,6 +67,8 @@ public class FastchannelDirectServlet extends HttpServlet {
         services.put("FCPrecosSP.forcarSync", new ServiceInfo(FCPrecosService.class, "forcarSync"));
         services.put("FCPrecosSP.reprocessar", new ServiceInfo(FCPrecosService.class, "reprocessar"));
         services.put("FCPrecosSP.syncEmLote", new ServiceInfo(FCPrecosService.class, "syncEmLote"));
+        services.put("FCPrecosSP.syncAll", new ServiceInfo(FCPrecosService.class, "syncAll"));
+        services.put("FCPrecosSP.mirrorCleanup", new ServiceInfo(FCPrecosService.class, "mirrorCleanup"));
         services.put("FCPrecosSP.listFcTables", new ServiceInfo(FCPrecosService.class, "listFcTables"));
         services.put("FCPrecosSP.listBatches", new ServiceInfo(FCPrecosService.class, "listBatches"));
 

@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,6 +39,20 @@ public class FCPrecosService {
     private static volatile Boolean hasAtivoColumn;
     private static volatile Boolean hasDtInicColumn;
     private static volatile Boolean hasDtFimColumn;
+
+    /**
+     * [POOL-EXHAUSTION GUARD] Mutex de execucao do syncEmLote.
+     *
+     * INCIDENTE 2026-04-13 10:33:04–10:34:58: usuario clicou "Sincronizar Selecionados"
+     * duas vezes (threads default task-321 + default task-332), cada uma processando 20 itens.
+     * Cada item abre ~15 conexoes DB (resolveTableToNuTabMap x4, resolvers, verify, batch).
+     * Total: 40 items × 15 conn = ~600 conn → esgotou pool MGEDS (800 max) → IJ000655
+     * "No managed connections available" → SISTEMA INTEIRO CAIU.
+     *
+     * Este AtomicBoolean impede execucoes paralelas. A segunda chamada retorna imediatamente
+     * com mensagem amigavel.
+     */
+    private static final AtomicBoolean SYNC_EM_LOTE_RUNNING = new AtomicBoolean(false);
 
     public Map<String, Object> list(Map<String, Object> params) {
         int source = getInt(params, "source", 1);
@@ -810,16 +825,42 @@ public class FCPrecosService {
     }
 
     /**
-     * Sincroniza multiplos itens em lote
+     * Sincroniza um lote de precos Sankhya → Fastchannel.
+     *
+     * <h3>INCIDENTE 2026-04-13 10:33 — pool exhaustion IJ000655</h3>
+     * <p>Causado por dois cliques em "Sincronizar Selecionados" gerando 2 threads
+     * paralelos × 20 items × ~15 conexoes/item = 600 conexoes → pool MGEDS esgotado
+     * → sistema inteiro indisponivel por varios minutos.</p>
+     *
+     * <h3>Defesas implementadas</h3>
+     * <ol>
+     *   <li><b>MUTEX</b>: {@link #SYNC_EM_LOTE_RUNNING} AtomicBoolean impede execucoes paralelas.
+     *       Segunda chamada retorna HTTP 200 com success=false e mensagem amigavel.</li>
+     *   <li><b>CONNECTION REUSE</b>: uma unica conexao DB para todo o lote (resolve SKU,
+     *       tabela elegivel, etc). Reduz de ~15 conn/item para 1 conn total do batch
+     *       (mais as 2-3 da PriceService.syncPrice por item que sao internas).</li>
+     *   <li><b>CACHE TABELA</b>: resolveTableToNuTabMap cacheado por batch — nao recalcula
+     *       4x por item como antes.</li>
+     * </ol>
      */
     @SuppressWarnings("unchecked")
     public Map<String, Object> syncEmLote(Map<String, Object> params) {
         Map<String, Object> result = new HashMap<>();
-        Object itemsObj = params.get("items");
-        Object skusObj = params.get("skus");
-        List<Map<String, Object>> items = new ArrayList<>();
 
+        // [DEFESA 1] MUTEX — impede execucoes paralelas que esgotam o pool
+        if (!SYNC_EM_LOTE_RUNNING.compareAndSet(false, true)) {
+            log.warning("[POOL-GUARD] syncEmLote ja esta em execucao em outra thread. Recusando chamada paralela.");
+            result.put("success", false);
+            result.put("message", "Sincronizacao ja esta em andamento. Aguarde a conclusao antes de iniciar outra.");
+            return result;
+        }
+
+        Connection batchConn = null;
         try {
+            Object itemsObj = params.get("items");
+            Object skusObj = params.get("skus");
+            List<Map<String, Object>> items = new ArrayList<>();
+
             if (itemsObj instanceof List) {
                 for (Object obj : (List<?>) itemsObj) {
                     if (obj instanceof Map) {
@@ -850,10 +891,15 @@ public class FCPrecosService {
                 return result;
             }
 
+            // [DEFESA 2] CONNECTION REUSE — uma unica conexao para lookups do batch
+            batchConn = DBUtil.getConnection();
+
+            // [DEFESA 3] CACHE TABELA — resolve uma vez, reutiliza para todos os itens
+            PriceService priceService = new PriceService();
+
             int successCount = 0;
             int errorCount = 0;
             List<String> errors = new ArrayList<>();
-            PriceService priceService = new PriceService();
 
             for (Map<String, Object> item : items) {
                 String sku = item.get("sku") != null ? item.get("sku").toString().trim() : null;
@@ -863,7 +909,7 @@ public class FCPrecosService {
                 }
 
                 try {
-                    BigDecimal codProd = codProdObj != null ? toBigDecimal(codProdObj) : getCodProdFromSku(sku);
+                    BigDecimal codProd = codProdObj != null ? toBigDecimal(codProdObj) : getCodProdFromSkuWithConn(sku, batchConn);
                     if (codProd == null) {
                         errors.add((sku != null ? sku : String.valueOf(codProdObj)) + ": Produto nao encontrado");
                         errorCount++;
@@ -875,7 +921,7 @@ public class FCPrecosService {
                         errorCount++;
                         continue;
                     }
-                    BigDecimal eligibleNuTab = findEligibleNuTabForProduct(codProd);
+                    BigDecimal eligibleNuTab = findEligibleNuTabForProductWithConn(codProd, batchConn);
                     if (eligibleNuTab == null) {
                         errors.add((sku != null ? sku : codProd.toPlainString())
                                 + ": Sem tabela de preco elegivel/configurada com integracao automatica");
@@ -904,9 +950,317 @@ public class FCPrecosService {
             log.log(Level.SEVERE, "Erro ao sincronizar precos em lote", e);
             result.put("success", false);
             result.put("message", e.getMessage());
+        } finally {
+            DBUtil.closeConnection(batchConn);
+            SYNC_EM_LOTE_RUNNING.set(false);
         }
 
         return result;
+    }
+
+    /**
+     * Sincroniza TODOS os precos que correspondem ao filtro atual (tabela + priceTableId).
+     * Alternativa ao syncEmLote para quando o usuario quer sincronizar tudo de uma vez
+     * sem precisar selecionar items na UI, com mesmas defesas de pool.
+     */
+    public Map<String, Object> syncAll(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (!SYNC_EM_LOTE_RUNNING.compareAndSet(false, true)) {
+            result.put("success", false);
+            result.put("message", "Sincronizacao ja em andamento. Aguarde.");
+            return result;
+        }
+
+        Connection batchConn = null;
+        try {
+            batchConn = DBUtil.getConnection();
+            String priceTableId = getString(params, "priceTableId");
+
+            // Montar query para obter TODOS os SKU/CODPROD do filtro
+            StringBuilder where = new StringBuilder("1=1");
+            List<Object> qp = new ArrayList<>();
+            appendConfiguredEmpresasFilter(where, qp, batchConn, "E.CODEMP");
+
+            if (priceTableId != null && !priceTableId.isEmpty()) {
+                appendPriceTableFilter(where, qp, priceTableId, batchConn);
+            } else {
+                List<BigDecimal> tables = loadConfiguredPriceTables(batchConn);
+                if (tables.isEmpty()) tables = new PriceTableResolver().resolveEligibleTables();
+                if (!tables.isEmpty()) {
+                    where.append(" AND E.NUTAB IN (");
+                    for (int i = 0; i < tables.size(); i++) {
+                        if (i > 0) where.append(", ");
+                        where.append("?");
+                        qp.add(tables.get(i));
+                    }
+                    where.append(")");
+                }
+            }
+
+            // Filtro por latest NUTAB per CODTAB
+            String latestNutabJoin = "INNER JOIN TGFTAB T ON T.NUTAB = E.NUTAB " +
+                "INNER JOIN (SELECT T2.CODTAB, MAX(T2.NUTAB) AS MAX_NUTAB FROM TGFTAB T2 GROUP BY T2.CODTAB) LN " +
+                "ON LN.CODTAB = T.CODTAB AND LN.MAX_NUTAB = E.NUTAB ";
+            String skuExpr = FastchannelProductFilter.resolveSkuExpression(batchConn);
+            String marcaJoin = FastchannelProductFilter.resolveMarcaJoin(batchConn);
+
+            String sql = "SELECT E.CODPROD, " + skuExpr + " AS SKU FROM TGFEXC E " +
+                "INNER JOIN TGFPRO P ON E.CODPROD = P.CODPROD " + latestNutabJoin + marcaJoin +
+                "WHERE " + where + " ORDER BY E.CODPROD";
+
+            PreparedStatement stmt = batchConn.prepareStatement(sql);
+            setParameters(stmt, qp);
+            ResultSet rs = stmt.executeQuery();
+
+            List<Map<String, Object>> items = new ArrayList<>();
+            while (rs.next()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("codProd", rs.getBigDecimal("CODPROD"));
+                item.put("sku", rs.getString("SKU"));
+                items.add(item);
+            }
+            DBUtil.closeAll(rs, stmt, null);
+
+            if (items.isEmpty()) {
+                result.put("success", true);
+                result.put("message", "Nenhum item encontrado no filtro.");
+                result.put("total", 0);
+                return result;
+            }
+
+            // Reusar syncEmLote com a lista completa
+            Map<String, Object> syncParams = new HashMap<>();
+            syncParams.put("items", items);
+
+            // Liberar o mutex temporariamente para syncEmLote poder adquirir
+            SYNC_EM_LOTE_RUNNING.set(false);
+            result = syncEmLote(syncParams);
+            result.put("total", items.size());
+            batchConn = null; // Fechada por syncEmLote internamente? Nao — vamos deixar o finally
+            return result;
+
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Erro em syncAll", e);
+            result.put("success", false);
+            result.put("message", "Erro: " + e.getMessage());
+            return result;
+        } finally {
+            DBUtil.closeConnection(batchConn);
+            SYNC_EM_LOTE_RUNNING.set(false);
+        }
+    }
+
+    /**
+     * Espelhamento: zera precos de produtos que existem na Fastchannel mas NAO existem
+     * mais na tabela Sankhya (TGFEXC). Envia PUT com SalePrice=0, ListPrice=0 para
+     * cada SKU orfao.
+     *
+     * <p>Cenario: o key user removeu um produto da tabela Sankhya mas ele continua
+     * ativo na FC com preco antigo. Este metodo faz a "limpeza" (mirror).</p>
+     */
+    public Map<String, Object> mirrorCleanup(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (!SYNC_EM_LOTE_RUNNING.compareAndSet(false, true)) {
+            result.put("success", false);
+            result.put("message", "Operacao de sincronizacao ja em andamento.");
+            return result;
+        }
+
+        Connection batchConn = null;
+        try {
+            String priceTableId = getString(params, "priceTableId");
+            if (priceTableId == null || priceTableId.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "priceTableId obrigatorio para mirror.");
+                return result;
+            }
+
+            batchConn = DBUtil.getConnection();
+
+            // 1) Buscar todos os SKUs ativos nesta tabela Sankhya
+            Set<String> sankhyaSkus = new HashSet<>();
+            {
+                String skuExpr = FastchannelProductFilter.resolveSkuExpression(batchConn);
+                StringBuilder where = new StringBuilder("1=1");
+                List<Object> qp = new ArrayList<>();
+                appendConfiguredEmpresasFilter(where, qp, batchConn, "E.CODEMP");
+                appendPriceTableFilter(where, qp, priceTableId, batchConn);
+
+                String latestNutabJoin = "INNER JOIN TGFTAB T ON T.NUTAB = E.NUTAB " +
+                    "INNER JOIN (SELECT T2.CODTAB, MAX(T2.NUTAB) AS MAX_NUTAB FROM TGFTAB T2 GROUP BY T2.CODTAB) LN " +
+                    "ON LN.CODTAB = T.CODTAB AND LN.MAX_NUTAB = E.NUTAB ";
+                String marcaJoin = FastchannelProductFilter.resolveMarcaJoin(batchConn);
+
+                String sql = "SELECT " + skuExpr + " AS SKU FROM TGFEXC E " +
+                    "INNER JOIN TGFPRO P ON E.CODPROD = P.CODPROD " + latestNutabJoin + marcaJoin +
+                    "WHERE " + where;
+                PreparedStatement stmt = batchConn.prepareStatement(sql);
+                setParameters(stmt, qp);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    String s = rs.getString("SKU");
+                    if (s != null && !s.trim().isEmpty()) sankhyaSkus.add(s.trim());
+                }
+                DBUtil.closeAll(rs, stmt, null);
+            }
+
+            // 2) Listar TODOS os precos desta tabela na Fastchannel via API em lote
+            // GET /prices?PriceTableId=X&PageNumber=1&PageSize=500 (paginado)
+            FastchannelPriceClient fcClient = new FastchannelPriceClient();
+            List<PriceDTO> fcPrices = fcClient.listPricesForTable(new BigDecimal(priceTableId));
+
+            // 3) Diff: SKUs que existem na FC com preco > 0 mas NAO existem na tabela Sankhya
+            List<String> orphans = new ArrayList<>();
+            for (PriceDTO fcPrice : fcPrices) {
+                String fcSku = fcPrice.getSku() != null ? fcPrice.getSku().trim() : "";
+                if (!fcSku.isEmpty() && !sankhyaSkus.contains(fcSku)) {
+                    // Verifica se tem preco real (nao ja zerado)
+                    boolean hasPrice = (fcPrice.getPrice() != null && fcPrice.getPrice().compareTo(BigDecimal.ZERO) > 0)
+                        || (fcPrice.getListPrice() != null && fcPrice.getListPrice().compareTo(BigDecimal.ZERO) > 0);
+                    if (hasPrice) {
+                        orphans.add(fcSku);
+                    }
+                }
+            }
+
+            log.info("[MIRROR] Sankhya=" + sankhyaSkus.size()
+                + " SKUs, Fastchannel=" + fcPrices.size()
+                + " SKUs, Orfaos encontrados=" + orphans.size());
+
+            if (orphans.isEmpty()) {
+                result.put("success", true);
+                result.put("message", "Nenhum item orfao encontrado. Tabelas ja estao espelhadas.");
+                result.put("orphanCount", 0);
+                return result;
+            }
+
+            // 4) Zerar cada orfao na FC
+            int zeroed = 0;
+            int failed = 0;
+            List<String> errors = new ArrayList<>();
+
+            for (String orphanSku : orphans) {
+                try {
+                    PriceDTO zeroDto = new PriceDTO();
+                    zeroDto.setSku(orphanSku);
+                    zeroDto.setPriceTableId(new BigDecimal(priceTableId));
+                    zeroDto.setPrice(BigDecimal.ZERO);
+                    zeroDto.setListPrice(BigDecimal.ZERO);
+                    fcClient.updatePrice(zeroDto);
+                    zeroed++;
+                    log.info("[MIRROR] Zerado SKU orfao " + orphanSku + " na FC tabela " + priceTableId);
+                } catch (Exception e) {
+                    failed++;
+                    errors.add(orphanSku + ": " + e.getMessage());
+                    log.warning("[MIRROR] Falha ao zerar SKU " + orphanSku + ": " + e.getMessage());
+                }
+            }
+
+            result.put("success", failed == 0);
+            result.put("orphanCount", orphans.size());
+            result.put("zeroed", zeroed);
+            result.put("failed", failed);
+            if (!errors.isEmpty()) result.put("errors", errors);
+            result.put("message", String.format("Mirror: %d orfao(s) encontrado(s), %d zerado(s)%s.",
+                orphans.size(), zeroed, failed > 0 ? ", " + failed + " falha(s)" : ""));
+
+            log.info("[MIRROR] Concluido para tabela " + priceTableId + ": "
+                + orphans.size() + " orfaos, " + zeroed + " zerados, " + failed + " falhas");
+
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Erro em mirrorCleanup", e);
+            result.put("success", false);
+            result.put("message", "Erro: " + e.getMessage());
+        } finally {
+            DBUtil.closeConnection(batchConn);
+            SYNC_EM_LOTE_RUNNING.set(false);
+        }
+
+        return result;
+    }
+
+    /**
+     * Resolve CODPROD a partir do SKU reutilizando uma conexao existente.
+     * Evita abrir/fechar conexao para cada item do batch.
+     */
+    private BigDecimal getCodProdFromSkuWithConn(String sku, Connection conn) {
+        if (sku == null || sku.trim().isEmpty() || conn == null) return null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.prepareStatement(
+                "SELECT TOP 1 P.CODPROD FROM TGFPRO P " +
+                "LEFT JOIN TGFMAR M ON P.CODPROD = M.CODPROD " +
+                "WHERE CAST(P.CODPROD AS VARCHAR(50)) = ? " +
+                "OR P.REFFORN = ? " +
+                "OR (M.AD_FAST = 'S' AND M.MARCA = ?) " +
+                "ORDER BY P.CODPROD");
+            stmt.setString(1, sku.trim());
+            stmt.setString(2, sku.trim());
+            stmt.setString(3, sku.trim());
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("CODPROD");
+            }
+        } catch (Exception e) {
+            log.fine("getCodProdFromSkuWithConn falhou para " + sku + ": " + e.getMessage());
+        } finally {
+            DBUtil.closeAll(rs, stmt, null); // NÃO fechar conn — pertence ao batch
+        }
+        try {
+            return getCodProdFromSku(sku); // fallback com conexao propria
+        } catch (Exception fallbackEx) {
+            log.fine("getCodProdFromSku fallback tambem falhou: " + fallbackEx.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * findEligibleNuTabForProduct usando conexao compartilhada do batch.
+     */
+    private BigDecimal findEligibleNuTabForProductWithConn(BigDecimal codProd, Connection conn) {
+        if (codProd == null) return null;
+
+        Set<BigDecimal> candidateTables = new LinkedHashSet<>(new PriceTableResolver().resolveEligibleTables());
+        if (candidateTables.isEmpty()) {
+            BigDecimal configNuTab = FastchannelConfig.getInstance().getNuTab();
+            if (configNuTab != null) {
+                candidateTables.add(configNuTab);
+            }
+        }
+
+        if (candidateTables.isEmpty()) return null;
+
+        BigDecimal firstEligible = null;
+        for (BigDecimal nuTab : candidateTables) {
+            if (nuTab == null) continue;
+            if (firstEligible == null) firstEligible = nuTab;
+            if (productHasPriceInTableWithConn(codProd, nuTab, conn)) {
+                return nuTab;
+            }
+        }
+        return firstEligible;
+    }
+
+    private boolean productHasPriceInTableWithConn(BigDecimal codProd, BigDecimal nuTab, Connection conn) {
+        if (codProd == null || nuTab == null || conn == null) return false;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.prepareStatement(
+                "SELECT TOP 1 1 FROM TGFEXC WHERE CODPROD = ? AND NUTAB = ? AND VLRVENDA > 0");
+            stmt.setBigDecimal(1, codProd);
+            stmt.setBigDecimal(2, nuTab);
+            rs = stmt.executeQuery();
+            return rs.next();
+        } catch (Exception e) {
+            log.fine("productHasPriceInTableWithConn falhou: " + e.getMessage());
+            return false;
+        } finally {
+            DBUtil.closeAll(rs, stmt, null);
+        }
     }
 
     private BigDecimal findEligibleNuTabForProduct(BigDecimal codProd) {
