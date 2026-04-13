@@ -136,9 +136,10 @@ public class NotaFiscalListener extends PersistenceEventAdapter {
     }
 
     private String getOrderIdByNuNota(BigDecimal nuNota) {
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT ORDER_ID FROM AD_FCPEDIDO WHERE NUNOTA = :nuNota");
@@ -163,6 +164,7 @@ public class NotaFiscalListener extends PersistenceEventAdapter {
             log.log(Level.WARNING, "Erro ao buscar OrderId", e);
         } finally {
             closeQuietly(rs);
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
         return null;
     }

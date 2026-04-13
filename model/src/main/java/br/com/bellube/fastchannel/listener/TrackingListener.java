@@ -113,9 +113,10 @@ public class TrackingListener extends PersistenceEventAdapter {
     }
 
     private String getOrderIdByNuNota(BigDecimal nuNota) {
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT ORDER_ID FROM AD_FCPEDIDO WHERE NUNOTA = :nuNota");
             sql.setNamedParameter("nuNota", nuNota);
@@ -128,14 +129,16 @@ public class TrackingListener extends PersistenceEventAdapter {
             log.log(Level.WARNING, "Erro ao buscar OrderId por NUNOTA", e);
         } finally {
             if (rs != null) { try { rs.close(); } catch (Exception ignored) {} }
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
         return null;
     }
 
     private String getCarrierName(BigDecimal codParcTransp) {
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT NOMEPARC FROM TGFPAR WHERE CODPARC = :codParc");
             sql.setNamedParameter("codParc", codParcTransp);
@@ -148,6 +151,7 @@ public class TrackingListener extends PersistenceEventAdapter {
             log.log(Level.WARNING, "Erro ao buscar transportadora", e);
         } finally {
             if (rs != null) { try { rs.close(); } catch (Exception ignored) {} }
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
         return null;
     }

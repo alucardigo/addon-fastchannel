@@ -55,9 +55,10 @@ public class PriceTableResolver {
     private List<BigDecimal> fetchByTipoFast(List<String> tipos) {
         if (tipos.isEmpty()) return Collections.emptyList();
 
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
             NativeSql sql = new NativeSql(jdbc);
 
             StringBuilder in = new StringBuilder();
@@ -90,6 +91,7 @@ public class PriceTableResolver {
             return Collections.emptyList();
         } finally {
             closeQuietly(rs);
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
     }
 
@@ -151,9 +153,10 @@ public class PriceTableResolver {
     }
 
     private List<String> fetchMappedFcTableIds() {
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT DISTINCT LTRIM(RTRIM(COD_EXTERNO)) AS COD_EXTERNO ");
             sql.appendSql("FROM AD_FCDEPARA ");
@@ -179,6 +182,7 @@ public class PriceTableResolver {
             return fetchMappedFcTableIdsJdbc();
         } finally {
             closeQuietly(rs);
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
     }
 
@@ -218,9 +222,10 @@ public class PriceTableResolver {
      * e resolve o NUTAB mais recente do CODTAB correspondente.
      */
     private BigDecimal findLatestNuTabForFcTable(String fcTableId) {
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT TOP 1 ULT.NUTAB ");
             sql.appendSql("FROM AD_FCDEPARA D ");
@@ -243,6 +248,7 @@ public class PriceTableResolver {
             return findLatestNuTabForFcTableJdbc(fcTableId);
         } finally {
             closeQuietly(rs);
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
         return null;
     }
@@ -321,9 +327,10 @@ public class PriceTableResolver {
      *     Retorna 4408 (preco atual), nao 4321 (preco antigo).
      */
     private List<BigDecimal> findAllNuTabsForPriceTableId(String fcPriceTableId) {
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
             NativeSql sql = new NativeSql(jdbc);
             // Busca NUTABs no De-Para, resolve CODTAB, e pega o ULTIMO NUTAB de cada CODTAB
             sql.appendSql("SELECT DISTINCT ULT.NUTAB ");
@@ -353,6 +360,7 @@ public class PriceTableResolver {
             return findAllNuTabsForPriceTableIdJdbc(fcPriceTableId);
         } finally {
             closeQuietly(rs);
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
     }
 
@@ -394,9 +402,10 @@ public class PriceTableResolver {
     }
 
     private BigDecimal resolveExistingNuTab(BigDecimal nuTab) {
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT TOP 1 NUTAB FROM TGFTAB WHERE NUTAB = :nuTab");
             sql.setNamedParameter("nuTab", nuTab);
@@ -409,6 +418,7 @@ public class PriceTableResolver {
             return resolveExistingNuTabJdbc(nuTab);
         } finally {
             closeQuietly(rs);
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
         return null;
     }
@@ -434,9 +444,10 @@ public class PriceTableResolver {
     }
 
     private BigDecimal resolveLatestNuTabByCodTab(BigDecimal codTab) {
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT TOP 1 NUTAB FROM TGFTAB WHERE CODTAB = :codTab ORDER BY DTVIGOR DESC, NUTAB DESC");
             sql.setNamedParameter("codTab", codTab);
@@ -448,6 +459,7 @@ public class PriceTableResolver {
             log.log(Level.FINE, "Erro ao resolver NUTAB por CODTAB " + codTab, e);
         } finally {
             closeQuietly(rs);
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
         return null;
     }
@@ -474,6 +486,7 @@ public class PriceTableResolver {
             return false;
         } finally {
             closeQuietly(rs);
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
     }
 

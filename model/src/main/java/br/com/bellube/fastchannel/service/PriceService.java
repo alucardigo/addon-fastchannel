@@ -45,13 +45,26 @@ public class PriceService {
         this.consumptionClient = consumptionClient;
     }
 
+    /**
+     * Cache do mapa FC table → NUTAB para evitar reabrir conexoes JAPE em cada chamada.
+     * Populado na primeira invocacao de syncPrice e reutilizado nas seguintes.
+     * Thread-safe porque syncEmLote roda em thread unico (protegido por mutex).
+     */
+    private volatile Map<String, BigDecimal> cachedFcTableToNuTab = null;
+
     public void syncPrice(BigDecimal codProd, String sku) throws Exception {
         if (codProd == null || sku == null || sku.trim().isEmpty()) {
             return;
         }
 
         FastchannelPriceClient.Channel channel = determineChannel(codProd, sku);
-        Map<String, BigDecimal> fcTableToNuTab = priceTableResolver.resolveTableToNuTabMap();
+        // [POOL-FIX] Cachear resolveTableToNuTabMap para nao abrir conexoes em cada item.
+        // Sem esse cache, 1510 items × 3+ conn por resolveTableToNuTabMap = 4530+ conexoes abertas.
+        Map<String, BigDecimal> fcTableToNuTab = cachedFcTableToNuTab;
+        if (fcTableToNuTab == null) {
+            fcTableToNuTab = priceTableResolver.resolveTableToNuTabMap();
+            cachedFcTableToNuTab = fcTableToNuTab;
+        }
 
         if (fcTableToNuTab.isEmpty()) {
             List<BigDecimal> tables = priceTableResolver.resolveEligibleTables();

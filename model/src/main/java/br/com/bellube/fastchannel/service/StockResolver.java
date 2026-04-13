@@ -66,9 +66,10 @@ public class StockResolver {
             return null;
         }
 
+        JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
-            JdbcWrapper jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
+            jdbc = EntityFacadeFactory.getCoreFacade().getJdbcWrapper();
             NativeSql sql = new NativeSql(jdbc);
             String sqlText = resolveSql(jdbc);
             sql.appendSql(sqlText);
@@ -86,6 +87,7 @@ public class StockResolver {
             return resolveJdbc(codProd, codEmp, codLocal);
         } finally {
             closeQuietly(rs);
+            if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
         return BigDecimal.ZERO;
     }
