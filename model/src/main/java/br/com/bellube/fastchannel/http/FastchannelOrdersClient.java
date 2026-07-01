@@ -484,7 +484,86 @@ public class FastchannelOrdersClient {
         }
 
         parsed.setCustomer(customer);
+
+        // [FIX 2026-04-27] Endpoint /orders/{id} retorna address em Customer.Addresses[]
+        // (cada item com OrderAddressTypeId: 1=billing, 2=shipping). Sem este parser
+        // o JSON parser deixava billing/shipping null e createParceiro falhava com
+        // "CODCID nao resolvido" ao tentar criar cliente novo (caso pedido 4726
+        // Alegra Tur Ubá/MG/IBGE 3169901). O parser XML ja foi corrigido na mesma
+        // sessao mas a API FC responde JSON nativo - este branch eh o que executa.
+        if (customerObj != null && parsed.getBillingAddress() == null && parsed.getShippingAddress() == null) {
+            JsonElement addressesEl = customerObj.has("Addresses") ? customerObj.get("Addresses") : null;
+            if (addressesEl != null && addressesEl.isJsonArray()) {
+                OrderAddressDTO billingFromCustomer = null;
+                OrderAddressDTO shippingFromCustomer = null;
+                for (JsonElement addrItem : addressesEl.getAsJsonArray()) {
+                    if (addrItem == null || !addrItem.isJsonObject()) continue;
+                    JsonObject addrObj = addrItem.getAsJsonObject();
+                    OrderAddressDTO addr = parseAddressFromJson(addrObj);
+                    String typeId = getJsonString(addrObj, "OrderAddressTypeId", "orderAddressTypeId");
+                    if ("1".equals(typeId)) {
+                        billingFromCustomer = addr;
+                    } else if ("2".equals(typeId)) {
+                        shippingFromCustomer = addr;
+                    } else if (billingFromCustomer == null) {
+                        billingFromCustomer = addr; // fallback: 1o address vira billing
+                    }
+                }
+                if (parsed.getBillingAddress() == null && billingFromCustomer != null) {
+                    parsed.setBillingAddress(billingFromCustomer);
+                }
+                if (parsed.getShippingAddress() == null && shippingFromCustomer != null) {
+                    parsed.setShippingAddress(shippingFromCustomer);
+                }
+                if (parsed.getShippingAddress() == null && parsed.getBillingAddress() != null) {
+                    parsed.setShippingAddress(parsed.getBillingAddress());
+                }
+            }
+        }
+
         return parsed;
+    }
+
+    /**
+     * Parser de endereco vindo de Customer.Addresses[] em JSON.
+     * Tenta extrair primeiro do sub-objeto "Address" (StreetName/CityName/CityId/StateId)
+     * e cai em fallback no envelope (DsAddress/DsCity/IdCity/IdState).
+     */
+    private static OrderAddressDTO parseAddressFromJson(JsonObject addrObj) {
+        OrderAddressDTO dto = new OrderAddressDTO();
+        JsonObject nested = getJsonObject(addrObj, "Address", "address");
+        // Tenta nested primeiro, depois envelope
+        dto.setStreet(firstNonEmptyMany(
+                nested != null ? getJsonString(nested, "StreetName", "streetName") : null,
+                getJsonString(addrObj, "DsAddress", "dsAddress")));
+        dto.setNumber(firstNonEmptyMany(
+                nested != null ? getJsonString(nested, "StreetNumber", "streetNumber") : null,
+                getJsonString(addrObj, "DsNumber", "dsNumber")));
+        dto.setComplement(firstNonEmptyMany(
+                nested != null ? getJsonString(nested, "Complement", "complement") : null,
+                getJsonString(addrObj, "DsComplement", "dsComplement")));
+        dto.setNeighborhood(firstNonEmptyMany(
+                nested != null ? getJsonString(nested, "Neighborhood", "neighborhood") : null,
+                getJsonString(addrObj, "DsDistrict", "dsDistrict")));
+        dto.setCity(firstNonEmptyMany(
+                nested != null ? getJsonString(nested, "CityName", "cityName") : null,
+                getJsonString(addrObj, "DsCity", "dsCity")));
+        dto.setState(firstNonEmptyMany(
+                nested != null ? getJsonString(nested, "StateId", "stateId") : null,
+                getJsonString(addrObj, "IdState", "idState")));
+        dto.setZipCode(firstNonEmptyMany(
+                nested != null ? getJsonString(nested, "ZipCode", "zipCode") : null,
+                getJsonString(addrObj, "NuZip", "nuZip")));
+        dto.setCityIbgeCode(firstNonEmptyMany(
+                nested != null ? getJsonString(nested, "CityId", "cityId") : null,
+                getJsonString(addrObj, "IdCity", "idCity")));
+        dto.setRecipientName(firstNonEmptyMany(
+                getJsonString(addrObj, "DeliveryTo", "deliveryTo"),
+                getJsonString(addrObj, "RecipientName", "recipientName")));
+        dto.setRecipientPhone(firstNonEmptyMany(
+                getJsonString(addrObj, "NuPhone", "nuPhone"),
+                getJsonString(addrObj, "NuMobilePhone", "nuMobilePhone")));
+        return dto;
     }
 
     private static JsonObject getJsonObject(JsonObject source, String... keys) {
@@ -691,6 +770,59 @@ public class FastchannelOrdersClient {
                 order.setBillingAddress(parseAddress(billingEl));
             }
 
+            // [FIX 2026-04-27] Endpoint GET /orders/{id} retorna enderecos em
+            // Customer.Addresses[] (cada item tem OrderAddressTypeId: 1=billing, 2=shipping)
+            // - NAO em ShippingData/BillingData top-level. Sem este parse, customer.address
+            // chegava null em createParceiro -> "CODCID nao resolvido" para todo cliente novo.
+            // Caso reportado: pedido 4726 cliente Alegra Tur (Uba/MG/IBGE 3169901).
+            if (customerEl != null) {
+                Element addressesEl = firstElement(customerEl, "Addresses");
+                if (addressesEl != null) {
+                    NodeList addressNodes = addressesEl.getChildNodes();
+                    OrderAddressDTO billingFromCustomer = null;
+                    OrderAddressDTO shippingFromCustomer = null;
+                    for (int i = 0; i < addressNodes.getLength(); i++) {
+                        Node n = addressNodes.item(i);
+                        if (!(n instanceof Element)) continue;
+                        Element addrEl = (Element) n;
+                        String typeId = firstTagText(addrEl, "OrderAddressTypeId");
+                        // Tenta primeiro o sub-elemento Address (estrutura aninhada)
+                        Element nestedAddress = firstElement(addrEl, "Address");
+                        OrderAddressDTO parsed = parseAddress(nestedAddress != null ? nestedAddress : addrEl);
+                        // Se IBGE/cidade nao vieram do nested, retentar no envelope
+                        if (parsed.getCityIbgeCode() == null) {
+                            String envIbge = firstNonEmpty(firstTagText(addrEl, "CityId"), firstTagText(addrEl, "IdCity"));
+                            if (envIbge != null) parsed.setCityIbgeCode(envIbge);
+                        }
+                        if (parsed.getCity() == null) {
+                            String envCity = firstNonEmpty(firstTagText(addrEl, "CityName"), firstTagText(addrEl, "DsCity"));
+                            if (envCity != null) parsed.setCity(envCity);
+                        }
+                        if (parsed.getState() == null) {
+                            String envState = firstNonEmpty(firstTagText(addrEl, "StateId"), firstTagText(addrEl, "IdState"));
+                            if (envState != null) parsed.setState(envState);
+                        }
+                        if ("1".equals(typeId)) {
+                            billingFromCustomer = parsed;
+                        } else if ("2".equals(typeId)) {
+                            shippingFromCustomer = parsed;
+                        } else if (billingFromCustomer == null) {
+                            billingFromCustomer = parsed; // fallback: 1o endereco eh billing
+                        }
+                    }
+                    if (order.getBillingAddress() == null && billingFromCustomer != null) {
+                        order.setBillingAddress(billingFromCustomer);
+                    }
+                    if (order.getShippingAddress() == null && shippingFromCustomer != null) {
+                        order.setShippingAddress(shippingFromCustomer);
+                    }
+                    // Se ainda sem shipping mas tem billing, reaproveita
+                    if (order.getShippingAddress() == null && order.getBillingAddress() != null) {
+                        order.setShippingAddress(order.getBillingAddress());
+                    }
+                }
+            }
+
             List<OrderItemDTO> items = new ArrayList<>();
             Element itemsEl = firstElement(payload, "Items");
             if (itemsEl != null) {
@@ -731,6 +863,8 @@ public class FastchannelOrdersClient {
         dto.setNeighborhood(firstNonEmpty(firstTagText(addressRoot, "Neighborhood"), firstTagText(addressRoot, "DsDistrict")));
         dto.setCity(firstNonEmpty(firstTagText(addressRoot, "CityName"), firstTagText(addressRoot, "DsCity")));
         dto.setState(firstNonEmpty(firstTagText(addressRoot, "StateId"), firstTagText(addressRoot, "IdState")));
+        // CityId/IdCity = codigo IBGE do municipio (7 digitos). Match exato em TSICID.CODMUNFIS.
+        dto.setCityIbgeCode(firstNonEmpty(firstTagText(addressRoot, "CityId"), firstTagText(addressRoot, "IdCity")));
         dto.setZipCode(firstNonEmpty(firstTagText(addressRoot, "ZipCode"), firstTagText(addressRoot, "NuZip")));
         dto.setRecipientName(firstNonEmpty(firstTagText(addressRoot, "DeliveryTo"), firstTagText(addressRoot, "RecipientName")));
         dto.setRecipientPhone(firstNonEmpty(firstTagText(addressRoot, "NuPhone"), firstTagText(addressRoot, "NuMobilePhone")));

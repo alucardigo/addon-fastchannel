@@ -225,7 +225,12 @@ public class OrderXmlBuilder {
         if (codTipVenda != null) {
             xml.append("        <CODTIPVENDA>").append(codTipVenda).append("</CODTIPVENDA>\n");
         }
-        xml.append("        <AD_MCAPORTAL>P</AD_MCAPORTAL>\n");
+        // [FIX 2026-04-28] Guard supportsCabField: AD_MCAPORTAL nao tem dbscript,
+        // pode nao existir fisicamente em TGFCAB. Sem guard, CACSP.incluirNota
+        // falha com "Metadados nao carregados para CabecalhoNota->AD_MCAPORTAL".
+        if (supportsCabField("AD_MCAPORTAL")) {
+            xml.append("        <AD_MCAPORTAL>P</AD_MCAPORTAL>\n");
+        }
         xml.append("        <CIF_FOB>C</CIF_FOB>\n");
         if (codNat != null) {
             xml.append("        <CODNAT>").append(codNat).append("</CODNAT>\n");

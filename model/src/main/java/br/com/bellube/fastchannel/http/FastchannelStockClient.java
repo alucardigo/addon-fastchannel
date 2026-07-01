@@ -9,6 +9,7 @@ import com.google.gson.GsonBuilder;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -201,7 +202,7 @@ public class FastchannelStockClient {
             }
             return null;
         } catch (Exception e) {
-            log.warning("Erro ao parsear resposta de estoque: " + e.getMessage());
+            log.log(Level.WARNING, "Erro ao parsear resposta de estoque", e);
             return null;
         }
     }

@@ -19,8 +19,17 @@ import java.util.logging.Logger;
  *
  * Captura alteracoes de preco na tabela de precos e enfileira
  * para sincronizacao com o Fastchannel.
+ *
+ * [FIX 2026-06-01 v1.2.90] O nome da instancia estava "ExcecaoPreco", que NAO EXISTE
+ * no dicionario Sankhya — por isso o listener NUNCA disparava nas alteracoes de preco
+ * feitas na tela de Gestao de Precos/Tabela. Confirmado no log de PROD: a entidade real
+ * persistida para TGFEXC e "Excecao" (entityName="Excecao", crudListener=ExcecaoCrudListener,
+ * campos VLRVENDA/NUTAB/CODPROD/TIPO). Sem este fix, as alteracoes pontuais da operadora
+ * so chegavam na FC pelo AutoPriceChangesSweepJob (poll de 10 min) — lag de ate ~15 min.
+ * Agora o listener dispara na hora e o preco vai pro outbox no proximo ciclo (~1 min).
+ * Mantido "ExcecaoPreco" por seguranca (instancia inexistente apenas nunca dispara).
  */
-@Listener(instanceNames = {"ExcecaoPreco"})
+@Listener(instanceNames = {"Excecao", "ExcecaoPreco"})
 public class PrecoListener extends PersistenceEventAdapter {
 
     private static final Logger log = Logger.getLogger(PrecoListener.class.getName());

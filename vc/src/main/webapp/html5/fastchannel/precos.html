@@ -275,6 +275,67 @@
         .detail-label { color: var(--muted); }
         .detail-value { font-weight: 500; }
 
+        /* ======= SUB-TABS (Precos / Tabelas FC) ======= */
+        .sub-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0;
+        }
+        .sub-tab {
+            padding: 8px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: -1px;
+            transition: all 0.2s;
+        }
+        .sub-tab:hover { color: var(--text); }
+        .sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        /* Tabelas FC styles */
+        .tabelas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 16px;
+        }
+        .tabela-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .tabela-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .tabela-card-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .tabela-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+        }
+        .tabela-row:last-child { border-bottom: none; }
+        .tabela-row-info { flex: 1; min-width: 0; }
+        .tabela-row-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tabela-row-id { font-size: 11px; color: var(--muted); }
+        .tabela-sync-status { font-size: 11px; color: var(--muted); margin-top: 2px; }
+        .sync-progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+        .sync-progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
         @media (max-width: 768px) {
             .container { padding: 12px; }
             .filters { grid-template-columns: 1fr; }
@@ -282,6 +343,7 @@
             .nav-tab { padding: 8px 12px; font-size: 12px; }
             .card { padding: 16px; }
             th, td { padding: 8px; font-size: 12px; }
+            .tabelas-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -302,7 +364,13 @@
             <a class="nav-tab" href="logs.html">Logs</a>
         </nav>
 
-        <div class="card">
+        <!-- Sub-tabs: Gestao de Precos / Tabelas FC -->
+        <div class="sub-tabs">
+            <button class="sub-tab active" id="subtab-btn-precos" onclick="showSubTab('precos')">Gestao de Precos</button>
+            <button class="sub-tab" id="subtab-btn-tabelas" onclick="showSubTab('tabelas')">Tabelas FC</button>
+        </div>
+
+        <div class="card" id="subtab-precos-panel">
             <div class="card-header">
                 <span class="card-title">Gestao de Precos</span>
             </div>
@@ -390,6 +458,34 @@
                     <button class="btn btn-secondary btn-sm" id="btnNext" onclick="nextPage()" disabled>
                         Proximo
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TABELAS FC PANEL ===== -->
+        <div class="card" id="subtab-tabelas-panel" style="display:none;">
+            <div class="card-header" style="margin-bottom:12px;">
+                <span class="card-title">Tabelas de Precos Fastchannel</span>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <span id="tabelasStatusMsg" style="font-size:13px;color:var(--muted);"></span>
+                    <button class="btn btn-secondary" onclick="loadTabelasFC()">Atualizar</button>
+                </div>
+            </div>
+
+            <!-- Progresso de sync por tabela -->
+            <div id="tabelasSyncStatus" style="display:none;margin-bottom:16px;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <span style="font-size:13px;font-weight:500;" id="tabelaSyncLabel">Sincronizando...</span>
+                    <span style="font-size:12px;color:var(--muted);" id="tabelaSyncPct">0%</span>
+                </div>
+                <div class="sync-progress-bar"><div class="sync-progress-fill" id="tabelaSyncBar" style="width:0%"></div></div>
+                <div style="margin-top:6px;font-size:12px;color:var(--muted);" id="tabelaSyncDetail"></div>
+            </div>
+
+            <div id="tabelasFCContent">
+                <div style="text-align:center;padding:40px;color:var(--muted);">
+                    <div class="spinner" style="width:20px;height:20px;display:inline-block;margin-bottom:8px;"></div>
+                    <div>Carregando tabelas da Fastchannel...</div>
                 </div>
             </div>
         </div>
@@ -1170,6 +1266,189 @@
             await loadConfig();
             loadPrecos();
         });
+
+        // ============================================================
+        //  SUB-TABS: Gestao de Precos / Tabelas FC
+        // ============================================================
+
+        let currentSubTab = 'precos';
+        let tabelasSyncInterval = null;
+        let tabelasSyncingId = null; // priceTableId currently syncing
+
+        function showSubTab(name) {
+            currentSubTab = name;
+            document.getElementById('subtab-precos-panel').style.display = (name === 'precos') ? '' : 'none';
+            document.getElementById('subtab-tabelas-panel').style.display = (name === 'tabelas') ? '' : 'none';
+            document.getElementById('subtab-btn-precos').classList.toggle('active', name === 'precos');
+            document.getElementById('subtab-btn-tabelas').classList.toggle('active', name === 'tabelas');
+            if (name === 'tabelas') {
+                loadTabelasFC();
+            }
+        }
+
+        async function loadTabelasFC() {
+            const content = document.getElementById('tabelasFCContent');
+            const statusMsg = document.getElementById('tabelasStatusMsg');
+            content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div class="spinner" style="width:20px;height:20px;display:inline-block;margin-bottom:8px;"></div><div>Carregando tabelas da Fastchannel...</div></div>';
+            statusMsg.textContent = '';
+            try {
+                const data = await callService('FCPrecosSP.listFcTables', {});
+                renderTabelasFC(data);
+            } catch (e) {
+                content.innerHTML = `<div style="text-align:center;padding:40px;color:var(--danger);">Erro ao carregar tabelas: ${escapeHtml(e.message)}</div>`;
+                statusMsg.textContent = 'Erro ao carregar';
+            }
+        }
+
+        function renderTabelasFC(data) {
+            const content = document.getElementById('tabelasFCContent');
+            const statusMsg = document.getElementById('tabelasStatusMsg');
+
+            const distTables = (data.distribution || []);
+            const consTables = (data.consumption || []);
+            const total = (data.total || distTables.length + consTables.length);
+
+            if (data.error) {
+                content.innerHTML = `<div style="color:var(--danger);padding:16px;">Erro: ${escapeHtml(data.error)}</div>`;
+                return;
+            }
+
+            statusMsg.textContent = total + ' tabela(s) encontrada(s)';
+
+            let html = '<div class="tabelas-grid">';
+
+            // Distribution
+            html += `<div class="tabela-card">
+                <div class="tabela-card-header">
+                    <span class="tabela-card-title">Distribution (${distTables.length})</span>
+                    ${data.distError ? `<span style="color:var(--danger);font-size:11px;">Erro: ${escapeHtml(data.distError)}</span>` : ''}
+                </div>`;
+            if (distTables.length === 0) {
+                html += '<div style="color:var(--muted);font-size:13px;text-align:center;padding:16px;">Nenhuma tabela encontrada</div>';
+            } else {
+                distTables.forEach(t => {
+                    const id = t.Id || t.id || t.PriceTableId || t.priceTableId || '';
+                    const name = t.Name || t.name || t.PriceTableName || t.priceTableName || ('Tabela ' + id);
+                    html += renderTabelaRow(id, name, 'dist');
+                });
+            }
+            html += '</div>';
+
+            // Consumption
+            html += `<div class="tabela-card">
+                <div class="tabela-card-header">
+                    <span class="tabela-card-title">Consumption (${consTables.length})</span>
+                    ${data.consError ? `<span style="color:var(--danger);font-size:11px;">Erro: ${escapeHtml(data.consError)}</span>` : ''}
+                </div>`;
+            if (consTables.length === 0) {
+                html += '<div style="color:var(--muted);font-size:13px;text-align:center;padding:16px;">Nenhuma tabela encontrada</div>';
+            } else {
+                consTables.forEach(t => {
+                    const id = t.Id || t.id || t.PriceTableId || t.priceTableId || '';
+                    const name = t.Name || t.name || t.PriceTableName || t.priceTableName || ('Tabela ' + id);
+                    html += renderTabelaRow(id, name, 'cons');
+                });
+            }
+            html += '</div>';
+
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        function renderTabelaRow(id, name, channel) {
+            const idStr = String(id);
+            const safeId = idStr.replace(/[^a-zA-Z0-9_-]/g, '_');
+            return `<div class="tabela-row" id="trow-${channel}-${safeId}">
+                <div class="tabela-row-info">
+                    <div class="tabela-row-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+                    <div class="tabela-row-id">ID: ${escapeHtml(idStr)}</div>
+                    <div class="tabela-sync-status" id="tstatus-${channel}-${safeId}"></div>
+                    <div class="sync-progress-bar" id="tprog-${channel}-${safeId}" style="display:none;">
+                        <div class="sync-progress-fill" id="tprogfill-${channel}-${safeId}" style="width:0%"></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="font-size:12px;padding:6px 14px;white-space:nowrap;"
+                    id="tbtn-${channel}-${safeId}"
+                    onclick="syncTabelaFC('${escapeHtml(idStr)}', '${channel}', '${safeId}')">
+                    Sincronizar
+                </button>
+            </div>`;
+        }
+
+        async function syncTabelaFC(priceTableId, channel, safeId) {
+            const btn = document.getElementById(`tbtn-${channel}-${safeId}`);
+            const statusEl = document.getElementById(`tstatus-${channel}-${safeId}`);
+            const progBar = document.getElementById(`tprog-${channel}-${safeId}`);
+            const progFill = document.getElementById(`tprogfill-${channel}-${safeId}`);
+
+            if (!confirm(`Sincronizar TODOS os precos da tabela ID=${priceTableId} (${channel}) para a Fastchannel?\n\nIsso atualizara todos os produtos mapeados para esta tabela.`)) return;
+
+            if (btn) btn.disabled = true;
+            if (statusEl) { statusEl.textContent = 'Iniciando...'; statusEl.style.color = 'var(--accent)'; }
+
+            try {
+                const result = await callService('FCPrecosSP.syncAll', { priceTableId: priceTableId });
+                if (result.error || result.success === false) {
+                    if (statusEl) { statusEl.textContent = 'Erro: ' + (result.message || result.error); statusEl.style.color = 'var(--danger)'; }
+                    if (btn) btn.disabled = false;
+                    return;
+                }
+                const total = result.total || 0;
+                if (total === 0) {
+                    if (statusEl) { statusEl.textContent = 'Nenhum produto mapeado para esta tabela.'; statusEl.style.color = 'var(--muted)'; }
+                    if (btn) btn.disabled = false;
+                    return;
+                }
+
+                // Sync started in background — show progress bar and poll
+                if (progBar) progBar.style.display = '';
+                if (statusEl) { statusEl.textContent = `Sincronizando 0/${total}...`; statusEl.style.color = 'var(--accent)'; }
+
+                // Show global sync status header
+                document.getElementById('tabelasSyncStatus').style.display = '';
+                document.getElementById('tabelaSyncLabel').textContent = `Sincronizando tabela ${priceTableId} (${channel})...`;
+
+                tabelasSyncingId = { priceTableId, channel, safeId };
+                startSyncPolling(total, btn, statusEl, progFill);
+
+            } catch (e) {
+                if (statusEl) { statusEl.textContent = 'Erro: ' + e.message; statusEl.style.color = 'var(--danger)'; }
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function startSyncPolling(total, btn, statusEl, progFill) {
+            if (tabelasSyncInterval) clearInterval(tabelasSyncInterval);
+            tabelasSyncInterval = setInterval(async () => {
+                try {
+                    const st = await callService('FCPrecosSP.syncAllStatus', {});
+                    const pct = st.percentDone || 0;
+                    const done = st.processed || 0;
+                    const ok = st.successCount || 0;
+                    const errs = st.errorCount || 0;
+
+                    if (progFill) progFill.style.width = pct + '%';
+                    document.getElementById('tabelaSyncBar').style.width = pct + '%';
+                    document.getElementById('tabelaSyncPct').textContent = pct + '%';
+                    document.getElementById('tabelaSyncDetail').textContent = `${done}/${st.total || total} processados | ${ok} OK | ${errs} erros | ${st.elapsedSeconds || 0}s`;
+
+                    if (statusEl) statusEl.textContent = `${done}/${st.total || total} (${pct}%) | ${ok} OK | ${errs} erros`;
+
+                    if (!st.running || st.phase === 'DONE' || st.phase === 'ERROR') {
+                        clearInterval(tabelasSyncInterval);
+                        tabelasSyncInterval = null;
+                        const finalColor = errs > 0 ? 'var(--warning)' : 'var(--success)';
+                        if (statusEl) { statusEl.textContent = `Concluido: ${ok} OK, ${errs} erros`; statusEl.style.color = finalColor; }
+                        document.getElementById('tabelaSyncLabel').textContent = `Sync concluido: ${ok} OK, ${errs} erros`;
+                        if (btn) btn.disabled = false;
+                        if (progFill) progFill.style.width = '100%';
+                        document.getElementById('tabelaSyncBar').style.width = '100%';
+                    }
+                } catch (e) {
+                    // polling failure — keep going
+                }
+            }, 2000);
+        }
     </script>
 </body>
 </html>

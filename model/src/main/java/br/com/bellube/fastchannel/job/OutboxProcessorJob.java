@@ -4,6 +4,7 @@ import br.com.bellube.fastchannel.config.FastchannelConfig;
 import br.com.bellube.fastchannel.config.FastchannelConstants;
 import br.com.bellube.fastchannel.dto.PriceBatchItemDTO;
 import br.com.bellube.fastchannel.dto.QueueItemDTO;
+import br.com.bellube.fastchannel.http.FastchannelOrdersClient;
 import br.com.bellube.fastchannel.http.FastchannelPriceClient;
 import br.com.bellube.fastchannel.http.FastchannelStockClient;
 import br.com.bellube.fastchannel.service.DeparaService;
@@ -133,6 +134,14 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
                             processTrackingItem(item);
                             break;
 
+                        case FastchannelConstants.ENTITY_PEDIDO_STATUS:
+                            // [FIX 2026-05-14] Handler ausente causava todas as mudancas
+                            // de status do pedido FC serem marcadas como ERRO_FATAL "Tipo
+                            // desconhecido". Sem isso, FC nunca recebia confirmacao de que
+                            // o pedido foi processado/liberado/cancelado no Sankhya.
+                            processOrderStatusItem(item);
+                            break;
+
                         default:
                             log.warning("Tipo de entidade desconhecido: " + item.getEntityType());
                             queueService.markAsFatalError(item.getIdQueue(), "Tipo desconhecido");
@@ -153,6 +162,32 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
                         log.warning(msg);
                         queueService.markAsSuccess(item.getIdQueue());
                         LogService.getInstance().logPriceSync(item.getEntityKey(), false, msg);
+                        continue;
+                    }
+
+                    // [FIX 2026-05-15 v1.2.81] Maquina de estado do FC: PUT /orders/{id}/status
+                    // retorna HTTP 400 quando o status alvo nao esta em "PossibleNextStatuses" do
+                    // status atual. Ex: Sankhya manda L (=APPROVED 201) mas o pedido FC ja' esta
+                    // em 300 (Aprovado-NF Emitida). Voltar pra 201 e' proibido pela API.
+                    // Nesse caso o FC ja' esta CORRETAMENTE adiantado e a sincronizacao reversa
+                    // nao tem sentido - marcar SUCCESS pra parar o loop infinito de retry.
+                    if (isFcStateTransitionError(e)) {
+                        String msg = "Status FC ja' adiantado (transicao nao permitida pela maquina de estado): "
+                                + item.getEntityKey() + ". Marcando como SUCCESS para parar retry.";
+                        log.info(msg);
+                        queueService.markAsSuccess(item.getIdQueue());
+                        continue;
+                    }
+
+                    // [FIX 2026-05-15 v1.2.81] sendInvoice retorna HTTP 404 quando o pedido FC
+                    // ja' tem NF anexada ou foi cancelado. Resource not found generico - tratar
+                    // como SUCCESS para nao gerar retry loop (o operador pode reenviar manual
+                    // pela UI Sankhya se necessario).
+                    if (isFcInvoiceNotAcceptable(e)) {
+                        String msg = "FC nao aceita NF para esse pedido (404 - ja' enviada ou cancelado): "
+                                + item.getEntityKey() + ". Marcando como SUCCESS.";
+                        log.info(msg);
+                        queueService.markAsSuccess(item.getIdQueue());
                         continue;
                     }
 
@@ -348,6 +383,55 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
         }
     }
 
+    /**
+     * [FIX 2026-05-14 v1.2.79] Processa item de mudanca de status de pedido FC.
+     *
+     * <p>Payload enfileirado por `QueueService.enqueueOrderStatus`:
+     * {@code [orderId, statusInt]} (array JSON com 2 elementos).
+     *
+     * <p>Antes deste fix, o switch principal nao tinha case para ENTITY_PEDIDO_STATUS,
+     * resultando em "Tipo desconhecido" e ERRO_FATAL. Toda mudanca de status do pedido
+     * (P->A->L, cancelamentos, etc) era enfileirada mas NUNCA enviada ao FC, deixando o
+     * sistema externo dessincronizado.
+     */
+    private void processOrderStatusItem(QueueItemDTO item) throws Exception {
+        if (item.getPayload() == null || item.getPayload().isEmpty()) {
+            throw new Exception("Payload de PEDIDO_STATUS vazio para item " + item.getIdQueue());
+        }
+
+        Object[] payload;
+        try {
+            payload = gson.fromJson(item.getPayload(), Object[].class);
+        } catch (Exception e) {
+            throw new Exception("Payload de PEDIDO_STATUS invalido: " + item.getPayload(), e);
+        }
+        if (payload == null || payload.length < 2) {
+            throw new Exception("Payload de PEDIDO_STATUS incompleto: " + item.getPayload());
+        }
+
+        String orderId = payload[0] != null ? payload[0].toString() : null;
+        int statusInt;
+        try {
+            // Gson desserializa numeros JSON como Double por default.
+            statusInt = ((Number) payload[1]).intValue();
+        } catch (Exception e) {
+            throw new Exception("PEDIDO_STATUS com status nao numerico: " + payload[1], e);
+        }
+
+        if (orderId == null || orderId.isEmpty()) {
+            throw new Exception("PEDIDO_STATUS com orderId vazio (entityKey=" + item.getEntityKey() + ")");
+        }
+
+        String message = "Status atualizado via Sankhya (cod=" + statusInt + ")";
+        log.info("Atualizando status FC pedido " + orderId + " para " + statusInt);
+
+        FastchannelOrdersClient ordersClient = new FastchannelOrdersClient();
+        ordersClient.updateOrderStatus(orderId, statusInt, message);
+
+        LogService.getInstance().info(LogService.OP_ORDER_IMPORT,
+                "Status do pedido " + orderId + " atualizado no FC para " + statusInt);
+    }
+
     private void processTrackingItem(QueueItemDTO item) throws Exception {
         if (item.getPayload() == null || item.getPayload().isEmpty()) {
             throw new Exception("Payload de tracking vazio para item " + item.getIdQueue());
@@ -489,10 +573,67 @@ public class OutboxProcessorJob implements EventoProgramavelJava {
             return false;
         }
         String msg = e.getMessage().toLowerCase();
-        return msg.contains("resourcenotfound")
-                || msg.contains("sku do produto nao existe")
-                || msg.contains("sku do produto nao existe")
-                || msg.contains("sku do produto") && msg.contains("incorreto");
+        // [FIX 2026-05-15] Restringido para SKU especificamente - antes "resourcenotfound"
+        // pegava qualquer 404 (incluindo sendInvoice 404), levando a falsos positivos.
+        // Mantemos apenas matches que mencionam SKU explicitamente.
+        return msg.contains("sku do produto nao existe")
+                || (msg.contains("sku do produto") && msg.contains("incorreto"))
+                || (msg.contains("resourcenotfound") && msg.contains("sku"));
+    }
+
+    /**
+     * [FIX 2026-05-15 v1.2.81] Detecta erro HTTP 400 retornado pelo FC quando o status alvo
+     * nao esta em "PossibleNextStatuses" do status atual (maquina de estado do FC bloqueia
+     * retrocessos). Ex: Sankhya envia L=APPROVED mas FC ja' esta em status 300+. Nesse caso
+     * o FC ja' esta mais adiantado e nao ha necessidade de retry - marcamos SUCCESS pra
+     * parar o loop infinito.
+     */
+    private boolean isFcStateTransitionError(Exception e) {
+        if (e == null || e.getMessage() == null) {
+            return false;
+        }
+        // [FIX 2026-05-19 v1.2.82] Robusto a encoding: log SQL Server PROD escreve
+        // "n�o � um c�digo v�lido" (caracteres acentuados corrompidos para `?` ou `�`
+        // dependendo da locale do appender), e em outros ambientes vem "não é um código
+        // válido" em UTF-8 puro. O detector anterior dependia dos acentos exatos. Usamos
+        // agora apenas palavras-chave SEM acentos (orderstatusid, possiblenextstatuses,
+        // badrequest, httpstatuscode":400) que sao invariantes a encoding.
+        String msg = e.getMessage().toLowerCase();
+        boolean mentionsOrderStatusId = msg.contains("orderstatusid");
+        boolean mentionsPossibleNext = msg.contains("possiblenextstatuses");
+        boolean is400 = msg.contains("httpstatuscode\":400")
+                || msg.contains("\"httpstatuscode\":400")
+                || msg.contains("status=400")
+                || msg.contains("http 400")
+                || msg.contains("-> 400 ");
+        boolean isBadRequest = msg.contains("badrequest") || msg.contains("bad request");
+        // Match se mencionar especificamente o erro de transicao OU se for 400+BadRequest
+        // referenciando OrderStatusId.
+        if (mentionsPossibleNext) return true;
+        if (mentionsOrderStatusId && is400) return true;
+        if (mentionsOrderStatusId && isBadRequest) return true;
+        return false;
+    }
+
+    /**
+     * [FIX 2026-05-15 v1.2.81] Detecta HTTP 404 ao tentar enviar NF (sendInvoice).
+     * Normalmente significa que o pedido FC ja' tem NF anexada ou foi cancelado.
+     * Tratar como SUCCESS pra parar loop.
+     */
+    private boolean isFcInvoiceNotAcceptable(Exception e) {
+        if (e == null || e.getMessage() == null) {
+            return false;
+        }
+        String msg = e.getMessage().toLowerCase();
+        // [FIX 2026-05-19 v1.2.82] Mais robusto: match qualquer 404 do endpoint /invoices.
+        boolean is404 = msg.contains("\"statuscode\": 404")
+                || msg.contains("\"httpstatuscode\":404")
+                || msg.contains("status=404")
+                || msg.contains("-> 404 ")
+                || msg.contains("resource not found");
+        boolean isInvoiceCtx = msg.contains("erro ao enviar nf")
+                || msg.contains("/invoices");
+        return is404 && isInvoiceCtx;
     }
 
     private BigDecimal resolveCodTabFromNuTab(BigDecimal nuTab) {

@@ -4,10 +4,75 @@
             xsi:noNamespaceSchemaLocation="../../../../../.gradle/parameters.xsd">
 
     <!--
-        Para mais informações sobre a criação e utilização de Parâmetros,
-        consulte a documentação oficial da Sankhya em: https://developer.sankhya.com.br/docs/03_parameter
+        Parametros imutaveis/versionados da integracao Fastchannel.
+        Configs runtime (client_secret, tokens) permanecem em AD_FCCONFIG.
+        Para alterar estes valores e necessario redeploy do addon.
+        Doc: https://developer.sankhya.com.br/docs/03_parameter
     -->
 
+    <!-- ============== URLs da API Fastchannel ============== -->
+    <parameter name="FC_API_URL" key="FC_API_URL" type="string"
+               default="https://api.commerce.fastchannel.com" cacheable="true" required="false" module="A"
+               description="URL base da API Fastchannel (producao)"/>
+    <parameter name="FC_API_URL_SANDBOX" key="FC_API_URL_SANDBOX" type="string"
+               default="https://api-sandbox.commerce.fastchannel.com" cacheable="true" required="false" module="A"
+               description="URL base da API Fastchannel (sandbox)"/>
+    <parameter name="FC_OAUTH_URL" key="FC_OAUTH_URL" type="string"
+               default="https://login.microsoftonline.com/fastchannel.com/oauth2/v2.0/token" cacheable="true" required="false" module="A"
+               description="URL de autenticacao OAuth2 Azure AD"/>
+    <parameter name="FC_OAUTH_SCOPE" key="FC_OAUTH_SCOPE" type="string"
+               default="api://fastchannel-commerce/.default" cacheable="true" required="false" module="A"
+               description="Scope OAuth2 para token client_credentials"/>
+
+    <!-- ============== Timeouts HTTP ============== -->
+    <parameter name="FC_HTTP_TIMEOUT_CONNECT_MS" key="FC_HTTP_TIMEOUT_CONNECT_MS" type="integer"
+               default="30000" cacheable="true" required="false" module="A"
+               description="Timeout de conexao HTTP em milissegundos"/>
+    <parameter name="FC_HTTP_TIMEOUT_READ_MS" key="FC_HTTP_TIMEOUT_READ_MS" type="integer"
+               default="60000" cacheable="true" required="false" module="A"
+               description="Timeout de leitura HTTP em milissegundos"/>
+
+    <!-- ============== Retry e Backoff ============== -->
+    <parameter name="FC_RETRY_MAX_ATTEMPTS" key="FC_RETRY_MAX_ATTEMPTS" type="integer"
+               default="3" cacheable="true" required="false" module="A"
+               description="Numero maximo de tentativas em caso de falha"/>
+    <parameter name="FC_RETRY_BASE_BACKOFF_MS" key="FC_RETRY_BASE_BACKOFF_MS" type="integer"
+               default="500" cacheable="true" required="false" module="A"
+               description="Backoff base em ms para retry exponencial"/>
+
+    <!-- ============== Batch Sizes ============== -->
+    <parameter name="FC_BATCH_ORDER_IMPORT_SIZE" key="FC_BATCH_ORDER_IMPORT_SIZE" type="integer"
+               default="50" cacheable="true" required="false" module="A"
+               description="Tamanho de lote para importacao de pedidos"/>
+    <parameter name="FC_BATCH_PRICE_SYNC_SIZE" key="FC_BATCH_PRICE_SYNC_SIZE" type="integer"
+               default="100" cacheable="true" required="false" module="A"
+               description="Tamanho de lote para sincronizacao de precos"/>
+    <parameter name="FC_BATCH_STOCK_SYNC_SIZE" key="FC_BATCH_STOCK_SYNC_SIZE" type="integer"
+               default="100" cacheable="true" required="false" module="A"
+               description="Tamanho de lote para sincronizacao de estoque"/>
+
+    <!-- ============== Cache TTL ============== -->
+    <parameter name="FC_CACHE_DEPARA_TTL_MINUTES" key="FC_CACHE_DEPARA_TTL_MINUTES" type="integer"
+               default="15" cacheable="true" required="false" module="A"
+               description="TTL do cache de De-Para (SKU) em minutos"/>
+    <parameter name="FC_TOKEN_REFRESH_BUFFER_SECONDS" key="FC_TOKEN_REFRESH_BUFFER_SECONDS" type="integer"
+               default="300" cacheable="true" required="false" module="A"
+               description="Segundos antes da expiracao para renovar token OAuth2"/>
+
+    <!-- ============== Circuit Breaker (Fase 3) ============== -->
+    <parameter name="FC_CIRCUIT_BREAKER_THRESHOLD" key="FC_CIRCUIT_BREAKER_THRESHOLD" type="integer"
+               default="5" cacheable="true" required="false" module="A"
+               description="Numero de falhas consecutivas para abrir o circuito"/>
+    <parameter name="FC_CIRCUIT_BREAKER_RESET_MS" key="FC_CIRCUIT_BREAKER_RESET_MS" type="integer"
+               default="60000" cacheable="true" required="false" module="A"
+               description="Tempo em ms para tentar half-open apos abrir circuito"/>
+
+    <!-- ============== Rate Limit ============== -->
+    <parameter name="FC_RATE_LIMIT_PER_MINUTE" key="FC_RATE_LIMIT_PER_MINUTE" type="integer"
+               default="30" cacheable="true" required="false" module="A"
+               description="Limite de requisicoes por minuto a Fastchannel"/>
+
+    <!-- ============== Templates originais (preservados) ============== -->
     <parameter name="TesteA" key="PTESTEA" type="string" default="A" cacheable="false" required="false" module="S" description="Exemplo de Parametro A"/>
     <parameter name="TesteB" key="PTESTEB" type="string" default="B" cacheable="false" required="false" module="A" description="Exemplo de Parametro B"/>
 </parameters>

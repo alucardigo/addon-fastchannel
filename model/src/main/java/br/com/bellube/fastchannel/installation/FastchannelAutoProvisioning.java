@@ -1,6 +1,7 @@
 package br.com.bellube.fastchannel.installation;
 
 import br.com.bellube.fastchannel.config.FastchannelConfig;
+import br.com.bellube.fastchannel.job.AutoPriceChangesSweepJob;
 import br.com.bellube.fastchannel.job.OrderImportJob;
 import br.com.bellube.fastchannel.job.OrderStatusSyncJob;
 import br.com.bellube.fastchannel.job.OutboxProcessorJob;
@@ -89,6 +90,24 @@ public final class FastchannelAutoProvisioning {
         java.sql.ResultSet rs = null;
         try {
             conn = DBUtil.getConnection();
+
+            // [FIX 2026-05-14] AD_FCDUPPURGE e' tabela de utilidade OPCIONAL para purges
+            // historicos. Em clientes onde ela nunca foi criada, o SELECT falha com
+            // "Nome de objeto 'AD_FCDUPPURGE' invalido". Skip silencioso se nao existir.
+            java.sql.PreparedStatement existsPs = null;
+            java.sql.ResultSet existsRs = null;
+            try {
+                existsPs = conn.prepareStatement(
+                    "SELECT 1 FROM sys.objects WHERE name = 'AD_FCDUPPURGE' AND type = 'U'");
+                existsRs = existsPs.executeQuery();
+                if (!existsRs.next()) {
+                    log.fine("AutoProvisionamento: AD_FCDUPPURGE nao existe neste BD. Skip purge.");
+                    return;
+                }
+            } finally {
+                DBUtil.closeAll(existsRs, existsPs, null);
+            }
+
             selectPs = conn.prepareStatement(
                 "SELECT p.NUNOTA FROM AD_FCDUPPURGE p " +
                 "INNER JOIN TGFCAB c ON c.NUNOTA = p.NUNOTA " +
@@ -224,7 +243,14 @@ public final class FastchannelAutoProvisioning {
             t.setDaemon(true);
             return t;
         };
-        internalScheduler = Executors.newScheduledThreadPool(5, factory);
+        // [FIX 2026-04-24] Pool aumentado de 5 para 10 threads.
+        // Problema antigo: 5 threads e 6 tasks agendadas (depara-sync, order-import, outbox,
+        // status-sync, price-full, stock-full). Quando order-import/outbox/status-sync
+        // estouravam simultaneamente, as threads ficavam ocupadas e os jobs pesados
+        // price-full e stock-full nunca rodavam (starvation). Log confirmava:
+        // OrderImportJob/OrderStatusSyncJob/OutboxProcessorJob logados mil vezes;
+        // PriceFullSyncJob/StockFullSyncJob com 0 execucoes apos 5h de uptime.
+        internalScheduler = Executors.newScheduledThreadPool(10, factory);
 
         // Sincronizacao preventiva de De-Para de produtos: roda no startup e a cada 24h
         schedule("depara-sync", readPositiveLong("fc.auto.depara.hours", 24), TimeUnit.HOURS,
@@ -237,10 +263,19 @@ public final class FastchannelAutoProvisioning {
                 () -> new OutboxProcessorJob().executeScheduler());
         schedule("status-sync", readPositiveLong("fc.auto.status.minutes", 3), TimeUnit.MINUTES,
                 () -> new OrderStatusSyncJob().executeScheduler());
+        // [FIX 2026-04-24] price-full/stock-full: hours*3600=muitos segundos; o calculo antigo
+        // capeava em 120s mas a task ficava em starvation porque pool ocupado. Com pool=10
+        // e initialDelay curto (180s), rodam no startup e depois a cada fc.auto.price.hours.
         schedule("price-full", readPositiveLong("fc.auto.price.hours", 6), TimeUnit.HOURS,
                 () -> new PriceFullSyncJob().executeScheduler());
         schedule("stock-full", readPositiveLong("fc.auto.stock.hours", 6), TimeUnit.HOURS,
                 () -> new StockFullSyncJob().executeScheduler());
+        // [AUTO-SWEEP 2026-06-01] Varredura periodica de alteracoes que nao disparam listener:
+        //   - promos escalonadas que acabaram de expirar (TGFDES.DTFINAL no passado recente);
+        //   - TGFEXC (Excecao de Preco) alterados desde a ultima varredura.
+        // Cada produto afetado vira PRECO/UPDATE no AD_FCQUEUE (com debounce). Padrao 10 min.
+        schedule("auto-sweep-prices", readPositiveLong("fc.auto.sweep.minutes", 10), TimeUnit.MINUTES,
+                () -> new AutoPriceChangesSweepJob().run());
 
         INTERNAL_STARTED.set(true);
         log.info("AutoProvisionamento: fallback interno ativado.");
@@ -253,7 +288,21 @@ public final class FastchannelAutoProvisioning {
         RUN_GUARD.clear();
         LAST_ACTUAL_RUN_MS.clear();
         if (scheduler != null) {
+            // [CRIT 2026-04-27] shutdownNow() retorna imediatamente mas as threads
+            // podem estar bloqueadas em I/O (HTTP FC, JDBC). Aguardar terminacao
+            // pra garantir que o classloader pode ser liberado pelo WildFly.
+            // Sem isso o redeploy criava pools paralelos: confirmado pelos stacks
+            // pos-redeploy 12:53 mostrando linhas DAS DUAS versoes (v8 :1840 + v10 :1847).
             scheduler.shutdownNow();
+            try {
+                if (!scheduler.awaitTermination(15, java.util.concurrent.TimeUnit.SECONDS)) {
+                    log.warning("[stopInternalFallback] Pool nao terminou em 15s; threads daemon ficarao em background ate o GC do classloader.");
+                }
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                log.warning("[stopInternalFallback] Interrompido aguardando shutdown do pool.");
+            }
+            log.info("[stopInternalFallback] Scheduler interno desligado.");
         }
     }
 
@@ -288,7 +337,16 @@ public final class FastchannelAutoProvisioning {
 
     private static void schedule(String name, long period, TimeUnit unit, ThrowingRunnable task) {
         AtomicBoolean running = RUN_GUARD.computeIfAbsent(name, key -> new AtomicBoolean(false));
-        long initialDelay = Math.max(20L, Math.min(120L, unit.toSeconds(period)));
+
+        // [FIX 2026-05-15] Bug critico: initialDelay calculado em segundos era passado com
+        // 'unit' original (HOURS/MINUTES), Java interpretava como o valor sendo nessa
+        // unidade. Ex: stock-full (period=6 HOURS): initialDelay calculado=120 (segundos),
+        // mas scheduleWithFixedDelay(..., 120, 6, HOURS) interpretava como 120 HORAS = 5 dias!
+        // Resultado: stock-full nunca rodava na pratica - estoque do FC ficava dessincronizado.
+        // Confirmacao no log 15/05: zero execucoes de StockFullSyncJob desde o boot.
+        // Fix: converter TUDO para SECONDS para evitar mismatch de unidades.
+        long initialDelaySecs = Math.max(20L, Math.min(120L, unit.toSeconds(period)));
+        long periodSecs = unit.toSeconds(period);
 
         internalScheduler.scheduleWithFixedDelay(() -> {
             if (!running.compareAndSet(false, true)) {
@@ -306,7 +364,10 @@ public final class FastchannelAutoProvisioning {
             } finally {
                 running.set(false);
             }
-        }, initialDelay, period, unit);
+        }, initialDelaySecs, periodSecs, TimeUnit.SECONDS);
+
+        log.info("AutoProvisionamento[" + name + "]: agendado initialDelay=" + initialDelaySecs
+                + "s, periodo=" + periodSecs + "s.");
     }
 
     /**

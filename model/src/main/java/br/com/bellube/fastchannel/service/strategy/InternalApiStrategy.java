@@ -104,6 +104,16 @@ public class InternalApiStrategy implements OrderCreationStrategy {
                     createItens(header.nuNota, order, header.codLocal, header.codEmp, header.codVend, header.codTipVenda);
                     enrichCabecalhoAndItensLegacyParity(header.nuNota, order, codParc, header.codVend, header.codEmp, order.getCodTipOper());
 
+                    // [FIX 2026-04-30] FORCA VLRNOTA = SUM(VLRTOT - VLRDESC) + VLRFRETE.
+                    // Necessario porque a trigger Sankhya em alguns casos calcula VLRNOTA = SUM(VLRTOT)
+                    // sem subtrair VLRDESC dos itens. E quando enrichCabecalhoAndItensLegacyParity
+                    // falha (ex: trigger SQL-50001 "Ordem de carga nao esta aberta"), o VLRNOTA
+                    // pode ficar com valor cheio incorreto. Caso visto em PROD: NUNOTA 4839529 (FC 4749)
+                    // ficou VLRNOTA=4462 quando deveria ser 4290 (cupom BELLUBE120 R$172).
+                    // Essa correcao roda em transacao separada para nao falhar caso outras triggers
+                    // bloqueiem - o objetivo eh garantir VLRNOTA correto sempre.
+                    forceVlrNotaCorrect(header.nuNota);
+
                     nuNotaRef[0] = header.nuNota;
                 }
             });
@@ -327,6 +337,28 @@ public class InternalApiStrategy implements OrderCreationStrategy {
         }
         if (order.getDiscount() != null && order.getDiscount().compareTo(BigDecimal.ZERO) > 0 && supportsCabField("VLRDESC")) {
             cabBuilder = cabBuilder.set("VLRDESC", order.getDiscount());
+        }
+        // [FIX 2026-04-30] Encargo financeiro de parcelamento de cartao -> VLRJURO (campo nativo Sankhya).
+        // Trigger Sankhya soma VLRJURO ao VLRNOTA: VLRNOTA = SUM(VLRTOT - VLRDESC) + VLRFRETE + VLRJURO.
+        // Isso resolve o trabalho manual do financeiro que tinha que conferir encargos no FC.
+        if (order.getPaymentInstallmentCost() != null
+                && order.getPaymentInstallmentCost().compareTo(BigDecimal.ZERO) > 0
+                && supportsCabField("VLRJURO")) {
+            cabBuilder = cabBuilder.set("VLRJURO", order.getPaymentInstallmentCost());
+            log.info("[InternalAPI] VLRJURO=" + order.getPaymentInstallmentCost()
+                    + " setado para pedido FC " + order.getOrderId()
+                    + " (parcelamento " + order.getInstallments() + "x)");
+        }
+        // [FIX 2026-04-30] Numero de parcelas do cartao -> AD_PARCELAS_FAST (custom).
+        // Util para auditoria financeira saber quantas parcelas teve cada pedido FC.
+        if (order.getInstallments() > 0 && supportsCabField("AD_PARCELAS_FAST")) {
+            try {
+                cabBuilder = cabBuilder.set("AD_PARCELAS_FAST", new BigDecimal(order.getInstallments()));
+            } catch (Throwable t) {
+                log.log(java.util.logging.Level.INFO,
+                    "[VO-PROPERTY] CabecalhoNota.AD_PARCELAS_FAST nao mapeada no VO ("
+                    + t.getClass().getSimpleName() + "). Pulando.");
+            }
         }
         // Sempre enviar VLRFRETE (mesmo quando zero) - compatibilidade com legado
         // Usar frete efetivo (bruto - descontos) para nao cobrar frete quando FC tem desconto
@@ -611,15 +643,13 @@ public class InternalApiStrategy implements OrderCreationStrategy {
         }
 
         // Caminho nativo (Jape) primeiro.
+        // [FIX 2026-05-06] Removida tentativa "this.NOMUSU = ?" - coluna NAO existe em TSIUSU.
+        // A coluna correta e' NOMEUSU. JAPE traduzia "this.NOMUSU" para SQL "WHERE Usuario.NOMUSU = ?"
+        // o que gerava: "O identificador de varias partes 'Usuario.NOMUSU' nao pode ser associado".
         try {
             JapeWrapper usuDAO = JapeFactory.dao("Usuario");
-            Collection<DynamicVO> byNomUsu = usuDAO.find("this.NOMUSU = ?", user);
-            BigDecimal codCenCus = extractCodCenCusPad(byNomUsu);
-            if (!isNullOrZero(codCenCus)) {
-                return codCenCus;
-            }
             Collection<DynamicVO> byNomeUsu = usuDAO.find("this.NOMEUSU = ?", user);
-            codCenCus = extractCodCenCusPad(byNomeUsu);
+            BigDecimal codCenCus = extractCodCenCusPad(byNomeUsu);
             if (!isNullOrZero(codCenCus)) {
                 return codCenCus;
             }
@@ -1325,6 +1355,17 @@ public class InternalApiStrategy implements OrderCreationStrategy {
             }
 
             itemBuilder.save();
+
+            // [FIX 2026-05-05] Pos-save: corrige VLRUNIT/VLRDESC se MGECOM/Sankhya recalculou
+            // sobrescrevendo os valores que o addon inseriu. Acontece quando a NUTAB do item
+            // eh a versao ATIVA atual da tabela de precos (ex: NUTAB=4065 ativa em 2025-07-08
+            // recalcula via TGFEXC TIPO='P', mas NUTAB=3665/3667 superadas nao recalculam).
+            // Sintoma observado em pedido FC 4763 (NUNOTA 4843808): cupom 568.53 absorvido em
+            // VLRDESC=844.72 junto com 276.19 de "ajuste de tabela", em vez de ficar isolado.
+            // Idempotente: no-op quando nao ha divergencia (4 de 5 pedidos com cupom em 90 dias
+            // nao precisaram de correcao).
+            forceItemValuesFromFc(nuNota, new BigDecimal(sequencia), item, quantity);
+
             sequencia++;
         }
 
@@ -1551,7 +1592,15 @@ public class InternalApiStrategy implements OrderCreationStrategy {
                     changed = true;
                 }
             }
-            if (supportsCabField("ORDEMCARGA") && isNullOrZero(cabVO.asBigDecimal("ORDEMCARGA"))) {
+            // [FIX 2026-04-30] NAO setar ORDEMCARGA em pedidos do Fastchannel.
+            // Pedidos FC sao novos e nao devem herdar Ordem de Carga preferencial do parceiro
+            // (que pode estar fechada, gerando trigger SQL-50001 "Ordem de carga 34920 nao esta aberta").
+            // Caso real PROD: NUNOTA 4839529 (FC 4749, parceiro 4112) - cliente tinha ORDEMCARGA=34920
+            // pre-cadastrada e fechada, abortando toda a paridade pos-itens e deixando VLRNOTA com
+            // valor cheio incorreto. ORDEMCARGA so deve ser setada se for explicitamente solicitada
+            // (ex: pedido legado em copia/replica) - pedidos FC sempre comecam sem ordem de carga.
+            boolean isPedidoFastchannel = order != null && !isBlank(order.getOrderId());
+            if (!isPedidoFastchannel && supportsCabField("ORDEMCARGA") && isNullOrZero(cabVO.asBigDecimal("ORDEMCARGA"))) {
                 BigDecimal ordemCarga = resolveOrdemCarga(codParc, codEmp, codTipOper);
                 if (!isNullOrZero(ordemCarga)) {
                     updateVO = updateVO.set("ORDEMCARGA", ordemCarga);
@@ -1609,6 +1658,149 @@ public class InternalApiStrategy implements OrderCreationStrategy {
             }
         } catch (Exception e) {
             log.log(Level.WARNING, "[InternalAPI] Falha ao reforcar paridade de cabecalho pos-itens para NUNOTA " + nuNota, e);
+        }
+    }
+
+    /**
+     * [FIX 2026-04-30] Forca VLRNOTA do cabecalho = SUM(VLRTOT - VLRDESC) dos itens + VLRFRETE.
+     *
+     * <p>Necessario porque em PROD foi observado (NUNOTA 4839529, FC OrderId 4749) que
+     * em alguns casos a trigger Sankhya recalcula VLRNOTA = SUM(VLRTOT) sem subtrair
+     * VLRDESC dos itens, deixando o pedido com valor cheio quando deveria estar liquido.
+     *
+     * <p>Causa identificada: quando {@code enrichCabecalhoAndItensLegacyParity} falha
+     * (ex: trigger SQL-50001 "Ordem de carga nao esta aberta"), o catch generico
+     * abandona toda a paridade incluindo o re-calculo do VLRNOTA. Sem esse re-calculo,
+     * VLRNOTA persiste com valor incorreto.
+     *
+     * <p>Estrategia desta funcao:
+     * <ol>
+     *   <li>Calcula valor correto via UPDATE direto (sem usar VO/trigger): {@code SUM(VLRTOT - ISNULL(VLRDESC,0))} + VLRFRETE</li>
+     *   <li>UPDATE direto contorna triggers que possam recalcular incorretamente</li>
+     *   <li>Falha em transacao separada (try/catch) para nao abortar o pedido se houver outro bloqueio</li>
+     * </ol>
+     */
+    /**
+     * [FIX 2026-05-05] Forca VLRUNIT/VLRDESC do item TGFITE para refletir os valores
+     * que a Fastchannel enviou (SalePrice + soma de descontos), corrigindo recalculo
+     * automatico do MGECOM/Sankhya que sobrescreve VLRUNIT com o preco da tabela ativa
+     * quando a NUTAB do item e' a versao mais recente.
+     *
+     * <p><b>Causa raiz</b>: ao inserir TGFITE com NUTAB que tem TGFEXC TIPO='P' (percentual)
+     * e a NUTAB e' a "ativa" para sua CODTAB, o MGECOM da Sankhya recalcula VLRUNIT como
+     * (preco_tabela_mae * (1 + percentual/100)), absorvendo o cupom em VLRDESC junto com
+     * o "delta de tabela", em vez de manter o cupom isolado. Para NUTABs superadas, o MGECOM
+     * respeita o VLRUNIT inserido (comportamento confirmado em 4 de 5 pedidos com cupom
+     * dos ultimos 90 dias).
+     *
+     * <p><b>Idempotencia</b>: o UPDATE so' atua quando ha divergencia maior que 1 centavo
+     * (|VLRUNIT_atual - SalePrice| &gt; 0.01). Para pedidos onde o MGECOM nao recalculou,
+     * vira no-op.
+     *
+     * <p><b>Preserva</b>:
+     * <ul>
+     *   <li>Liquido pago (VLRUNIT*QTD - VLRDESC continua igual)</li>
+     *   <li>AD_DESCONTO_FAST (cupom isolado no cabecalho - inalterado)</li>
+     *   <li>Preco escalonado: SalePrice da FC ja vem com desconto escalonado embutido</li>
+     *   <li>PRECOBASE: mantem o maior entre o atual (preco cheio recalculado pelo MGECOM)
+     *       e SalePrice, para preservar referencia de margem em analises</li>
+     * </ul>
+     *
+     * <p>Falha em try/catch separado para nao abortar a importacao se este reforco nao
+     * funcionar - o pedido ja foi criado e os valores podem ser ajustados manualmente.
+     */
+    private void forceItemValuesFromFc(BigDecimal nuNota, BigDecimal sequencia,
+                                       OrderItemDTO item, BigDecimal quantity) {
+        if (isNullOrZero(nuNota) || isNullOrZero(sequencia) || item == null) {
+            return;
+        }
+        BigDecimal targetVlrUnit = item.getUnitPrice();
+        if (targetVlrUnit == null || targetVlrUnit.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        BigDecimal targetVlrDesc = item.getDiscount();
+        if (targetVlrDesc == null) {
+            targetVlrDesc = BigDecimal.ZERO;
+        }
+        BigDecimal targetVlrTot = targetVlrUnit.multiply(quantity);
+
+        // PERCDESC = (VLRDESC / VLRTOT) * 100, evitando divisao por zero
+        BigDecimal targetPercDesc = BigDecimal.ZERO;
+        if (targetVlrTot.compareTo(BigDecimal.ZERO) > 0
+                && targetVlrDesc.compareTo(BigDecimal.ZERO) > 0
+                && targetVlrDesc.compareTo(targetVlrTot) < 0) {
+            targetPercDesc = targetVlrDesc
+                    .divide(targetVlrTot, 4, BigDecimal.ROUND_HALF_UP)
+                    .multiply(new BigDecimal("100"));
+        }
+
+        JdbcWrapper jdbc = null;
+        try {
+            jdbc = openJdbc();
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql(
+                "UPDATE TGFITE SET " +
+                "  VLRUNIT = :vlrUnit, " +
+                "  VLRTOT = :vlrTot, " +
+                "  VLRDESC = :vlrDesc, " +
+                "  PERCDESC = :percDesc, " +
+                "  PRECOBASE = CASE WHEN PRECOBASE > :vlrUnit THEN PRECOBASE ELSE :vlrUnit END " +
+                "WHERE NUNOTA = :nuNota AND SEQUENCIA = :sequencia " +
+                "  AND ABS(ISNULL(VLRUNIT, 0) - :vlrUnit) > 0.01"
+            );
+            sql.setNamedParameter("vlrUnit", targetVlrUnit);
+            sql.setNamedParameter("vlrTot", targetVlrTot);
+            sql.setNamedParameter("vlrDesc", targetVlrDesc);
+            sql.setNamedParameter("percDesc", targetPercDesc);
+            sql.setNamedParameter("nuNota", nuNota);
+            sql.setNamedParameter("sequencia", sequencia);
+            sql.executeUpdate();
+            // executeUpdate() na API do Sankhya retorna boolean (nao linhas afetadas).
+            // Como o WHERE inclui guard de divergencia (>0.01), o UPDATE eh no-op para
+            // pedidos onde MGECOM nao recalculou. Logamos sempre para auditoria.
+            log.info("[InternalAPI] forceItemValuesFromFc executado para NUNOTA "
+                    + nuNota + " SEQ " + sequencia + " SKU " + item.getSku()
+                    + " (target VLRUNIT=" + targetVlrUnit + " VLRDESC=" + targetVlrDesc
+                    + " PERCDESC=" + targetPercDesc + ") - sera no-op se MGECOM nao recalculou.");
+        } catch (Exception e) {
+            log.log(Level.WARNING, "[InternalAPI] Falha ao forcar VLRUNIT/VLRDESC para NUNOTA "
+                    + nuNota + " SEQ " + sequencia + ". Pedido criado pode ter valores divergentes "
+                    + "do que a FC enviou. Verificar manualmente.", e);
+        } finally {
+            closeJdbc(jdbc);
+        }
+    }
+
+    private void forceVlrNotaCorrect(BigDecimal nuNota) {
+        if (isNullOrZero(nuNota)) {
+            return;
+        }
+        JdbcWrapper jdbc = null;
+        try {
+            jdbc = openJdbc();
+            NativeSql sql = new NativeSql(jdbc);
+            // [FIX 2026-04-30] Incluir VLRJURO (encargo cartao) na formula:
+            // VLRNOTA = SUM(VLRTOT - VLRDESC) + VLRFRETE + VLRJURO
+            sql.appendSql(
+                "UPDATE TGFCAB SET VLRNOTA = ( " +
+                "  SELECT ISNULL(SUM(VLRTOT - ISNULL(VLRDESC, 0)), 0) FROM TGFITE WHERE NUNOTA = TGFCAB.NUNOTA " +
+                ") + ISNULL(VLRFRETE, 0) + ISNULL(VLRJURO, 0) " +
+                "WHERE NUNOTA = :nuNota"
+            );
+            sql.setNamedParameter("nuNota", nuNota);
+            sql.executeUpdate();
+            log.info("[InternalAPI] VLRNOTA forcado correto para NUNOTA " + nuNota
+                    + " (= SUM(VLRTOT - VLRDESC) + VLRFRETE + VLRJURO)");
+        } catch (Exception e) {
+            // Nao falhar pedido se este reforco nao funcionar - o pedido ja foi criado.
+            // Apenas logar para investigacao.
+            log.log(Level.WARNING, "[InternalAPI] Falha ao forcar VLRNOTA correto para NUNOTA " + nuNota
+                    + ". Pedido criado pode ter VLRNOTA divergente. Verificar manualmente.", e);
+        } finally {
+            closeJdbc(jdbc);
         }
     }
 
@@ -2034,7 +2226,10 @@ public class InternalApiStrategy implements OrderCreationStrategy {
                     sqlExc.appendSql("AND CODEMP = :codEmp ");
                     sqlExc.setNamedParameter("codEmp", codEmp);
                 }
-                sqlExc.appendSql("ORDER BY DTALTER DESC");
+                // [FIX 2026-05-06] TGFEXC nao tem coluna DTALTER. Trocado por NUTAB DESC
+                // (consistente com a query de fallback na linha 2276 abaixo).
+                // Erro reproduzido: "Nome de coluna 'DTALTER' invalido" ao importar pedido FC.
+                sqlExc.appendSql("ORDER BY NUTAB DESC");
                 sqlExc.setNamedParameter("codProd", codProd);
                 rs = sqlExc.executeQuery();
                 if (rs.next()) {
@@ -2748,15 +2943,13 @@ public class InternalApiStrategy implements OrderCreationStrategy {
         }
 
         // Caminho nativo (Jape) primeiro.
+        // [FIX 2026-05-06] Removida tentativa "this.NOMUSU = ?" - coluna NAO existe em TSIUSU.
+        // A coluna correta e' NOMEUSU. JAPE traduzia "this.NOMUSU" para SQL "WHERE Usuario.NOMUSU = ?"
+        // o que gerava: "O identificador de varias partes 'Usuario.NOMUSU' nao pode ser associado".
         try {
             JapeWrapper usuDAO = JapeFactory.dao("Usuario");
-            Collection<DynamicVO> byNomUsu = usuDAO.find("this.NOMUSU = ?", user);
-            BigDecimal codUsu = extractCodUsu(byNomUsu);
-            if (!isNullOrZero(codUsu)) {
-                return codUsu;
-            }
             Collection<DynamicVO> byNomeUsu = usuDAO.find("this.NOMEUSU = ?", user);
-            codUsu = extractCodUsu(byNomeUsu);
+            BigDecimal codUsu = extractCodUsu(byNomeUsu);
             if (!isNullOrZero(codUsu)) {
                 return codUsu;
             }
@@ -2764,12 +2957,8 @@ public class InternalApiStrategy implements OrderCreationStrategy {
             log.log(Level.FINE, "Nao foi possivel resolver CODUSU via Jape para usuario " + user, e);
         }
 
-        if (hasTableColumn("TSIUSU", "NOMUSU")) {
-            BigDecimal codUsu = findCodUsu("SELECT TOP 1 CODUSU FROM TSIUSU WHERE UPPER(NOMUSU)=UPPER(?)", user);
-            if (codUsu != null) {
-                return codUsu;
-            }
-        }
+        // [FIX 2026-05-06] Removido fallback nativo "WHERE NOMUSU = ?" - coluna NAO existe.
+        // O caminho NOMEUSU abaixo cobre todos os casos.
 
         if (hasTableColumn("TSIUSU", "NOMEUSU")) {
             BigDecimal codUsu = findCodUsu("SELECT TOP 1 CODUSU FROM TSIUSU WHERE UPPER(NOMEUSU)=UPPER(?)", user);

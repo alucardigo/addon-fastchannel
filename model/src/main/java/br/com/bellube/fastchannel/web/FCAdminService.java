@@ -687,11 +687,191 @@ public class FCAdminService {
         }
     }
 
+    /**
+     * Limpa batches "lixo" (Min=0/Max=0/Disabled=true) na FC para todos os SKUs configurados
+     * ou apenas um especifico se "sku" for passado nos params.
+     */
+    public Map<String, Object> cleanupGarbageBatches(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+        String singleSku = params != null ? (String) params.get("sku") : null;
+        try {
+            br.com.bellube.fastchannel.http.FastchannelPriceClient distClient =
+                    new br.com.bellube.fastchannel.http.FastchannelPriceClient(br.com.bellube.fastchannel.http.FastchannelPriceClient.Channel.DISTRIBUTION);
+            br.com.bellube.fastchannel.http.FastchannelPriceClient consClient =
+                    new br.com.bellube.fastchannel.http.FastchannelPriceClient(br.com.bellube.fastchannel.http.FastchannelPriceClient.Channel.CONSUMPTION);
+
+            int totalRemovido = 0;
+            int totalSkus = 0;
+            java.util.List<String> skus = new java.util.ArrayList<>();
+
+            if (singleSku != null && !singleSku.trim().isEmpty()) {
+                skus.add(singleSku.trim());
+            } else {
+                // Pega SKUs das tabelas configuradas via /prices?PriceTableIds=X&PageSize=5000
+                String priceTableIds = FastchannelConfig.getInstance().getPriceTableIds();
+                if (priceTableIds == null || priceTableIds.trim().isEmpty()) {
+                    result.put("error", "AD_FCCONFIG.PRICE_TABLE_IDS vazio - informe sku=X explicito ou configure PRICE_TABLE_IDS");
+                    return result;
+                }
+                java.util.Set<String> uniqueSkus = new java.util.HashSet<>();
+                for (String idStr : priceTableIds.split(",")) {
+                    idStr = idStr.trim();
+                    if (idStr.isEmpty()) continue;
+                    try {
+                        java.math.BigDecimal tableId = new java.math.BigDecimal(idStr);
+                        java.util.List<br.com.bellube.fastchannel.dto.PriceDTO> prices = distClient.listPricesForTable(tableId);
+                        if (prices != null) {
+                            for (br.com.bellube.fastchannel.dto.PriceDTO p : prices) {
+                                if (p.getSku() != null) uniqueSkus.add(p.getSku().trim());
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.log(Level.FINE, "Erro listando precos pra tabela " + idStr, e);
+                    }
+                }
+                skus.addAll(uniqueSkus);
+            }
+
+            for (String sku : skus) {
+                totalSkus++;
+                try {
+                    int removed = distClient.cleanupGarbageBatches(sku);
+                    totalRemovido += removed;
+                    if (removed > 0) {
+                        log.info("[cleanupGarbageBatches] SKU=" + sku + " removidos=" + removed);
+                    }
+                } catch (Exception e) {
+                    log.log(Level.WARNING, "Falha cleanup SKU " + sku, e);
+                }
+            }
+            result.put("success", true);
+            result.put("skusProcessados", totalSkus);
+            result.put("batchesRemovidos", totalRemovido);
+            result.put("message", "Limpeza concluida. Removidos " + totalRemovido + " batches lixo de " + totalSkus + " SKU(s).");
+        } catch (Throwable t) {
+            result.put("success", false);
+            result.put("error", t.getClass().getSimpleName() + ": " + t.getMessage());
+            log.log(Level.WARNING, "[cleanupGarbageBatches] Falha geral", t);
+        }
+        return result;
+    }
+
     private boolean getBoolean(Map<String, Object> params, String key) {
         Object value = params.get(key);
         if (value == null) return false;
         if (value instanceof Boolean) return (Boolean) value;
         String text = value.toString();
         return "true".equalsIgnoreCase(text) || "1".equals(text) || "S".equalsIgnoreCase(text);
+    }
+
+    /**
+     * Registra o addon no {@code AddonInstallStore} local do WildFly
+     * ({@code standalone/configuration/addons.properties}, criptografado com AES).
+     *
+     * <p>Quando o addon aparece no UI Sankhya (Administracao do Sistema > Add-ons Instalados)
+     * com Origem={@code Gerenciador de Pacotes} e sem Data de Instalacao, significa que
+     * o .ear foi carregado pelo scanner do WildFly (presente em {@code deployments/})
+     * mas NAO esta registrado em {@code AddonInstallStore}. Esse endpoint forca o
+     * registro via reflection: chama {@code saveAddon(ctx, clientId)} que escreve
+     * a entrada criptografada no arquivo.
+     *
+     * <p>Apos o registro, a tela deve passar a mostrar Origem={@code Place}.
+     */
+    public Map<String, Object> registerAsPlace(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+        String ctx = (String) params.getOrDefault("ctx", "addon-fastchannel");
+        String clientId = (String) params.getOrDefault("clientId", "169614"); // solutionId
+
+        try {
+            Class<?> storeClass = Class.forName("br.com.sankhya.module.stores.AddonInstallStore");
+            Object store = storeClass.getDeclaredConstructor().newInstance();
+
+            java.lang.reflect.Method saveAddon = storeClass.getMethod("saveAddon", String.class, String.class);
+            saveAddon.invoke(store, ctx, clientId);
+
+            result.put("success", true);
+            result.put("ctx", ctx);
+            result.put("clientId", clientId);
+            result.put("message", "addon-fastchannel registrado em AddonInstallStore (addons.properties). " +
+                "Refresh no UI (Administracao do Sistema > Add-ons Instalados) deve mostrar Origem=Place.");
+            log.info("[registerAsPlace] ctx=" + ctx + " clientId=" + clientId);
+
+            // Broadcast cluster (best-effort; funciona em single-node)
+            try {
+                Class<?> swClass = Class.forName("br.com.sankhya.skw.cluster.SWInstance");
+                java.lang.reflect.Method broadcast = swClass.getMethod("broadcast", String.class, Object[].class);
+                broadcast.invoke(null, "placemm.cluster.add-on.save.properties", new Object[]{ctx, clientId});
+                result.put("clusterBroadcast", true);
+            } catch (Throwable ignore) {
+                result.put("clusterBroadcast", false);
+            }
+
+        } catch (ClassNotFoundException e) {
+            result.put("success", false);
+            result.put("error", "Classe AddonInstallStore nao encontrada: " + e.getMessage());
+            log.log(Level.WARNING, "[registerAsPlace] ClassNotFound", e);
+        } catch (Throwable t) {
+            result.put("success", false);
+            result.put("error", t.getClass().getSimpleName() + ": " + t.getMessage());
+            log.log(Level.WARNING, "[registerAsPlace] Erro reflection", t);
+        }
+        return result;
+    }
+
+    /**
+     * Limpa o cache em memoria do placemm ({@code InstalledAddonsCache}) via reflection.
+     *
+     * <p>Usado quando o Place UI fica com estado inconsistente apos falhas sucessivas
+     * de instalacao — ex: erro {@code PreparedStatement com parametro nulo na entidade
+     * 'SolutionBinary': param[0] = null} ao clicar Reiniciar/Reiniciar DD.
+     *
+     * <p>Esse cache e um {@code Map<String, AddonDescriptor>} estatico dentro da JVM
+     * do WildFly e normalmente so e limpo com restart do servidor. Esse endpoint
+     * permite limpar sem restart, desde que o classloader do addon tenha acesso
+     * a classe {@code br.com.sankhya.mm.place.caches.InstalledAddonsCache}
+     * (disponivel atraves do modulo placemm).
+     */
+    public Map<String, Object> clearPlaceCache(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            Class<?> cacheClass = Class.forName("br.com.sankhya.mm.place.caches.InstalledAddonsCache");
+
+            // Antes de limpar: coletar descritores pra log
+            int sizeBefore = 0;
+            try {
+                java.lang.reflect.Method getAll = cacheClass.getMethod("getAll");
+                Object coll = getAll.invoke(null);
+                if (coll instanceof java.util.Collection) {
+                    sizeBefore = ((java.util.Collection<?>) coll).size();
+                }
+            } catch (Exception ignore) {
+                // se getAll nao acessivel, segue sem contagem
+            }
+
+            java.lang.reflect.Method clear = cacheClass.getMethod("clearCache");
+            clear.invoke(null);
+
+            result.put("success", true);
+            result.put("cacheClass", cacheClass.getName());
+            result.put("entriesRemoved", sizeBefore);
+            result.put("message", "InstalledAddonsCache.clearCache() invocado com sucesso. " +
+                "Proxima operacao no Place UI vai repopular o cache a partir do TSSBNR.");
+            log.info("[clearPlaceCache] " + sizeBefore + " entrada(s) removida(s) do InstalledAddonsCache");
+        } catch (ClassNotFoundException e) {
+            result.put("success", false);
+            result.put("error", "Classe InstalledAddonsCache nao encontrada no classloader. " +
+                "O modulo placemm pode nao estar acessivel a partir deste addon. Detalhe: " + e.getMessage());
+            log.log(Level.WARNING, "[clearPlaceCache] ClassNotFound", e);
+        } catch (NoSuchMethodException e) {
+            result.put("success", false);
+            result.put("error", "Metodo clearCache() nao encontrado na classe InstalledAddonsCache. " +
+                "Versao do placemm pode estar desalinhada. Detalhe: " + e.getMessage());
+            log.log(Level.WARNING, "[clearPlaceCache] NoSuchMethod", e);
+        } catch (Throwable t) {
+            result.put("success", false);
+            result.put("error", "Falha ao invocar clearCache: " + t.getClass().getSimpleName() + ": " + t.getMessage());
+            log.log(Level.WARNING, "[clearPlaceCache] Erro reflection", t);
+        }
+        return result;
     }
 }

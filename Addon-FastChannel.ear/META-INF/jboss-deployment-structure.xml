@@ -288,4 +288,27 @@
         </dependencies>
 
     </deployment>
+
+    <!-- [CRIT-JAPE] sub-deployment local-last="true" garante ordem correta de
+         carregamento de classes: o WAR/JAR do addon tem prioridade sobre libs do pai.
+         Sem isto, JapeSessionLifeCycleImpl do addon classloader sofre ClassCastException
+         ao tentar castar para a interface JapeSessionLifeCycle do classloader pai.
+         Ver: knowledge_jape_classloader_fix_2026_04_10.md + MELHORIAS_POS_PUBLISH_2026_04_17 P1.8 -->
+    <sub-deployment name="addon-fastchannel-web.war">
+        <dependencies>
+            <module name="deployment.sankhyaw" export="TRUE" services="import" optional="true"/>
+            <module name="deployment.dwf" export="TRUE" services="import" optional="true"/>
+            <module name="deployment.jape" export="TRUE" services="import" optional="true"/>
+            <module name="deployment.mge-modulemgr" export="TRUE" services="import" optional="true"/>
+        </dependencies>
+        <local-last value="true"/>
+    </sub-deployment>
+    <sub-deployment name="addon-fastchannel-model.jar">
+        <dependencies>
+            <module name="deployment.sankhyaw" export="TRUE" services="import" optional="true"/>
+            <module name="deployment.jape" export="TRUE" services="import" optional="true"/>
+            <module name="deployment.mge-modulemgr" export="TRUE" services="import" optional="true"/>
+        </dependencies>
+        <local-last value="true"/>
+    </sub-deployment>
 </jboss-deployment-structure>

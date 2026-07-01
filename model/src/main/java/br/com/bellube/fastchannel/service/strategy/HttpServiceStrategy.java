@@ -74,12 +74,12 @@ public class HttpServiceStrategy implements OrderCreationStrategy {
             // 1. Construir XML
             String requestXml = xmlBuilder.buildIncluirNotaXml(order, codParc, codTipVenda, codVend, codNat, codCenCus);
 
-            log.fine("[HTTP] XML: " + requestXml);
+            log.fine("[HTTP] XML: " + br.com.bellube.fastchannel.util.LogSanitizer.sanitizeXml(requestXml));
 
             // 2. Chamar servico com login no mesmo contexto do endpoint
             String responseXml = invokeService(requestXml);
 
-            log.fine("[HTTP] Resposta: " + responseXml);
+            log.fine("[HTTP] Resposta: " + br.com.bellube.fastchannel.util.LogSanitizer.sanitizeXml(responseXml));
 
             // 3. Extrair NUNOTA
             BigDecimal nuNota = parseNuNotaFromResponse(responseXml);

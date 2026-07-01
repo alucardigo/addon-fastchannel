@@ -103,6 +103,16 @@ public class OrderDTO {
     @SerializedName("Parcels")
     private int installments;
 
+    /**
+     * [FIX 2026-04-30] Encargo financeiro TOTAL do parcelamento por cartao de credito.
+     * Cartao acima de 3x geralmente tem juros. Esse valor eh somado ao TotalOrderValue
+     * pelo Fastchannel e tambem vem rateado por item em OrderItemDTO.installmentCost.
+     * No Sankhya, gravamos em TGFCAB.VLRJURO (campo nativo) - a trigger Sankhya soma
+     * VLRJURO ao VLRNOTA automaticamente.
+     */
+    @SerializedName("PaymentInstallmentCost")
+    private BigDecimal paymentInstallmentCost;
+
     // Frete
     @SerializedName("ShippingMethod")
     private String shippingMethod;
@@ -297,10 +307,10 @@ public class OrderDTO {
             sum = sum.add(shippingDiscountManual);
             has = true;
         }
-        if (shippingDiscountAmount != null) {
-            sum = sum.add(shippingDiscountAmount);
-            has = true;
-        }
+        // [FIX 2026-04-30] NAO somar shippingDiscountAmount: eh LIMITE MAXIMO da politica
+        // de desconto (informativo), nao desconto aplicado. O desconto real ja esta em
+        // shippingDiscount/Coupon/Manual. Soma anterior causava duplicacao de desconto
+        // de frete em pedidos com isencao parcial.
         return has ? sum : discount;
     }
 
@@ -467,6 +477,15 @@ public class OrderDTO {
 
     public void setInstallments(int installments) {
         this.installments = installments;
+    }
+
+    /** [FIX 2026-04-30] Encargo financeiro TOTAL do parcelamento por cartao de credito. */
+    public BigDecimal getPaymentInstallmentCost() {
+        return paymentInstallmentCost;
+    }
+
+    public void setPaymentInstallmentCost(BigDecimal paymentInstallmentCost) {
+        this.paymentInstallmentCost = paymentInstallmentCost;
     }
 
     public String getShippingMethod() {

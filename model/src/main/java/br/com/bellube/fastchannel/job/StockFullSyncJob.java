@@ -44,7 +44,16 @@ public class StockFullSyncJob implements EventoProgramavelJava {
         try {
             conn = DBUtil.getConnection();
             String activeFcSql = FastchannelProductFilter.getActiveFcProductsSql(conn);
-            stmt = conn.prepareStatement(
+
+            // [FIX 2026-05-11] Filtrar por config.getCodemp() para alinhar com EstoqueListener.
+            // Sem esse filtro o job iterava por TODAS empresas que tinham o produto em estoque
+            // e fazia 1 PUT por (empresa, local) - cada PUT sobrescrevia o anterior no FC,
+            // resultando em estoque do FC com valor da ULTIMA empresa enviada (que pode ser
+            // outra empresa que NAO atende a loja FC). Bug reproduzido com CODPROD 11896:
+            // CODEMP=26 (config FC) tinha estoque 0, mas o FC ficou com 6 (CODEMP=37 - ultima
+            // empresa processada). Cliente DISMAR comprou 5 unidades sem estoque real na
+            // empresa 26.
+            StringBuilder sql = new StringBuilder(
                     "SELECT DISTINCT E.CODPROD, E.CODEMP, E.CODLOCAL, P.ATIVO " +
                             "FROM TGFEST E " +
                             "INNER JOIN TGFPRO P ON P.CODPROD = E.CODPROD " +
@@ -52,6 +61,24 @@ public class StockFullSyncJob implements EventoProgramavelJava {
                             "AND E.CODEMP IS NOT NULL " +
                             "AND E.CODLOCAL IS NOT NULL " +
                             "AND E.CODPROD IN (" + activeFcSql + ")");
+            BigDecimal configCodEmp = config.getCodemp();
+            BigDecimal configCodLocal = config.getCodLocal();
+            if (configCodEmp != null && configCodEmp.compareTo(BigDecimal.ZERO) > 0) {
+                sql.append(" AND E.CODEMP = ?");
+            }
+            if (configCodLocal != null && configCodLocal.compareTo(BigDecimal.ZERO) > 0) {
+                sql.append(" AND E.CODLOCAL = ?");
+            }
+            stmt = conn.prepareStatement(sql.toString());
+            int paramIdx = 1;
+            if (configCodEmp != null && configCodEmp.compareTo(BigDecimal.ZERO) > 0) {
+                stmt.setBigDecimal(paramIdx++, configCodEmp);
+            }
+            if (configCodLocal != null && configCodLocal.compareTo(BigDecimal.ZERO) > 0) {
+                stmt.setBigDecimal(paramIdx++, configCodLocal);
+            }
+            log.info("[StockFullSyncJob] Filtros aplicados: codEmp=" + configCodEmp
+                    + " codLocal=" + (configCodLocal != null ? configCodLocal : "TODOS"));
             rs = stmt.executeQuery();
             while (rs.next()) {
                 BigDecimal codProd = rs.getBigDecimal("CODPROD");

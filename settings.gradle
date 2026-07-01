@@ -4,6 +4,6 @@
     <a href="https://developer.sankhya.com.br/docs/03_conf_addonstudio"/>
  */
 
-rootProject.name = 'Addon-FastChannel'
+rootProject.name = 'addon-fastchannel'
 include 'model'
 include 'vc'

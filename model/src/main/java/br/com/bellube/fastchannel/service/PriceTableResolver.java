@@ -7,11 +7,18 @@ import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.CacheStats;
+import com.google.common.cache.LoadingCache;
+
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,10 +30,56 @@ public class PriceTableResolver {
     private static final Logger log = Logger.getLogger(PriceTableResolver.class.getName());
     private static volatile Boolean hasIntegraAutoColumn;
 
+    // Guava caches (TTL 10min, maxSize 1k) — NUTAB/CODTAB mapping rarely changes.
+    // Uses java.util.Optional to represent "not found" because LoadingCache disallows null.
+    private static final LoadingCache<String, Optional<BigDecimal>> LATEST_NUTAB_CACHE =
+            CacheBuilder.newBuilder()
+                    .expireAfterWrite(10, TimeUnit.MINUTES)
+                    .maximumSize(1_000)
+                    .recordStats()
+                    .build(new CacheLoader<String, Optional<BigDecimal>>() {
+                        @Override
+                        public Optional<BigDecimal> load(String fcTableId) {
+                            BigDecimal v = findLatestNuTabForFcTableUncached(fcTableId);
+                            return Optional.ofNullable(v);
+                        }
+                    });
+
+    private static final LoadingCache<String, List<String>> MAPPED_FC_IDS_CACHE =
+            CacheBuilder.newBuilder()
+                    .expireAfterWrite(10, TimeUnit.MINUTES)
+                    .maximumSize(4)
+                    .recordStats()
+                    .build(new CacheLoader<String, List<String>>() {
+                        @Override
+                        public List<String> load(String key) {
+                            return fetchMappedFcTableIdsUncached();
+                        }
+                    });
+
+    private static final String MAPPED_IDS_KEY = "ALL";
+
     private final FastchannelConfig config;
 
     public PriceTableResolver() {
         this.config = FastchannelConfig.getInstance();
+    }
+
+    /**
+     * Cache hit/miss/load statistics for observability.
+     * Returns "latestNuTab=<stats>; mappedFcIds=<stats>".
+     */
+    public static String getCacheStats() {
+        CacheStats a = LATEST_NUTAB_CACHE.stats();
+        CacheStats b = MAPPED_FC_IDS_CACHE.stats();
+        return "latestNuTab=" + a + " (size=" + LATEST_NUTAB_CACHE.size() + "); "
+                + "mappedFcIds=" + b + " (size=" + MAPPED_FC_IDS_CACHE.size() + ")";
+    }
+
+    /** Invalidate caches — call after AD_FCDEPARA or TGFTAB writes to force reload. */
+    public static void invalidateCaches() {
+        LATEST_NUTAB_CACHE.invalidateAll();
+        MAPPED_FC_IDS_CACHE.invalidateAll();
     }
 
     public List<BigDecimal> resolveEligibleTables() {
@@ -153,6 +206,15 @@ public class PriceTableResolver {
     }
 
     private List<String> fetchMappedFcTableIds() {
+        try {
+            return MAPPED_FC_IDS_CACHE.get(MAPPED_IDS_KEY);
+        } catch (ExecutionException e) {
+            log.log(Level.WARNING, "Cache load failure fetchMappedFcTableIds", e);
+            return fetchMappedFcTableIdsUncached();
+        }
+    }
+
+    private static List<String> fetchMappedFcTableIdsUncached() {
         JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
@@ -163,7 +225,7 @@ public class PriceTableResolver {
             sql.appendSql("WHERE TIPO_ENTIDADE = 'TABELA_PRECO' ");
             sql.appendSql("AND COD_EXTERNO IS NOT NULL ");
             sql.appendSql("AND LTRIM(RTRIM(COD_EXTERNO)) <> '' ");
-            if (supportsIntegraAuto(jdbc)) {
+            if (supportsIntegraAutoStatic(jdbc)) {
                 sql.appendSql("AND COALESCE(INTEGRA_AUTO, 'S') = 'S' ");
             }
             sql.appendSql("ORDER BY LTRIM(RTRIM(COD_EXTERNO))");
@@ -181,12 +243,12 @@ public class PriceTableResolver {
             log.log(Level.FINE, "JAPE indisponivel para fetchMappedFcTableIds, usando JDBC direto", e);
             return fetchMappedFcTableIdsJdbc();
         } finally {
-            closeQuietly(rs);
+            closeQuietlyStatic(rs);
             if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
     }
 
-    private List<String> fetchMappedFcTableIdsJdbc() {
+    private static List<String> fetchMappedFcTableIdsJdbc() {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -222,6 +284,16 @@ public class PriceTableResolver {
      * e resolve o NUTAB mais recente do CODTAB correspondente.
      */
     private BigDecimal findLatestNuTabForFcTable(String fcTableId) {
+        if (fcTableId == null) return null;
+        try {
+            return LATEST_NUTAB_CACHE.get(fcTableId).orElse(null);
+        } catch (ExecutionException e) {
+            log.log(Level.WARNING, "Cache load failure findLatestNuTabForFcTable " + fcTableId, e);
+            return findLatestNuTabForFcTableUncached(fcTableId);
+        }
+    }
+
+    private static BigDecimal findLatestNuTabForFcTableUncached(String fcTableId) {
         JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
@@ -247,13 +319,13 @@ public class PriceTableResolver {
             log.log(Level.FINE, "JAPE indisponivel para findLatestNuTabForFcTable, usando JDBC direto", e);
             return findLatestNuTabForFcTableJdbc(fcTableId);
         } finally {
-            closeQuietly(rs);
+            closeQuietlyStatic(rs);
             if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
         return null;
     }
 
-    private BigDecimal findLatestNuTabForFcTableJdbc(String fcTableId) {
+    private static BigDecimal findLatestNuTabForFcTableJdbc(String fcTableId) {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -462,6 +534,33 @@ public class PriceTableResolver {
             if (jdbc != null) { try { jdbc.closeSession(); } catch (Exception ignored) {} }
         }
         return null;
+    }
+
+    private static void closeQuietlyStatic(ResultSet rs) {
+        if (rs != null) {
+            try { rs.close(); } catch (Exception ignored) {}
+        }
+    }
+
+    private static boolean supportsIntegraAutoStatic(JdbcWrapper jdbc) {
+        Boolean cached = hasIntegraAutoColumn;
+        if (cached != null) return cached;
+        ResultSet rs = null;
+        try {
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT COUNT(*) AS CNT FROM INFORMATION_SCHEMA.COLUMNS ");
+            sql.appendSql("WHERE TABLE_NAME = 'AD_FCDEPARA' AND COLUMN_NAME = 'INTEGRA_AUTO'");
+            rs = sql.executeQuery();
+            boolean supported = rs.next() && rs.getInt("CNT") > 0;
+            hasIntegraAutoColumn = supported;
+            return supported;
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Erro ao validar coluna INTEGRA_AUTO em AD_FCDEPARA", e);
+            hasIntegraAutoColumn = false;
+            return false;
+        } finally {
+            closeQuietlyStatic(rs);
+        }
     }
 
     private boolean supportsIntegraAuto(JdbcWrapper jdbc) {

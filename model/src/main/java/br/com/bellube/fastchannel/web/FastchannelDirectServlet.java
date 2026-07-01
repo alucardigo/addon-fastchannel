@@ -39,6 +39,9 @@ public class FastchannelDirectServlet extends HttpServlet {
         services.put("FCConfigSP.save", new ServiceInfo(FCConfigService.class, "save"));
 
         // Admin
+        services.put("FCAdminSP.clearPlaceCache", new ServiceInfo(FCAdminService.class, "clearPlaceCache"));
+        services.put("FCAdminSP.cleanupGarbageBatches", new ServiceInfo(FCAdminService.class, "cleanupGarbageBatches"));
+        services.put("FCAdminSP.registerAsPlace", new ServiceInfo(FCAdminService.class, "registerAsPlace"));
         services.put("FCAdminSP.testarConexao", new ServiceInfo(FCAdminService.class, "testarConexao"));
         services.put("FCAdminSP.importarPedidos", new ServiceInfo(FCAdminService.class, "importarPedidos"));
         services.put("FCAdminSP.processarFila", new ServiceInfo(FCAdminService.class, "processarFila"));
@@ -68,6 +71,8 @@ public class FastchannelDirectServlet extends HttpServlet {
         services.put("FCPrecosSP.reprocessar", new ServiceInfo(FCPrecosService.class, "reprocessar"));
         services.put("FCPrecosSP.syncEmLote", new ServiceInfo(FCPrecosService.class, "syncEmLote"));
         services.put("FCPrecosSP.syncAll", new ServiceInfo(FCPrecosService.class, "syncAll"));
+        services.put("FCPrecosSP.syncAllStatus", new ServiceInfo(FCPrecosService.class, "syncAllStatus"));
+        services.put("FCPrecosSP.syncTabela", new ServiceInfo(FCPrecosService.class, "syncTabela"));
         services.put("FCPrecosSP.mirrorCleanup", new ServiceInfo(FCPrecosService.class, "mirrorCleanup"));
         services.put("FCPrecosSP.listFcTables", new ServiceInfo(FCPrecosService.class, "listFcTables"));
         services.put("FCPrecosSP.listBatches", new ServiceInfo(FCPrecosService.class, "listBatches"));

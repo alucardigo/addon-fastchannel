@@ -356,7 +356,7 @@ public class FCEstoqueService {
                     try {
                         verificacao = stockClient.getStock(skuOutbound, storageId);
                     } catch (Exception getEx) {
-                        log.warning("GET verificativo falhou para SKU " + skuOutbound + ": " + getEx.getMessage());
+                        log.log(Level.WARNING, "GET verificativo estoque falhou para SKU " + skuOutbound, getEx);
                     }
 
                     try {

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!--
+        V22 - 2026-04-30
+        Encargos de cartao de credito Fastchannel (juros de parcelamento).
+
+        AD_PARCELAS_FAST: numero de parcelas do cartao de credito utilizado no pedido FC.
+        Util para auditoria financeira (saber quantas parcelas) e relatorios.
+
+        Os ENCARGOS em si (R$) sao gravados em TGFCAB.VLRJURO (campo nativo Sankhya, ja
+        existente). Esse campo eh somado ao VLRNOTA pela trigger Sankhya:
+        VLRNOTA = SUM(VLRTOT - VLRDESC) + VLRFRETE + VLRJURO
+
+        Quando o pedido FC vem com PaymentInstallmentCost > 0 (ex: cartao 6x c/ juros
+        com encargo R$ 386,99), o addon agora envia esse valor em VLRJURO automaticamente.
+    -->
+    <sql nomeTabela="TGFCAB" nomeObjeto="AD_PARCELAS_FAST" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE TGFCAB ADD AD_PARCELAS_FAST NUMBER(3)
+        </oracle>
+        <mssql>
+            ALTER TABLE TGFCAB ADD AD_PARCELAS_FAST INT
+        </mssql>
+    </sql>
+</alteracoes>

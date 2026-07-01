@@ -1,6 +1,18 @@
 # Addon Fastchannel - Integração Sankhya
 
-Addon para integração do ERP Sankhya com o Fastchannel Data Lake.
+Addon para integração do ERP Sankhya com o Fastchannel.
+
+## 📚 Documentação (leia primeiro)
+
+Para continuar o projeto, fazer alterações, manutenção ou dar suporte, comece por:
+
+| Documento | Para quê |
+|---|---|
+| **[docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)** | Guia do desenvolvedor: arquitetura, mapa de pacotes, ciclo de vida, build & deploy/publicação, referência da API FastChannel (OAuth, preço, escalonado/batches, pedido, estoque, status), configuração e modelo de dados (AD_FC*, tabelas Sankhya, mapa NUTAB↔tabela FC). |
+| **[docs/OPERATIONS_RUNBOOK.md](docs/OPERATIONS_RUNBOOK.md)** | Runbook de operação/suporte: jobs de sync, troubleshooting (índice de incidentes v1.2.85→v1.2.91), acesso a PROD para diagnóstico, scripts de reconciliação/force-sync, gotchas conhecidos (bloqueio de crédito, cache da vitrine). |
+| **[CHANGELOG.md](CHANGELOG.md)** | Histórico detalhado versão a versão (sintoma → causa raiz → correção). Fonte real de versão (o `extension.xml` pode estar defasado). |
+
+> ⚠️ **Pré-requisitos de build que NÃO podem ser removidos** (sob pena do addon não carregar): a task `stripJarsFromWar` no `build.gradle` (evita `ClassCastException` de classloader JAPE) e o `rootProject.name` kebab-case lowercase no `settings.gradle`. Detalhes em DEVELOPER_GUIDE.md → Build & Deploy.
 
 ## Descrição
 

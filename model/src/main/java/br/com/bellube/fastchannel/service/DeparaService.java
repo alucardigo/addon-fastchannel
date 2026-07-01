@@ -168,6 +168,17 @@ public class DeparaService {
     }
 
     /**
+     * [N+1 FIX 2026-04-16] Busca somente no cache (sem fallback DB). Usado por
+     * callers que populam o cache via prefetch e querem apenas o short-circuit.
+     * Retorna null se nao estiver em cache.
+     */
+    public BigDecimal getCodigoSankhyaCached(String tipo, String codExterno) {
+        if (codExterno == null || codExterno.isEmpty()) return null;
+        Map<String, BigDecimal> typeCache = cacheExternoToSankhya.get(tipo);
+        return typeCache == null ? null : typeCache.get(codExterno);
+    }
+
+    /**
      * Cadastra ou atualiza mapeamento.
      */
     public void setMapping(String tipo, BigDecimal codSankhya, String codExterno) {
@@ -473,6 +484,16 @@ public class DeparaService {
     public BigDecimal getCodProdBySkuOrEan(String skuOrEan) {
         if (skuOrEan == null || skuOrEan.isEmpty()) return null;
 
+        // [N+1 FIX 2026-04-16] Checar cache prefetch primeiro (populado por
+        // prefetchCodProdForSkus antes de processar a pagina). Short-circuit
+        // evita 1-6 queries sequenciais para cada SKU.
+        String key = skuOrEan.trim();
+        Map<String, BigDecimal> typeCache = cacheExternoToSankhya.get(TIPO_PRODUTO);
+        if (typeCache != null) {
+            BigDecimal cached = typeCache.get(key);
+            if (cached != null) return cached;
+        }
+
         // 1. Prioridade: REFFORN via marca FC (AD_FAST='S', AD_FASTREF='R')
         BigDecimal codProd = getCodProdByRefFornFcBrand(skuOrEan);
         if (codProd != null) return codProd;
@@ -512,10 +533,14 @@ public class DeparaService {
         try {
             conn = DBUtil.getConnection();
 
-            // 1. REFFORN com marca FC (AD_FAST='S')
+            // 1. REFFORN com marca FC (AD_FAST='S' AND AD_FASTREF='R')
+            // [FIX 2026-05-20 v1.2.84] Filtro AD_FASTREF='R' para nao colidir com produtos
+            // de marcas que usam CODPROD como SKU (AD_FASTREF='C'). Ver doc do metodo
+            // getCodProdByRefFornFcBrand acima.
             stmt = conn.prepareStatement(
                 "SELECT TOP 1 P.CODPROD FROM TGFPRO P " +
-                "INNER JOIN TGFMAR M ON M.CODIGO = P.CODMARCA AND M.AD_FAST = 'S' " +
+                "INNER JOIN TGFMAR M ON M.CODIGO = P.CODMARCA " +
+                "  AND M.AD_FAST = 'S' AND M.AD_FASTREF = 'R' " +
                 "WHERE P.REFFORN = ? AND P.ATIVO = 'S'");
             stmt.setString(1, skuOrEan);
             rs = stmt.executeQuery();
@@ -647,6 +672,185 @@ public class DeparaService {
                     + fallback + " sku=" + item.getSku() + " produto=" + productName);
         }
         return fallback;
+    }
+
+    /**
+     * [N+1 FIX 2026-04-16] Pre-carrega cache TIPO_PRODUTO em batch para uma pagina
+     * de pedidos. Executa ate 3 queries (REFFORN+FC brand, De-Para, REFERENCIA)
+     * com IN(...) inves de 1 query por SKU.
+     *
+     * Reduz drasticamente N+1: antes ~6 queries por SKU * N SKUs, depois 3 queries
+     * por batch. Chamada antes do loop de itens em OrderService.importPendingOrdersFromCursor.
+     *
+     * Observacao: nao remove os caminhos fallback individuais; apenas popula o cache
+     * para que getCodProdBySkuOrEan resolva em memoria na maioria dos casos.
+     *
+     * @param skus conjunto deduplicado de SKUs a pre-resolver (max ~1000 por batch MSSQL)
+     */
+    public void prefetchCodProdForSkus(java.util.Collection<String> skus) {
+        if (skus == null || skus.isEmpty()) return;
+
+        // Dedup e limita para evitar estouro de parametros MSSQL (2100 max por query)
+        java.util.List<String> unique = new java.util.ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        Map<String, BigDecimal> typeCache = cacheExternoToSankhya
+                .computeIfAbsent(TIPO_PRODUTO, k -> new ConcurrentHashMap<>());
+        for (String s : skus) {
+            if (s == null) continue;
+            String t = s.trim();
+            if (t.isEmpty()) continue;
+            if (typeCache.containsKey(t)) continue; // ja em cache
+            if (seen.add(t)) unique.add(t);
+        }
+        if (unique.isEmpty()) {
+            log.fine("prefetchCodProdForSkus: todos SKUs ja em cache, skip batch");
+            return;
+        }
+
+        // Lotes de ate 1000 (seguro para MSSQL)
+        final int chunkSize = 1000;
+        int resolved = 0;
+        for (int off = 0; off < unique.size(); off += chunkSize) {
+            java.util.List<String> chunk = unique.subList(off, Math.min(off + chunkSize, unique.size()));
+            resolved += prefetchChunk(chunk, typeCache);
+        }
+        log.info("prefetchCodProdForSkus: " + resolved + "/" + unique.size()
+                + " SKUs resolvidos em batch (cache TIPO_PRODUTO populado)");
+    }
+
+    private int prefetchChunk(java.util.List<String> chunk, Map<String, BigDecimal> typeCache) {
+        int resolved = 0;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+
+            String placeholders = buildPlaceholders(chunk.size());
+
+            // 1. Batch REFFORN com marca FC (prioridade maxima)
+            // [FIX 2026-05-20 v1.2.84] Filtro AD_FASTREF='R' para nao colidir com produtos
+            // de marcas que usam CODPROD como SKU (AD_FASTREF='C'). Bug reproduzido em PROD:
+            // SKU 12655 (FC) mapeava para CODPROD 14412 porque o produto 14412 tinha
+            // REFFORN='12655' coincidentemente e a marca MILITEC tem AD_FASTREF='C'.
+            String sql1 = "SELECT P.REFFORN AS K, P.CODPROD FROM TGFPRO P " +
+                          "INNER JOIN TGFMAR M ON M.CODIGO = P.CODMARCA " +
+                          "  AND M.AD_FAST = 'S' AND M.AD_FASTREF = 'R' " +
+                          "WHERE P.ATIVO = 'S' AND P.REFFORN IN (" + placeholders + ")";
+            stmt = conn.prepareStatement(sql1);
+            for (int i = 0; i < chunk.size(); i++) stmt.setString(i + 1, chunk.get(i));
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                String k = rs.getString("K");
+                BigDecimal v = rs.getBigDecimal("CODPROD");
+                if (k != null && v != null) {
+                    typeCache.putIfAbsent(k.trim(), v);
+                    resolved++;
+                }
+            }
+            DBUtil.closeResultSet(rs); DBUtil.closeStatement(stmt);
+
+            // 2. Batch De-Para PRODUTO
+            String sql2 = "SELECT COD_EXTERNO AS K, COD_SANKHYA AS V FROM AD_FCDEPARA " +
+                          "WHERE TIPO_ENTIDADE = 'PRODUTO' AND COD_EXTERNO IN (" + placeholders + ")";
+            stmt = conn.prepareStatement(sql2);
+            for (int i = 0; i < chunk.size(); i++) stmt.setString(i + 1, chunk.get(i));
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                String k = rs.getString("K");
+                BigDecimal v = rs.getBigDecimal("V");
+                if (k != null && v != null) {
+                    typeCache.putIfAbsent(k.trim(), v);
+                    resolved++;
+                }
+            }
+            DBUtil.closeResultSet(rs); DBUtil.closeStatement(stmt);
+
+            // 3. Batch REFERENCIA (generico)
+            String sql3 = "SELECT REFERENCIA AS K, CODPROD FROM TGFPRO " +
+                          "WHERE ATIVO = 'S' AND REFERENCIA IN (" + placeholders + ")";
+            stmt = conn.prepareStatement(sql3);
+            for (int i = 0; i < chunk.size(); i++) stmt.setString(i + 1, chunk.get(i));
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                String k = rs.getString("K");
+                BigDecimal v = rs.getBigDecimal("CODPROD");
+                if (k != null && v != null) {
+                    typeCache.putIfAbsent(k.trim(), v);
+                    resolved++;
+                }
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "prefetchChunk falhou (cache parcialmente populado)", e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
+        }
+        return resolved;
+    }
+
+    private static String buildPlaceholders(int n) {
+        StringBuilder sb = new StringBuilder(n * 2);
+        for (int i = 0; i < n; i++) {
+            if (i > 0) sb.append(',');
+            sb.append('?');
+        }
+        return sb.toString();
+    }
+
+    /**
+     * [N+1 FIX 2026-04-16] Pre-carrega cache TIPO_PARCEIRO em batch por CPF/CNPJ.
+     * Popula cacheExternoToSankhya[TIPO_PARCEIRO] usando CGC_CPF normalizado.
+     */
+    public void prefetchCodParcForCpfCnpjs(java.util.Collection<String> cpfCnpjs) {
+        if (cpfCnpjs == null || cpfCnpjs.isEmpty()) return;
+
+        Map<String, BigDecimal> typeCache = cacheExternoToSankhya
+                .computeIfAbsent(TIPO_PARCEIRO, k -> new ConcurrentHashMap<>());
+
+        java.util.List<String> unique = new java.util.ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (String c : cpfCnpjs) {
+            if (c == null) continue;
+            String clean = c.replaceAll("[^0-9]", "");
+            if (clean.isEmpty()) continue;
+            if (typeCache.containsKey(clean)) continue;
+            if (seen.add(clean)) unique.add(clean);
+        }
+        if (unique.isEmpty()) return;
+
+        final int chunkSize = 1000;
+        int resolved = 0;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+            for (int off = 0; off < unique.size(); off += chunkSize) {
+                java.util.List<String> chunk = unique.subList(off, Math.min(off + chunkSize, unique.size()));
+                String placeholders = buildPlaceholders(chunk.size());
+                String sql = "SELECT REPLACE(REPLACE(REPLACE(CGC_CPF, '.', ''), '-', ''), '/', '') AS K, CODPARC " +
+                             "FROM TGFPAR " +
+                             "WHERE CGC_CPF IS NOT NULL AND " +
+                             "REPLACE(REPLACE(REPLACE(CGC_CPF, '.', ''), '-', ''), '/', '') IN (" + placeholders + ")";
+                stmt = conn.prepareStatement(sql);
+                for (int i = 0; i < chunk.size(); i++) stmt.setString(i + 1, chunk.get(i));
+                rs = stmt.executeQuery();
+                while (rs.next()) {
+                    String k = rs.getString("K");
+                    BigDecimal v = rs.getBigDecimal("CODPARC");
+                    if (k != null && v != null) {
+                        typeCache.putIfAbsent(k, v);
+                        resolved++;
+                    }
+                }
+                DBUtil.closeResultSet(rs); DBUtil.closeStatement(stmt);
+            }
+            log.info("prefetchCodParcForCpfCnpjs: " + resolved + "/" + unique.size() + " CPF/CNPJs resolvidos em batch");
+        } catch (Exception e) {
+            log.log(Level.WARNING, "prefetchCodParcForCpfCnpjs falhou", e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, conn);
+        }
     }
 
     /**
@@ -1096,6 +1300,14 @@ public class DeparaService {
     /**
      * Busca CODPROD por REFFORN filtrando apenas marcas FC ativas (TGFMAR.AD_FAST='S').
      * Esta e a fonte de verdade primaria para SKUs FC, com prioridade sobre De-Para.
+     *
+     * <p>[FIX 2026-05-20 v1.2.84] Adicionado filtro {@code AND M.AD_FASTREF = 'R'}.
+     * Sem esse filtro, o metodo retornava CODPROD do produto cujo REFFORN bate com o SKU
+     * mesmo quando a marca configurou AD_FASTREF='C' (SKU = CODPROD). Bug grave em PROD:
+     * MILITEC tem AD_FASTREF='C' (SKU = CODPROD), mas o produto CODPROD=14412 tinha
+     * REFFORN='12655' (referencia do fornecedor coincidentemente igual ao CODPROD 12655).
+     * Resultado: SKU 12655 do FC mapeava para CODPROD 14412 (produto errado - 40ML
+     * unitario em vez de CX 24x40ML), causando pedidos com itens trocados.
      */
     private BigDecimal getCodProdByRefFornFcBrand(String refForn) {
         ResultSet rs = null;
@@ -1105,7 +1317,8 @@ public class DeparaService {
 
             NativeSql sql = new NativeSql(jdbc);
             sql.appendSql("SELECT P.CODPROD FROM TGFPRO P ");
-            sql.appendSql("INNER JOIN TGFMAR M ON M.CODIGO = P.CODMARCA AND M.AD_FAST = 'S' ");
+            sql.appendSql("INNER JOIN TGFMAR M ON M.CODIGO = P.CODMARCA ");
+            sql.appendSql("  AND M.AD_FAST = 'S' AND M.AD_FASTREF = 'R' ");
             sql.appendSql("WHERE P.ATIVO = 'S' ");
             sql.appendSql("AND LTRIM(RTRIM(P.REFFORN)) = LTRIM(RTRIM(:refForn))");
             sql.setNamedParameter("refForn", refForn);

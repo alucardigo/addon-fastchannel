@@ -18,6 +18,8 @@ public class OrderAddressDTO {
     private String zipCode;
     private String country;
     private String reference;
+    /** Codigo IBGE do municipio (vem do JSON FC: Address.CityId / IdCity) - usado para casamento exato com TSICID.CODMUNFIS. */
+    private String cityIbgeCode;
 
     // Identificacao do destinatario
     private String recipientName;
@@ -72,6 +74,14 @@ public class OrderAddressDTO {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public String getCityIbgeCode() {
+        return cityIbgeCode;
+    }
+
+    public void setCityIbgeCode(String cityIbgeCode) {
+        this.cityIbgeCode = cityIbgeCode;
     }
 
     public String getState() {

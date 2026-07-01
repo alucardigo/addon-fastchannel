@@ -2,9 +2,9 @@
   <id>addon-fastchannel</id>
   <display-name>Fastchannel Integration</display-name>
   <description>Integração Fastchannel Data Lake - Monitoramento e Ingestão de Dados</description>
-  <version>1.2.53</version>
+  <version>1.2.67</version>
   <platform-min-version>4.28</platform-min-version>
-  <build-timestamp>12/03/2026 13:00:00</build-timestamp>
+  <build-timestamp>17/04/2026 13:55:00</build-timestamp>
   <vendor>
     <name>BEL DISTRIBUIDOR DE LUBRIFICANTES LTDA</name>
   </vendor>

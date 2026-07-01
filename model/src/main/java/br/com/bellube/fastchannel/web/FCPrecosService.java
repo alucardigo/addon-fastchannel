@@ -54,6 +54,14 @@ public class FCPrecosService {
      */
     private static final AtomicBoolean SYNC_EM_LOTE_RUNNING = new AtomicBoolean(false);
 
+    // [ASYNC-SYNC-ALL] Rastreamento de progresso do syncAll em background.
+    private static final java.util.concurrent.atomic.AtomicInteger SYNC_ALL_SUCCESS_CNT  = new java.util.concurrent.atomic.AtomicInteger(0);
+    private static final java.util.concurrent.atomic.AtomicInteger SYNC_ALL_ERROR_CNT    = new java.util.concurrent.atomic.AtomicInteger(0);
+    private static final java.util.concurrent.atomic.AtomicInteger SYNC_ALL_TOTAL_CNT    = new java.util.concurrent.atomic.AtomicInteger(0);
+    private static final java.util.concurrent.atomic.AtomicInteger SYNC_ALL_DONE_CNT     = new java.util.concurrent.atomic.AtomicInteger(0);
+    private static volatile String SYNC_ALL_PHASE   = "IDLE"; // IDLE | RUNNING | DONE | ERROR
+    private static volatile long   SYNC_ALL_START_MS = 0;
+
     public Map<String, Object> list(Map<String, Object> params) {
         int source = getInt(params, "source", 1);
 
@@ -544,7 +552,12 @@ public class FCPrecosService {
 
     /**
      * Lista tabelas de preco disponiveis no portal Fastchannel.
-     * Endpoint de discovery para validar PriceTableIds corretos.
+     *
+     * <p>Fonte: API FC discovery via {@code GET /prices?PageSize=5000}
+     * extraindo PriceTableId + PriceTableName unicos do Payload.
+     * PageSize alto e necessario porque o catalogo BEL tem ~1849 registros e
+     * as tabelas mais "populosas" aparecem primeiro — com PageSize pequeno
+     * perderiamos tabelas com poucos produtos (ex: 24,25,26,27).
      */
     public Map<String, Object> listFcTables(Map<String, Object> params) {
         Map<String, Object> result = new HashMap<>();
@@ -753,7 +766,7 @@ public class FCPrecosService {
                 FastchannelPriceClient verifyClient = new FastchannelPriceClient();
                 verificacao = verifyClient.getPrice(outboundSku);
             } catch (Exception getEx) {
-                log.warning("GET verificativo preco falhou para SKU " + outboundSku + ": " + getEx.getMessage());
+                log.log(Level.WARNING, "GET verificativo preco falhou para SKU " + outboundSku, getEx);
             }
 
             try {
@@ -959,14 +972,36 @@ public class FCPrecosService {
     }
 
     /**
-     * Sincroniza TODOS os precos que correspondem ao filtro atual (tabela + priceTableId).
-     * Alternativa ao syncEmLote para quando o usuario quer sincronizar tudo de uma vez
-     * sem precisar selecionar items na UI, com mesmas defesas de pool.
+     * Sincroniza TODOS os precos em background (async).
+     *
+     * [ASYNC-FIX] Versao anterior era sincrona — para 1500+ produtos × 8 tabelas × 4 HTTP calls
+     * isso levava 30-60+ minutos. O proxy em skw.bellube.com.br tem timeout de 60s → HTTP 504.
+     * INCIDENTE 2026-04-16: "Erro ao sincronizar tudo: HTTP 504 (fc-direct)".
+     *
+     * Solucao: retornar imediatamente com asyncStarted=true e executar em thread de background.
+     * Usar FCPrecosSP.syncAllStatus para acompanhar o progresso.
      */
     public Map<String, Object> syncAll(Map<String, Object> params) {
         Map<String, Object> result = new HashMap<>();
 
+        // Se ja esta rodando, devolver status atual em vez de erro
+        if (SYNC_EM_LOTE_RUNNING.get()) {
+            result.put("success", true);
+            result.put("running", true);
+            result.put("phase", SYNC_ALL_PHASE);
+            result.put("total", SYNC_ALL_TOTAL_CNT.get());
+            result.put("processed", SYNC_ALL_DONE_CNT.get());
+            result.put("successCount", SYNC_ALL_SUCCESS_CNT.get());
+            result.put("errorCount", SYNC_ALL_ERROR_CNT.get());
+            long elapsed = SYNC_ALL_START_MS > 0 ? (System.currentTimeMillis() - SYNC_ALL_START_MS) / 1000 : 0;
+            result.put("elapsedSeconds", elapsed);
+            result.put("message", "Sincronizacao ja em andamento: "
+                    + SYNC_ALL_DONE_CNT.get() + "/" + SYNC_ALL_TOTAL_CNT.get() + " produtos.");
+            return result;
+        }
+
         if (!SYNC_EM_LOTE_RUNNING.compareAndSet(false, true)) {
+            // race condition — alguem acabou de adquirir entre o get() e compareAndSet()
             result.put("success", false);
             result.put("message", "Sincronizacao ja em andamento. Aguarde.");
             return result;
@@ -1013,42 +1048,173 @@ public class FCPrecosService {
             setParameters(stmt, qp);
             ResultSet rs = stmt.executeQuery();
 
-            List<Map<String, Object>> items = new ArrayList<>();
+            final List<Map<String, Object>> itemsToSync = new ArrayList<>();
             while (rs.next()) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("codProd", rs.getBigDecimal("CODPROD"));
                 item.put("sku", rs.getString("SKU"));
-                items.add(item);
+                itemsToSync.add(item);
             }
             DBUtil.closeAll(rs, stmt, null);
 
-            if (items.isEmpty()) {
+            if (itemsToSync.isEmpty()) {
+                SYNC_EM_LOTE_RUNNING.set(false);
                 result.put("success", true);
                 result.put("message", "Nenhum item encontrado no filtro.");
                 result.put("total", 0);
                 return result;
             }
 
-            // Reusar syncEmLote com a lista completa
-            Map<String, Object> syncParams = new HashMap<>();
-            syncParams.put("items", items);
+            // Resetar contadores de progresso
+            SYNC_ALL_SUCCESS_CNT.set(0);
+            SYNC_ALL_ERROR_CNT.set(0);
+            SYNC_ALL_TOTAL_CNT.set(itemsToSync.size());
+            SYNC_ALL_DONE_CNT.set(0);
+            SYNC_ALL_PHASE   = "RUNNING";
+            SYNC_ALL_START_MS = System.currentTimeMillis();
 
-            // Liberar o mutex temporariamente para syncEmLote poder adquirir
-            SYNC_EM_LOTE_RUNNING.set(false);
-            result = syncEmLote(syncParams);
-            result.put("total", items.size());
-            batchConn = null; // Fechada por syncEmLote internamente? Nao — vamos deixar o finally
+            // [ASYNC] Iniciar thread de background — SYNC_EM_LOTE_RUNNING sera liberado pelo thread
+            Thread syncThread = new Thread(() -> {
+                Connection threadConn = null;
+                try {
+                    threadConn = DBUtil.getConnection();
+                    PriceService priceService = new PriceService();
+                    LogService logService = LogService.getInstance();
+
+                    // [SYNC-OPT 2026-06-01] Prefetch dos SKUs existentes na FC para pular inexistentes
+                    // (so gerariam HTTP 404). Fail-open: null => nao pula nada (comportamento legado).
+                    final java.util.Set<String> fcExistingSkus = priceService.getFcExistingSkus();
+                    int skippedNonexistent = 0;
+
+                    logService.info(LogService.OP_PRICE_SYNC,
+                            "[ASYNC-SYNC-ALL] Iniciado. Total: " + itemsToSync.size() + " produtos."
+                            + (fcExistingSkus != null ? " (pulando inexistentes na FC: " + fcExistingSkus.size() + " existentes)" : ""));
+
+                    for (Map<String, Object> item : itemsToSync) {
+                        String sku = item.get("sku") != null ? item.get("sku").toString().trim() : null;
+                        Object codProdObj = item.get("codProd");
+                        try {
+                            BigDecimal codProd = codProdObj != null
+                                    ? toBigDecimal(codProdObj)
+                                    : getCodProdFromSkuWithConn(sku, threadConn);
+                            if (codProd == null) {
+                                SYNC_ALL_ERROR_CNT.incrementAndGet();
+                                SYNC_ALL_DONE_CNT.incrementAndGet();
+                                continue;
+                            }
+                            String outboundSku = resolveOutboundSku(codProd, sku);
+                            if (outboundSku == null || outboundSku.isEmpty()) {
+                                SYNC_ALL_ERROR_CNT.incrementAndGet();
+                                SYNC_ALL_DONE_CNT.incrementAndGet();
+                                continue;
+                            }
+                            // [SYNC-OPT] Pular produto inexistente na FC: nao conta como erro nem sucesso.
+                            if (priceService.shouldSkipNonexistentSku(fcExistingSkus, outboundSku)) {
+                                skippedNonexistent++;
+                                SYNC_ALL_DONE_CNT.incrementAndGet();
+                                continue;
+                            }
+                            BigDecimal eligibleNuTab = findEligibleNuTabForProductWithConn(codProd, threadConn);
+                            if (eligibleNuTab == null) {
+                                SYNC_ALL_ERROR_CNT.incrementAndGet();
+                                SYNC_ALL_DONE_CNT.incrementAndGet();
+                                continue;
+                            }
+                            priceService.syncPrice(codProd, outboundSku);
+                            SYNC_ALL_SUCCESS_CNT.incrementAndGet();
+                        } catch (Exception e) {
+                            SYNC_ALL_ERROR_CNT.incrementAndGet();
+                            log.log(Level.WARNING, "[ASYNC-SYNC-ALL] Erro SKU=" + sku, e);
+                        }
+                        SYNC_ALL_DONE_CNT.incrementAndGet();
+                    }
+
+                    SYNC_ALL_PHASE = "DONE";
+                    long elapsedSec = (System.currentTimeMillis() - SYNC_ALL_START_MS) / 1000;
+                    logService.info(LogService.OP_PRICE_SYNC,
+                            "[ASYNC-SYNC-ALL] Concluido. OK=" + SYNC_ALL_SUCCESS_CNT.get()
+                            + " ERRO=" + SYNC_ALL_ERROR_CNT.get()
+                            + " PULADOS(inexistentes na FC)=" + skippedNonexistent
+                            + " TOTAL=" + itemsToSync.size()
+                            + " TEMPO=" + elapsedSec + "s");
+
+                } catch (Exception e) {
+                    SYNC_ALL_PHASE = "ERROR";
+                    log.log(Level.SEVERE, "[ASYNC-SYNC-ALL] Falha geral: " + e.getMessage(), e);
+                } finally {
+                    DBUtil.closeConnection(threadConn);
+                    SYNC_EM_LOTE_RUNNING.set(false);
+                }
+            });
+            syncThread.setDaemon(true);
+            syncThread.setName("fc-price-sync-all");
+            syncThread.start();
+
+            result.put("success", true);
+            result.put("asyncStarted", true);
+            result.put("total", itemsToSync.size());
+            result.put("message", "Sincronizacao de precos iniciada em background. Total: "
+                    + itemsToSync.size() + " produtos. Use syncAllStatus para acompanhar.");
             return result;
 
         } catch (Exception e) {
-            log.log(Level.SEVERE, "Erro em syncAll", e);
+            SYNC_EM_LOTE_RUNNING.set(false);
+            SYNC_ALL_PHASE = "ERROR";
+            log.log(Level.SEVERE, "Erro ao iniciar syncAll", e);
             result.put("success", false);
-            result.put("message", "Erro: " + e.getMessage());
+            result.put("message", "Erro ao iniciar sincronizacao: " + e.getMessage());
             return result;
         } finally {
             DBUtil.closeConnection(batchConn);
-            SYNC_EM_LOTE_RUNNING.set(false);
+            // NAO liberar SYNC_EM_LOTE_RUNNING aqui — o thread de background faz isso
         }
+    }
+
+    /**
+     * Retorna o status atual do syncAll em background.
+     * Chamado periodicamente pelo frontend para exibir progresso.
+     */
+    public Map<String, Object> syncAllStatus(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("phase", SYNC_ALL_PHASE);
+        result.put("running", SYNC_EM_LOTE_RUNNING.get());
+        result.put("total", SYNC_ALL_TOTAL_CNT.get());
+        result.put("processed", SYNC_ALL_DONE_CNT.get());
+        result.put("successCount", SYNC_ALL_SUCCESS_CNT.get());
+        result.put("errorCount", SYNC_ALL_ERROR_CNT.get());
+        long elapsed = SYNC_ALL_START_MS > 0 ? (System.currentTimeMillis() - SYNC_ALL_START_MS) / 1000 : 0;
+        result.put("elapsedSeconds", elapsed);
+        int total = SYNC_ALL_TOTAL_CNT.get();
+        int done  = SYNC_ALL_DONE_CNT.get();
+        int pct   = (total > 0) ? (int) (done * 100L / total) : 0;
+        result.put("percentDone", pct);
+        result.put("message", "PHASE=" + SYNC_ALL_PHASE + " " + done + "/" + total + " (" + pct + "%) "
+                + SYNC_ALL_SUCCESS_CNT.get() + " ok " + SYNC_ALL_ERROR_CNT.get() + " erros "
+                + elapsed + "s decorridos");
+        return result;
+    }
+
+    /**
+     * Sincroniza todos os precos de uma tabela FC especifica (Sankhya → Fastchannel).
+     *
+     * <p>Alias direto de {@link #syncAll(Map)} com o {@code priceTableId} obrigatorio.
+     * Util para o painel "Tabelas FC" onde o usuario clica em "Sincronizar" em uma
+     * tabela especifica, sem precisar filtrar a lista completa de precos.</p>
+     *
+     * @param params {@code priceTableId} obrigatorio — ID numerico da tabela FC.
+     */
+    public Map<String, Object> syncTabela(Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+        String priceTableId = getString(params, "priceTableId");
+        if (priceTableId == null || priceTableId.trim().isEmpty()) {
+            result.put("success", false);
+            result.put("message", "priceTableId obrigatorio para syncTabela");
+            return result;
+        }
+        // Garante o parâmetro no mapa e delega ao syncAll (que lida com async + mutex)
+        Map<String, Object> delegated = new HashMap<>(params);
+        delegated.put("priceTableId", priceTableId.trim());
+        return syncAll(delegated);
     }
 
     /**
@@ -1186,7 +1352,7 @@ public class FCPrecosService {
                 } catch (Exception e) {
                     failed++;
                     errors.add(orphanSku + ": " + e.getMessage());
-                    log.warning("[MIRROR] Falha ao zerar SKU " + orphanSku + ": " + e.getMessage());
+                    log.log(Level.WARNING, "[MIRROR] Falha ao zerar SKU " + orphanSku, e);
                 }
             }
 
@@ -1751,7 +1917,18 @@ public class FCPrecosService {
         List<BigDecimal> resolved = new ArrayList<>();
         for (BigDecimal candidate : candidates) {
             if (isValidNuTab(conn, candidate)) {
-                resolved.add(candidate);
+                // [FIX 2026-05-11] NUTAB existe MAS pode estar OBSOLETA. As tabelas de preco
+                // Sankhya tem versionamento: CODTAB=27 evoluiu de NUTAB 2668 -> 3668 -> 4065.
+                // Sem essa normalizacao, AD_FCDEPARA com NUTABs antigas (4427, 4354, etc) faz
+                // a query "E.NUTAB IN (obsoletas)" retornar zero registros (TGFEXC tem dados
+                // apenas nas NUTABs vigentes). Resultado: tela de precos aparecia vazia.
+                BigDecimal latestNuTab = resolveLatestNuTabForSameCodTab(conn, candidate);
+                if (latestNuTab != null && !latestNuTab.equals(candidate)) {
+                    log.info("NUTAB " + candidate + " OBSOLETA -> normalizando para vigente NUTAB " + latestNuTab);
+                    resolved.add(latestNuTab);
+                } else {
+                    resolved.add(candidate);
+                }
             } else {
                 // Tentar como CODTAB - buscar NUTAB vigente mais recente
                 BigDecimal nuTab = resolveNuTabFromCodTab(conn, candidate);
@@ -1765,6 +1942,33 @@ public class FCPrecosService {
             }
         }
         return resolved;
+    }
+
+    /**
+     * [FIX 2026-05-11] Dado uma NUTAB, retorna a NUTAB VIGENTE (mais recente) da mesma CODTAB.
+     * Necessario porque AD_FCDEPARA pode conter NUTABs antigas que ainda existem em TGFTAB mas
+     * que ja foram superadas por versoes mais recentes. TGFEXC tem dados apenas nas vigentes.
+     */
+    private BigDecimal resolveLatestNuTabForSameCodTab(Connection conn, BigDecimal nuTab) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.prepareStatement(
+                    "SELECT TOP 1 T2.NUTAB FROM TGFTAB T1 " +
+                    "INNER JOIN TGFTAB T2 ON T2.CODTAB = T1.CODTAB " +
+                    "WHERE T1.NUTAB = ? " +
+                    "ORDER BY T2.DTVIGOR DESC, T2.NUTAB DESC");
+            stmt.setBigDecimal(1, nuTab);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("NUTAB");
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Falha ao normalizar NUTAB " + nuTab + " para vigente", e);
+        } finally {
+            DBUtil.closeAll(rs, stmt, null);
+        }
+        return null;
     }
 
     private boolean isValidNuTab(Connection conn, BigDecimal nuTab) {

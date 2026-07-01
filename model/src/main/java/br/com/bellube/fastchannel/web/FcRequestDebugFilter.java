@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.logging.Logger;
 import br.com.sankhya.ws.ServiceContext;
+import br.com.bellube.fastchannel.util.LogSanitizer;
 
 public class FcRequestDebugFilter implements Filter {
     private static final Logger log = Logger.getLogger(FcRequestDebugFilter.class.getName());
@@ -49,10 +50,10 @@ public class FcRequestDebugFilter implements Filter {
                     scSession = "error";
                 }
                 log.info("[fc-debug] uri=" + uri
-                        + (qs == null ? "" : ("?"+qs))
-                        + " mgeSession=" + (mgeSession == null ? "<null>" : mgeSession)
-                        + " JSESSIONID=" + (jsession == null ? "<null>" : jsession)
-                        + " ServiceContext=" + (scSession == null ? "<null>" : scSession));
+                        + (qs == null ? "" : ("?" + LogSanitizer.sanitize(qs)))
+                        + " mgeSession=" + LogSanitizer.maskToken(mgeSession)
+                        + " JSESSIONID=" + LogSanitizer.maskToken(jsession)
+                        + " ServiceContext=" + LogSanitizer.maskToken(scSession));
             }
         }
         chain.doFilter(request, response);

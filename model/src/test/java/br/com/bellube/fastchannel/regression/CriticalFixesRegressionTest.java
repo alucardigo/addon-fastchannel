@@ -166,4 +166,87 @@ public class CriticalFixesRegressionTest {
         String col = (String) m.invoke(null, false, false, false);
         assertEquals("NUTAB", col);
     }
+
+    // ===================== REGRESSAO 2026-04-14: TABLE-ISOLATION-FIX =====================
+
+    /**
+     * Regressao: PriceTableId invalida na FC (HTTP 400) nao deve abortar o sync do produto.
+     *
+     * INCIDENTE 2026-04-14: PriceTableId=62 retornava HTTP 400 para todos os produtos,
+     * causando 0 sucesso e 1508 erros. O erro propagava de syncPriceTable -> syncPrice
+     * -> syncEmLote -> errorCount++.
+     *
+     * Com o fix, erros HTTP 400 "tabela de precos nao valida" sao isolados por tabela.
+     * O produto eh sincronizado com as tabelas validas restantes.
+     */
+    @Test
+    public void regression_isPriceTableInvalidError_detectsHttp400WithBadRequest() throws Exception {
+        br.com.bellube.fastchannel.service.PriceService svc = createMinimalPriceService();
+        Method m = br.com.bellube.fastchannel.service.PriceService.class
+                .getDeclaredMethod("isPriceTableInvalidError", Exception.class);
+        m.setAccessible(true);
+
+        // Simulacao exata da mensagem que o FC retorna
+        String fcError = "Erro PUT preco Fastchannel [SKU=31401222] endpoint=/prices/31401222 "
+                + "status=400 body={\"Success\":false,\"HttpStatusCode\":400,"
+                + "\"ResponseStatus\":{\"ErrorCode\":\"BadRequest\","
+                + "\"Message\":\"O codigo da tabela de precos nao e valido ou esta incorreto.\"}}";
+        Boolean result = (Boolean) m.invoke(svc, new Exception(fcError));
+        assertTrue("HTTP 400 com mensagem de tabela invalida deve ser detectado como table-invalid", result);
+    }
+
+    @Test
+    public void regression_isPriceTableInvalidError_doesNotSwallowOtherErrors() throws Exception {
+        br.com.bellube.fastchannel.service.PriceService svc = createMinimalPriceService();
+        Method m = br.com.bellube.fastchannel.service.PriceService.class
+                .getDeclaredMethod("isPriceTableInvalidError", Exception.class);
+        m.setAccessible(true);
+
+        // Erro generico nao deve ser tratado como table-invalid
+        assertFalse("NullPointerException nao deve ser tratado como table-invalid",
+                (Boolean) m.invoke(svc, new NullPointerException("algum erro interno")));
+
+        // HTTP 500 nao deve ser tratado como table-invalid
+        String serverError = "Erro PUT preco Fastchannel status=500 body=InternalServerError";
+        assertFalse("HTTP 500 nao deve ser tratado como table-invalid",
+                (Boolean) m.invoke(svc, new Exception(serverError)));
+
+        // Null nao deve explodir
+        assertFalse("null nao deve explodir",
+                (Boolean) m.invoke(svc, (Exception) null));
+    }
+
+    @Test
+    public void regression_isPriceTableInvalidError_nullMessage_returnsFalse() throws Exception {
+        br.com.bellube.fastchannel.service.PriceService svc = createMinimalPriceService();
+        Method m = br.com.bellube.fastchannel.service.PriceService.class
+                .getDeclaredMethod("isPriceTableInvalidError", Exception.class);
+        m.setAccessible(true);
+
+        // Exception com mensagem null nao deve explodir
+        assertFalse((Boolean) m.invoke(svc, new RuntimeException((String) null)));
+    }
+
+    private br.com.bellube.fastchannel.service.PriceService createMinimalPriceService() throws Exception {
+        // Instancia minima para testar metodos privados via reflection
+        Class<?> providerClass = Class.forName(
+                "br.com.bellube.fastchannel.service.PriceService$DeparaServiceProvider");
+        java.lang.reflect.Constructor<?> provCtor = providerClass.getDeclaredConstructor();
+        provCtor.setAccessible(true);
+        Object provider = provCtor.newInstance();
+
+        java.lang.reflect.Constructor<br.com.bellube.fastchannel.service.PriceService> ctor =
+                br.com.bellube.fastchannel.service.PriceService.class.getDeclaredConstructor(
+                        providerClass,
+                        br.com.bellube.fastchannel.service.PriceResolver.class,
+                        br.com.bellube.fastchannel.service.PriceTableResolver.class,
+                        FastchannelPriceClient.class,
+                        FastchannelPriceClient.class);
+        ctor.setAccessible(true);
+        return ctor.newInstance(provider,
+                new br.com.bellube.fastchannel.service.PriceResolver(),
+                new br.com.bellube.fastchannel.service.PriceTableResolver(),
+                new FastchannelPriceClient(FastchannelPriceClient.Channel.DISTRIBUTION),
+                new FastchannelPriceClient(FastchannelPriceClient.Channel.CONSUMPTION));
+    }
 }

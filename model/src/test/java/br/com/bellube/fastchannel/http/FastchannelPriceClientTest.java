@@ -48,6 +48,96 @@ public class FastchannelPriceClientTest {
         assertEquals(new BigDecimal("10"), batches.get(0).getPriceTableId());
     }
 
+    // ===================== REGRESSION 2026-04-14: BatchDisabled null == false =====================
+
+    /**
+     * Regressao: FC pode nao retornar BatchDisabled explicitamente para batches ativos.
+     * null deve ser tratado como false para evitar re-criacao desnecessaria de batches.
+     * Se null != false, batchs ativos seriam deletados e recriados a cada sync.
+     */
+    @Test
+    public void updatePriceBatches_nullBatchDisabled_treatedAsFalse_noUnnecessaryRecreation() throws Exception {
+        RecordingPriceHttpClient httpClient = new RecordingPriceHttpClient();
+        // FC retorna sem campo BatchDisabled (null apos Gson parse)
+        httpClient.getResponseBody = "{\"ProductPriceBatch\":["
+                + "{\"BatchId\":\"b1\",\"PriceTableId\":10,\"MinimumBatchSize\":1,\"MaximumBatchSize\":5,\"UnitaryPriceForBatch\":100}"
+                + "]}";
+
+        FastchannelPriceClient client = new FastchannelPriceClient(httpClient, FastchannelPriceClient.Channel.CONSUMPTION);
+
+        // Desejado: mesmo batch, BatchDisabled=false explicitamente
+        List<PriceBatchItemDTO> desired = new ArrayList<>();
+        PriceBatchItemDTO d = new PriceBatchItemDTO();
+        d.setMinimumBatchSize(new BigDecimal("1"));
+        d.setMaximumBatchSize(new BigDecimal("5"));
+        d.setUnitaryPriceForBatch(new BigDecimal("100"));
+        d.setBatchDisabled(false);
+        desired.add(d);
+
+        client.updatePriceBatches("SKU-3", new BigDecimal("10"), desired);
+
+        // Nenhum delete (batch eh equivalente)
+        assertEquals("null BatchDisabled deve ser equivalente a false — nao deve deletar", 0, httpClient.deleteEndpoints.size());
+        // Nenhum post (batch ja existe e eh equivalente)
+        assertEquals("null BatchDisabled deve ser equivalente a false — nao deve recriar", 0, httpClient.postEndpoints.size());
+    }
+
+    /**
+     * Regressao: se o batch no FC tem BatchDisabled=true (desativado) e o desejado tem
+     * BatchDisabled=false (ativo), devem ser considerados DIFERENTES — o antigo deve ser
+     * deletado e o novo criado como ativo.
+     */
+    @Test
+    public void updatePriceBatches_disabledInFc_activatedInDesired_deletesAndRecreates() throws Exception {
+        RecordingPriceHttpClient httpClient = new RecordingPriceHttpClient();
+        httpClient.getResponseBody = "{\"ProductPriceBatch\":["
+                + "{\"BatchId\":\"disabled-1\",\"PriceTableId\":10,\"MinimumBatchSize\":1,\"MaximumBatchSize\":5,\"UnitaryPriceForBatch\":100,\"BatchDisabled\":true}"
+                + "]}";
+
+        FastchannelPriceClient client = new FastchannelPriceClient(httpClient, FastchannelPriceClient.Channel.CONSUMPTION);
+
+        List<PriceBatchItemDTO> desired = new ArrayList<>();
+        PriceBatchItemDTO d = new PriceBatchItemDTO();
+        d.setMinimumBatchSize(new BigDecimal("1"));
+        d.setMaximumBatchSize(new BigDecimal("5"));
+        d.setUnitaryPriceForBatch(new BigDecimal("100"));
+        d.setBatchDisabled(false); // quero ativar
+        desired.add(d);
+
+        client.updatePriceBatches("SKU-4", new BigDecimal("10"), desired);
+
+        // Deve deletar o batch desativado
+        assertEquals("Batch desativado no FC deve ser deletado", 1, httpClient.deleteEndpoints.size());
+        assertTrue(httpClient.deleteEndpoints.get(0).contains("disabled-1"));
+        // Deve criar o batch ativo
+        assertEquals("Deve criar batch ativo no lugar", 1, httpClient.postEndpoints.size());
+        assertTrue("Novo batch deve ter BatchDisabled:false",
+                httpClient.postBodies.get(0).contains("\"BatchDisabled\":false"));
+    }
+
+    /**
+     * Regressao 2026-04-14: quando todos os batches sao expirados (lista desired vazia),
+     * os batches existentes no FC devem ser DELETADOS — nao criados como desativados.
+     */
+    @Test
+    public void updatePriceBatches_emptyDesired_deletesExistingFcBatches() throws Exception {
+        RecordingPriceHttpClient httpClient = new RecordingPriceHttpClient();
+        httpClient.getResponseBody = "{\"ProductPriceBatch\":["
+                + "{\"BatchId\":\"old-A\",\"PriceTableId\":10,\"MinimumBatchSize\":1,\"MaximumBatchSize\":5,\"UnitaryPriceForBatch\":100,\"BatchDisabled\":false},"
+                + "{\"BatchId\":\"old-B\",\"PriceTableId\":10,\"MinimumBatchSize\":6,\"MaximumBatchSize\":99999,\"UnitaryPriceForBatch\":80,\"BatchDisabled\":false}"
+                + "]}";
+
+        FastchannelPriceClient client = new FastchannelPriceClient(httpClient, FastchannelPriceClient.Channel.CONSUMPTION);
+
+        // Lista vazia = promocao expirou em Sankhya — PriceBatchResolver filtrou tudo
+        List<PriceBatchItemDTO> desired = new ArrayList<>();
+
+        client.updatePriceBatches("SKU-5", new BigDecimal("10"), desired);
+
+        assertEquals("Todos os batches FC devem ser deletados quando promocao expirou", 2, httpClient.deleteEndpoints.size());
+        assertEquals("Nenhum batch novo deve ser criado", 0, httpClient.postEndpoints.size());
+    }
+
     private PriceBatchItemDTO batch(String min, String max, String price) {
         PriceBatchItemDTO dto = new PriceBatchItemDTO();
         dto.setMinimumBatchSize(new BigDecimal(min));

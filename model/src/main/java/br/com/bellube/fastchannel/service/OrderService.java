@@ -126,6 +126,16 @@ public class OrderService {
             }
             totalOrdersSeen += orders.size();
 
+            // [N+1 FIX 2026-04-16] Prefetch batch: pre-carrega cache de CODPROD/CODPARC
+            // para TODOS os SKUs e CPFs da pagina com poucas queries IN(...), evitando
+            // N queries por item durante importOrder. Degradacao graceful: se prefetch
+            // falhar, getCodProdBySkuOrEan cai para o fluxo original por-SKU.
+            try {
+                prefetchLookupsForBatch(orders);
+            } catch (Exception prefetchEx) {
+                log.log(Level.FINE, "Prefetch batch falhou (seguindo com lookup individual)", prefetchEx);
+            }
+
             for (OrderDTO order : orders) {
                 OrderDTO target = order;
                 nextCursor = maxTimestamp(nextCursor, order != null ? order.getCreatedAt() : null);
@@ -190,6 +200,49 @@ public class OrderService {
     }
 
     /**
+     * [N+1 FIX 2026-04-16] Coleta TODOS os SKUs e CPF/CNPJs de uma pagina de pedidos
+     * e dispara prefetch em DeparaService, populando o cache ExternoToSankhya em
+     * poucas queries IN(...). Resultado: os N lookups subsequentes durante importOrder
+     * sao resolvidos em memoria.
+     *
+     * Antes: pedido com 10 itens * 3 queries/item (REFFORN+FC, De-Para, REFERENCIA)
+     * = ~30 SQL/pedido. 100 pedidos/batch = ~3000 SQL.
+     * Depois: 3 queries SQL por chunk (ate 1000 SKUs) + 1 query por chunk de CPFs
+     * = ~4-6 SQL total por batch de 100 pedidos.
+     */
+    private void prefetchLookupsForBatch(java.util.List<OrderDTO> orders) {
+        if (orders == null || orders.isEmpty()) return;
+
+        java.util.Set<String> skus = new java.util.HashSet<>();
+        java.util.Set<String> cpfCnpjs = new java.util.HashSet<>();
+        for (OrderDTO o : orders) {
+            if (o == null) continue;
+            if (o.getCustomer() != null) {
+                String cpf = o.getCustomer().getCleanCpfCnpj();
+                if (cpf != null && !cpf.isEmpty()) cpfCnpjs.add(cpf);
+            }
+            if (o.getItems() != null) {
+                for (OrderItemDTO it : o.getItems()) {
+                    if (it == null) continue;
+                    if (it.getSku() != null && !it.getSku().trim().isEmpty()) skus.add(it.getSku().trim());
+                    if (it.getEan() != null && !it.getEan().trim().isEmpty()) skus.add(it.getEan().trim());
+                    if (it.getExternalProductId() != null && !it.getExternalProductId().trim().isEmpty())
+                        skus.add(it.getExternalProductId().trim());
+                }
+            }
+        }
+
+        if (!skus.isEmpty()) {
+            log.info("Prefetch batch: " + skus.size() + " SKUs unicos para " + orders.size() + " pedidos");
+            deparaService.prefetchCodProdForSkus(skus);
+        }
+        if (!cpfCnpjs.isEmpty()) {
+            log.info("Prefetch batch: " + cpfCnpjs.size() + " CPF/CNPJs unicos");
+            deparaService.prefetchCodParcForCpfCnpjs(cpfCnpjs);
+        }
+    }
+
+    /**
      * Importa um pedido especifico usando o servico nativo do Sankhya.
      *
      * @param order dados do pedido
@@ -241,7 +294,14 @@ public class OrderService {
             codParc = resolvedHeader.getCodParc();
             if (codParc == null && order.getCustomer() != null) {
                 try {
-                    codParc = findOrCreateParceiro(order.getCustomer(), order.getShippingAddress());
+                    // [FIX 2026-04-27] Fallback para BillingAddress quando shipping vier null.
+                    // Endpoint /orders/{id} pode trazer apenas billing em Customer.Addresses[]
+                    // (OrderAddressTypeId=1) sem shipping (=2).
+                    OrderAddressDTO addrForParceiro = order.getShippingAddress();
+                    if (addrForParceiro == null) {
+                        addrForParceiro = order.getBillingAddress();
+                    }
+                    codParc = findOrCreateParceiro(order.getCustomer(), addrForParceiro);
                 } catch (Exception e2) {
                     if (isJapeUnavailableError(e2)) {
                         codParc = findParceiroByCnpjJdbc(order.getCustomer());
@@ -873,13 +933,14 @@ public class OrderService {
                 changed = true;
             }
         }
-        if (hasColumn(jdbc, "TGFCAB", "ORDEMCARGA") && isNullOrZero(cabVO.asBigDecimal("ORDEMCARGA"))) {
-            BigDecimal ordemCarga = resolveCabNumericFallback(jdbc, cabVO, "ORDEMCARGA");
-            if (!isNullOrZero(ordemCarga)) {
-                updateVO = updateVO.set("ORDEMCARGA", ordemCarga);
-                changed = true;
-            }
-        }
+        // [FIX 2026-05-05] NAO herdar ORDEMCARGA do historico em pedidos Fastchannel.
+        // applyCabecalhoParityNative e' chamado apenas para pedidos FC (via OrderService.l780),
+        // entao remover o fallback aqui garante que pedido FC SEMPRE entra com ORDEMCARGA=0.
+        // Reportado pelo chefe em 2026-05-05: pedidos 4843683/4843584/4843161 entraram com
+        // ORDEMCARGA herdada (53676/54009) em vez de 0. Pedido FC nao deve herdar carga
+        // historica - logistica precisa atribuir manualmente quando aplicavel.
+        // (Antes ja' havia a guarda em InternalApiStrategy.java l1605, mas este caminho
+        // de "paridade pos-importacao" estava vazando.)
         WeightTotals weights = resolveWeightTotals(jdbc, nuNota);
         if (weights != null) {
             if (hasColumn(jdbc, "TGFCAB", "PESO") && cabVO.asBigDecimal("PESO") == null && weights.peso != null) {
@@ -923,7 +984,11 @@ public class OrderService {
             updateVO = updateVO.set("SOMPISCOFNFENAC", BigDecimal.ZERO);
             changed = true;
         }
-        if (hasColumn(jdbc, "TGFCAB", "AD_MCAPORTAL")) {
+        // [FIX 2026-04-28] Guard duplo: hasColumn (fisica) + voHasProperty (VO mapeado).
+        // AD_MCAPORTAL nao tem dbscript, entao normalmente nao existe a coluna.
+        // Mas se existir em alguma instalacao customizada, ainda precisamos verificar
+        // se o VO de CabecalhoNota expoe a propriedade antes de set/cabVO.asString.
+        if (hasColumn(jdbc, "TGFCAB", "AD_MCAPORTAL") && voHasProperty(cabVO, "TGFCAB", "AD_MCAPORTAL")) {
             String current = trimToNull(cabVO.asString("AD_MCAPORTAL"));
             if (current == null) {
                 updateVO = updateVO.set("AD_MCAPORTAL", "P");
@@ -1638,6 +1703,8 @@ public class OrderService {
         order.setTotal(normalizeMoney(order.getTotal()));
         order.setTotalOrderValue(normalizeMoney(order.getTotalOrderValue()));
         order.setOrderTotal(normalizeMoney(order.getOrderTotal()));
+        // [FIX 2026-04-30] Normalizar encargo financeiro de parcelamento de cartao
+        order.setPaymentInstallmentCost(normalizeMoney(order.getPaymentInstallmentCost()));
 
         if (order.getItems() != null) {
             for (OrderItemDTO item : order.getItems()) {
@@ -1653,6 +1720,8 @@ public class OrderService {
                 item.setPaymentDiscount(normalizeMoney(item.getPaymentDiscount()));
                 item.setDiscount(normalizeMoney(item.getDiscount()));
                 item.setTotalPrice(normalizeMoney(item.getTotalPrice()));
+                // [FIX 2026-04-30] Normalizar encargo financeiro rateado por item
+                item.setInstallmentCost(normalizeMoney(item.getInstallmentCost()));
 
                 if (item.getTotalPrice() == null && item.getQuantity() != null && item.getUnitPrice() != null) {
                     BigDecimal total = item.getUnitPrice().multiply(item.getQuantity());
@@ -1723,6 +1792,16 @@ public class OrderService {
         if (normalized == null) {
             return null;
         }
+
+        // [N+1 FIX 2026-04-16] Short-circuit via cache prefetch (populado por
+        // prefetchCodParcForCpfCnpjs antes do loop de pedidos).
+        try {
+            BigDecimal cached = deparaService.getCodigoSankhyaCached(
+                    DeparaService.TIPO_PARCEIRO, normalized);
+            if (cached != null && !isNullOrZero(cached)) {
+                return cached;
+            }
+        } catch (Exception ignored) { }
 
         // Tentativa nativa via Jape primeiro (sem funcao SQL).
         try {
@@ -1980,8 +2059,8 @@ public class OrderService {
 
     private void createEndereco(BigDecimal codParc, OrderAddressDTO address) {
         try {
-            // Buscar ou criar cidade
-            BigDecimal codCid = findOrCreateCidade(address.getCity(), address.getState());
+            // Buscar ou criar cidade (passa IBGE para match exato em TSICID.CODMUNFIS)
+            BigDecimal codCid = findOrCreateCidade(address.getCity(), address.getState(), address.getCityIbgeCode());
 
             JapeWrapper enderecoDAO = JapeFactory.dao("Endereco");
 
@@ -2002,65 +2081,121 @@ public class OrderService {
     }
 
     private BigDecimal findOrCreateCidade(String nomeCidade, String uf) {
+        return findOrCreateCidade(nomeCidade, uf, null);
+    }
+
+    /**
+     * Resolve CODCID com 3 estrategias em ordem de confianca:
+     *
+     * 1) {@code ibgeCode} (Address.CityId vindo da FC) -> match exato em
+     *    {@code TSICID.CODMUNFIS}. Cobertura ~100% pois cidades brasileiras
+     *    sao indexadas pelo IBGE no Sankhya por padrao.
+     * 2) Nome+UF: faz JOIN com TSIUFS para resolver UF string ('MG') em
+     *    CODUF smallint, depois compara NOMECID case-insensitive.
+     * 3) JAPE Cidade entity como fallback final.
+     *
+     * <p>BUG #2026-04-27: a versao anterior fazia {@code WHERE UF=:uf}
+     * passando 'MG' (string) contra coluna {@code TSICID.UF} smallint
+     * (FK pra TSIUFS.CODUF). SQL Server retornava
+     * "Conversion failed when converting 'MG' to smallint" e o resolver
+     * sempre devolvia null, fazendo {@code resolveCodCidForParceiro} disparar
+     * "CODCID nao resolvido para criacao nativa do parceiro Fastchannel"
+     * (caso reportado: pedido 4726 cliente Alegra Tur, cidade Uba/MG IBGE 3169901,
+     * que existe em TSICID.CODCID=4043).
+     */
+    private BigDecimal findOrCreateCidade(String nomeCidade, String uf, String ibgeCode) {
         String cidade = trimToNull(nomeCidade);
         String ufNorm = trimToNull(uf);
-        if (cidade == null || ufNorm == null) {
-            return null;
-        }
+        String ibge = trimToNull(ibgeCode);
 
-        // Tentativa nativa via Jape primeiro.
-        try {
-            JapeWrapper cidadeDAO = JapeFactory.dao("Cidade");
-            Collection<DynamicVO> cidades = cidadeDAO.find("this.UF = ?", ufNorm);
-            if (cidades != null) {
-                for (DynamicVO cidadeVO : cidades) {
-                    if (cidadeVO == null) {
-                        continue;
-                    }
-                    if (!sameText(cidadeVO.asString("NOMECID"), cidade)) {
-                        continue;
-                    }
-                    BigDecimal codCid = cidadeVO.asBigDecimal("CODCID");
+        // ESTRATEGIA 1: match por IBGE (mais confiavel - 7 digitos unicos por municipio)
+        if (ibge != null) {
+            JdbcWrapper jdbc = null;
+            ResultSet rs = null;
+            try {
+                jdbc = openJdbc();
+                NativeSql sql = new NativeSql(jdbc);
+                sql.appendSql("SELECT CODCID FROM TSICID WHERE CODMUNFIS = :ibge");
+                sql.setNamedParameter("ibge", new BigDecimal(ibge));
+                rs = sql.executeQuery();
+                if (rs.next()) {
+                    BigDecimal codCid = rs.getBigDecimal("CODCID");
                     if (!isNullOrZero(codCid)) {
                         return codCid;
                     }
                 }
+            } catch (Exception e) {
+                log.log(Level.FINE, "Match IBGE falhou para " + ibge, e);
+            } finally {
+                closeQuietly(rs);
+                closeJdbc(jdbc);
             }
-        } catch (Exception e) {
-            log.log(Level.FINE, "Falha na busca nativa de cidade. Aplicando fallback SQL.", e);
         }
 
-        // Fallback SQL para compatibilidade ampla.
+        if (cidade == null || ufNorm == null) {
+            log.warning("Cidade ou UF nulos e IBGE nao resolveu: cidade=" + nomeCidade
+                    + " uf=" + uf + " ibge=" + ibgeCode);
+            return null;
+        }
+
+        // ESTRATEGIA 2: SQL com JOIN TSIUFS (UF e smallint, precisa traduzir 'MG' -> CODUF)
         JdbcWrapper jdbc = null;
         ResultSet rs = null;
         try {
             jdbc = openJdbc();
-
             NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("SELECT CODCID FROM TSICID WHERE UPPER(NOMECID) = UPPER(:nome) AND UF = :uf");
+            sql.appendSql("SELECT c.CODCID FROM TSICID c ");
+            sql.appendSql("INNER JOIN TSIUFS u ON u.CODUF = c.UF ");
+            sql.appendSql("WHERE UPPER(c.NOMECID) = UPPER(:nome) AND u.UF = :uf");
             sql.setNamedParameter("nome", cidade);
             sql.setNamedParameter("uf", ufNorm);
 
             rs = sql.executeQuery();
             if (rs.next()) {
-                return rs.getBigDecimal("CODCID");
+                BigDecimal codCid = rs.getBigDecimal("CODCID");
+                if (!isNullOrZero(codCid)) {
+                    return codCid;
+                }
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "Erro ao buscar cidade", e);
+            log.log(Level.WARNING, "Erro ao buscar cidade SQL " + cidade + "/" + ufNorm, e);
         } finally {
             closeQuietly(rs);
             closeJdbc(jdbc);
         }
 
-        // Cidade nao encontrada - usar codigo padrao ou criar
-        log.warning("Cidade nao encontrada: " + nomeCidade + "/" + uf);
+        // ESTRATEGIA 3: fuzzy match por nome (sem acentos, normalizado)
+        try {
+            jdbc = openJdbc();
+            NativeSql sql = new NativeSql(jdbc);
+            sql.appendSql("SELECT c.CODCID FROM TSICID c ");
+            sql.appendSql("INNER JOIN TSIUFS u ON u.CODUF = c.UF ");
+            sql.appendSql("WHERE UPPER(c.NOMECID) LIKE UPPER(:nome) + '%' AND u.UF = :uf");
+            sql.setNamedParameter("nome", cidade);
+            sql.setNamedParameter("uf", ufNorm);
+            rs = sql.executeQuery();
+            if (rs.next()) {
+                BigDecimal codCid = rs.getBigDecimal("CODCID");
+                if (!isNullOrZero(codCid)) {
+                    log.info("Cidade resolvida via fuzzy match: " + cidade + "/" + ufNorm + " -> " + codCid);
+                    return codCid;
+                }
+            }
+        } catch (Exception e) {
+            log.log(Level.FINE, "Fuzzy match falhou", e);
+        } finally {
+            closeQuietly(rs);
+            closeJdbc(jdbc);
+        }
+
+        log.warning("Cidade nao encontrada: " + nomeCidade + "/" + uf + " (IBGE=" + ibge + ")");
         return null;
     }
 
     private BigDecimal resolveCodCidForParceiro(OrderAddressDTO address) {
         BigDecimal codCid = null;
         if (address != null) {
-            codCid = findOrCreateCidade(address.getCity(), address.getState());
+            codCid = findOrCreateCidade(address.getCity(), address.getState(), address.getCityIbgeCode());
         }
         if (!isNullOrZero(codCid)) {
             return codCid;
@@ -2444,8 +2579,32 @@ public class OrderService {
     }
 
     /**
-     * Calcula o frete efetivo (bruto - descontos de frete).
-     * Se o cliente tem promocao de frete gratis, retorna 0.
+     * Calcula o frete efetivo (bruto - descontos de frete REAIS).
+     *
+     * <p><b>[FIX 2026-04-30]</b> Removida a soma de {@code shippingDiscountAmount}
+     * que NAO eh desconto aplicado, e sim o LIMITE MAXIMO da politica de desconto
+     * (campo informativo). Anteriormente o codigo somava esse limite ao desconto
+     * real, causando duplicacao em pedidos com isencao parcial.
+     *
+     * <p>Exemplo de duplicacao (pedido fictio):
+     * <ul>
+     *   <li>ShippingCost = R$ 42 (frete bruto)</li>
+     *   <li>ShippingDiscount = R$ 30 (desconto real aplicado)</li>
+     *   <li>ShippingDiscountAmount = R$ 100 (limite da politica "Isencao acima R$700")</li>
+     *   <li>Antes: 42 - (30 + 0 + 0 + 100) = -88 -> cap 0 (errado: frete deveria ser R$12)</li>
+     *   <li>Depois: 42 - (30 + 0 + 0) = 12 (correto)</li>
+     * </ul>
+     *
+     * <p>Em pedidos atuais Bellube nao havia impacto pratico porque o desconto eh
+     * sempre 0 ou igual ao frete (isencao total). Mas a correcao eh defensiva contra
+     * cenarios futuros e politicas de desconto parcial.
+     *
+     * <p>Campos somados (descontos REAIS aplicados pela FC):
+     * <ul>
+     *   <li>{@code shippingDiscount}: desconto consolidado aplicado pela FC</li>
+     *   <li>{@code shippingDiscountCoupon}: desconto adicional via cupom de frete</li>
+     *   <li>{@code shippingDiscountManual}: desconto manual via operador</li>
+     * </ul>
      */
     private BigDecimal getFrete(OrderDTO order) {
         if (order == null) return null;
@@ -2459,9 +2618,10 @@ public class OrderService {
         if (order.getShippingDiscountCoupon() != null) {
             descontoFrete = descontoFrete.add(order.getShippingDiscountCoupon());
         }
-        if (order.getShippingDiscountAmount() != null) {
-            descontoFrete = descontoFrete.add(order.getShippingDiscountAmount());
+        if (order.getShippingDiscountManual() != null) {
+            descontoFrete = descontoFrete.add(order.getShippingDiscountManual());
         }
+        // NAO somar shippingDiscountAmount: eh LIMITE MAXIMO da politica, nao desconto aplicado.
 
         BigDecimal freteEfetivo = freteBruto.subtract(descontoFrete);
         if (freteEfetivo.compareTo(BigDecimal.ZERO) < 0) {
@@ -3052,9 +3212,15 @@ public class OrderService {
         ResultSet rs = null;
         for (String user : userCandidates) {
             try {
+                // [FIX 2026-05-14] Removida coluna NOMUSU (nao existe em TSIUSU - so' NOMEUSU).
+                // O OR com NOMUSU gerava "Nome de coluna 'NOMUSU' invalido" em PROD.
+                // Esse mesmo bug foi corrigido em resolveCodUsuByName (v1.2.73), mas este
+                // metodo (resolveCodUsuIntegracao) ficou de fora. Causa exception em
+                // applyCabecalhoParityNative e pode abortar o post-import parity update,
+                // deixando VLRNOTA do TGFCAB nao corrigido.
                 NativeSql sql = new NativeSql(jdbc);
                 sql.appendSql("SELECT TOP 1 CODUSU FROM TSIUSU ");
-                sql.appendSql("WHERE UPPER(NOMUSU)=UPPER(:user) OR UPPER(NOMEUSU)=UPPER(:user)");
+                sql.appendSql("WHERE UPPER(NOMEUSU)=UPPER(:user)");
                 sql.setNamedParameter("user", user);
                 rs = sql.executeQuery();
                 if (rs.next()) {

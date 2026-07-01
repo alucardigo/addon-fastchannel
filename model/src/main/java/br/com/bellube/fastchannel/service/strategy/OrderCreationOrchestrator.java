@@ -11,9 +11,18 @@ import java.util.logging.Logger;
 /**
  * Orquestrador de estrategias de criacao de pedidos.
  * Tenta estrategias em ordem de preferencia com fallback automatico:
- * 1. InternalAPI (preferencial - usa helpers do Sankhya)
- * 2. ServiceInvoker (fallback 1 - usa ServiceInvoker)
+ * 1. ServiceInvoker (preferencial - XML via CACSP.incluirNota, espelha legado Node.js
+ *    gbi-app-integrador, deixa Sankhya calcular VLRTOT/VLRDESC/VLRNOTA via INFORMARPRECO="True")
+ * 2. InternalAPI (fallback 1 - JAPE direto, mantido como rede de seguranca caso o XML falhe)
  * 3. HTTP (fallback 2 - chamada HTTP com autenticacao)
+ *
+ * <p><b>[2026-05-14 v1.2.77]</b> Trocada a ordem: ServiceInvoker (XML) virou primaria.
+ * Motivo: a abordagem JAPE direta do InternalApiStrategy conflitava com o recalculo nativo
+ * Sankhya (MGECOM/STP_CONFIRMANOTA2), exigindo 4 camadas de "repair" (forceItemValuesFromFc,
+ * forceVlrNotaCorrect, repairVlrNotaAfterConfirmation, FCVlrNotaRepairJob) para manter o
+ * cupom de desconto correto. O caminho XML segue a convencao Sankhya nativa - sem conflito,
+ * sem necessidade de repairs. Os repairs continuam ativos como rede de seguranca para
+ * pedidos antigos e para o caso do fallback InternalApi precisar ser usado.
  */
 public class OrderCreationOrchestrator {
 
@@ -25,8 +34,8 @@ public class OrderCreationOrchestrator {
         this.strategies = new ArrayList<>();
 
         // Ordem de preferencia (do melhor para o pior)
-        strategies.add(new InternalApiStrategy());      // 1. API Interna (preferencial)
-        strategies.add(new ServiceInvokerStrategy());   // 2. ServiceInvoker (fallback 1)
+        strategies.add(new ServiceInvokerStrategy());   // 1. ServiceInvoker XML (preferencial - espelha legado)
+        strategies.add(new InternalApiStrategy());      // 2. JAPE direto (fallback 1 - mantido como rede de seguranca)
         strategies.add(new HttpServiceStrategy());      // 3. HTTP (fallback 2 - ultimo recurso)
     }
 

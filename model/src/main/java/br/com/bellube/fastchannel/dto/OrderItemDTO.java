@@ -56,6 +56,15 @@ public class OrderItemDTO {
     @SerializedName("PaymentDiscount")
     private BigDecimal paymentDiscount;
 
+    /**
+     * [FIX 2026-04-30] Encargo financeiro do parcelamento por cartao de credito,
+     * rateado proporcionalmente neste item pelo Fastchannel. Cartao acima de 3x
+     * geralmente tem juros de parcelamento. O valor total (sum dos itens) tambem
+     * vem em OrderDTO.paymentInstallmentCost no nivel cabecalho.
+     */
+    @SerializedName("InstallmentCost")
+    private BigDecimal installmentCost;
+
     // Identificadores externos
     private String externalProductId;
     private String ean;
@@ -248,6 +257,15 @@ public class OrderItemDTO {
 
     public void setPaymentDiscount(BigDecimal paymentDiscount) {
         this.paymentDiscount = paymentDiscount;
+    }
+
+    /** [FIX 2026-04-30] Encargo de parcelamento por cartao de credito rateado neste item. */
+    public BigDecimal getInstallmentCost() {
+        return installmentCost;
+    }
+
+    public void setInstallmentCost(BigDecimal installmentCost) {
+        this.installmentCost = installmentCost;
     }
 
     public BigDecimal getCodProd() {

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<metadata>
+  <tables>
+    <table name="AD_FCCONFIG" sequenceType="A" sequenceField="CODCONFIG">
+      <description><![CDATA[Configuracao FastChannel]]></description>
+    </table>
+    <table name="AD_FCQUEUE" sequenceType="A" sequenceField="IDQUEUE">
+      <description><![CDATA[Fila FC]]></description>
+    </table>
+    <table name="AD_FCPEDIDO" sequenceType="A" sequenceField="IDPEDIDO">
+      <description><![CDATA[Pedidos FC]]></description>
+    </table>
+    <table name="AD_FCLOG" sequenceType="A" sequenceField="IDLOG">
+      <description><![CDATA[Log FC]]></description>
+    </table>
+    <table name="AD_FCDEPARA" sequenceType="A" sequenceField="IDDEPARA">
+      <description><![CDATA[DePara FC]]></description>
+    </table>
+  </tables>
+  <fields>
+    <field name="CODCONFIG" table="AD_FCCONFIG" dataType="I" presentationType="P" calculated="N" allowSearch="S" allowDefault="S" visibleOnSearch="S" isPresentation="S" order="0">
+      <description><![CDATA[Codigo]]></description>
+    </field>
+    <field name="IDQUEUE" table="AD_FCQUEUE" dataType="I" presentationType="P" calculated="N" allowSearch="S" allowDefault="S" visibleOnSearch="S" isPresentation="S" order="0">
+      <description><![CDATA[Id Fila]]></description>
+    </field>
+    <field name="IDPEDIDO" table="AD_FCPEDIDO" dataType="I" presentationType="P" calculated="N" allowSearch="S" allowDefault="S" visibleOnSearch="S" isPresentation="S" order="0">
+      <description><![CDATA[Id Pedido]]></description>
+    </field>
+    <field name="IDLOG" table="AD_FCLOG" dataType="I" presentationType="P" calculated="N" allowSearch="S" allowDefault="S" visibleOnSearch="S" isPresentation="S" order="0">
+      <description><![CDATA[Id Log]]></description>
+    </field>
+    <field name="IDDEPARA" table="AD_FCDEPARA" dataType="I" presentationType="P" calculated="N" allowSearch="S" allowDefault="S" visibleOnSearch="S" isPresentation="S" order="0">
+      <description><![CDATA[Id De Para]]></description>
+    </field>
+    <!-- [FIX 2026-04-28] Extension fields em TGFCAB (tabela nativa Sankhya).
+         Sem esta declaracao, o Sankhya nao registra a coluna no TDDDIC e o
+         VO de CabecalhoNota nao expoe o atributo, mesmo a coluna fisica
+         existindo (criada via dbscripts/V2.xml e V21.xml). Resultado:
+         "Propriedade AD_DESCONTO_FAST nao existe para o ValueObject
+         CabecalhoNota.ValueObject" em toda importacao FC.
+         dataType F = Float/Decimal (BigDecimal). -->
+    <field name="AD_DESCONTO_FAST" table="TGFCAB" dataType="F" presentationType="P" calculated="N" allowSearch="N" allowDefault="S" visibleOnSearch="N" isPresentation="N" order="0">
+      <description><![CDATA[Cupom de desconto Fastchannel]]></description>
+    </field>
+    <field name="AD_NUMFAST" table="TGFCAB" dataType="S" presentationType="P" calculated="N" allowSearch="S" allowDefault="S" visibleOnSearch="S" isPresentation="N" order="0">
+      <description><![CDATA[Numero do pedido na Fastchannel]]></description>
+    </field>
+    <field name="AD_FASTCHANNEL_ID" table="TGFCAB" dataType="S" presentationType="P" calculated="N" allowSearch="S" allowDefault="S" visibleOnSearch="S" isPresentation="N" order="0">
+      <description><![CDATA[ID do pedido na Fastchannel]]></description>
+    </field>
+    <!-- [FIX 2026-04-30] AD_PARCELAS_FAST: numero de parcelas do cartao de credito utilizado no pedido FC.
+         Util para auditoria/relatorio financeiro saber quantas parcelas teve cada pedido FC.
+         Os encargos em si (R$) sao gravados em VLRJURO (campo nativo Sankhya). -->
+    <field name="AD_PARCELAS_FAST" table="TGFCAB" dataType="I" presentationType="P" calculated="N" allowSearch="N" allowDefault="S" visibleOnSearch="N" isPresentation="N" order="0">
+      <description><![CDATA[Numero de parcelas do cartao Fastchannel]]></description>
+    </field>
+    <!-- AD_MCAPORTAL NAO declarado: a coluna nao existe fisicamente em TGFCAB
+         (nao tem dbscript). Declarar aqui causa Sankhya a tentar registrar no
+         TDDDIC e falhar com "Metadata nao encontrado" em toda chamada. O codigo
+         FC ja trata isso via supportsCabField()/hasColumn() guards: se a coluna
+         nao existir, o set eh pulado silenciosamente. -->
+  </fields>
+  <controls>
+    <control name="br.com.bellube.fastchannel.framebuilder" type="DS" childrenType="CA">
+      <description><![CDATA[FrameBuilder FastChannel]]></description>
+      <url />
+      <properties />
+    </control>
+    <control name="br.com.bellube.fastchannel.module" type="FB" childrenType="PL">
+      <description><![CDATA[FastChannel]]></description>
+      <url />
+      <properties>
+        <icon-info><![CDATA[/addon-fastchannel/assets/fastchannel-menu.jpeg]]></icon-info>
+      </properties>
+    </control>
+    <control name="br.com.bellube.fastchannel.dashboard" type="MN" childrenType="PL">
+      <description><![CDATA[Dashboard]]></description>
+      <url><![CDATA[/addon-fastchannel/html5/fastchannel/dashboard.html?mgeSession=${mge.session.id}&resourceID=${resourceID}]]></url>
+      <properties>
+        <resourceID><![CDATA[br.com.bellube.fastchannel.dashboard]]></resourceID>
+        <showMenu><![CDATA[true]]></showMenu>
+        <contexto><![CDATA[addon-fastchannel]]></contexto>
+      </properties>
+    </control>
+    <control name="br.com.bellube.fastchannel.pedidos" type="MN" childrenType="PL">
+      <description><![CDATA[Pedidos]]></description>
+      <url><![CDATA[/addon-fastchannel/html5/fastchannel/pedidos.html?mgeSession=${mge.session.id}&resourceID=${resourceID}]]></url>
+      <properties>
+        <resourceID><![CDATA[br.com.bellube.fastchannel.pedidos]]></resourceID>
+        <showMenu><![CDATA[true]]></showMenu>
+        <contexto><![CDATA[addon-fastchannel]]></contexto>
+      </properties>
+    </control>
+    <control name="br.com.bellube.fastchannel.estoque" type="MN" childrenType="PL">
+      <description><![CDATA[Estoque]]></description>
+      <url><![CDATA[/addon-fastchannel/html5/fastchannel/estoque.html?mgeSession=${mge.session.id}&resourceID=${resourceID}]]></url>
+      <properties>
+        <resourceID><![CDATA[br.com.bellube.fastchannel.estoque]]></resourceID>
+        <showMenu><![CDATA[true]]></showMenu>
+        <contexto><![CDATA[addon-fastchannel]]></contexto>
+      </properties>
+    </control>
+    <control name="br.com.bellube.fastchannel.precos" type="MN" childrenType="PL">
+      <description><![CDATA[Precos]]></description>
+      <url><![CDATA[/addon-fastchannel/html5/fastchannel/precos.html?mgeSession=${mge.session.id}&resourceID=${resourceID}]]></url>
+      <properties>
+        <resourceID><![CDATA[br.com.bellube.fastchannel.precos]]></resourceID>
+        <showMenu><![CDATA[true]]></showMenu>
+        <contexto><![CDATA[addon-fastchannel]]></contexto>
+      </properties>
+    </control>
+    <control name="br.com.bellube.fastchannel.config" type="MN" childrenType="PL">
+      <description><![CDATA[Configuracoes]]></description>
+      <url><![CDATA[/addon-fastchannel/html5/fastchannel/config.html?mgeSession=${mge.session.id}&resourceID=${resourceID}]]></url>
+      <properties>
+        <resourceID><![CDATA[br.com.bellube.fastchannel.config]]></resourceID>
+        <showMenu><![CDATA[true]]></showMenu>
+        <contexto><![CDATA[addon-fastchannel]]></contexto>
+      </properties>
+    </control>
+    <control name="br.com.bellube.fastchannel.logs" type="MN" childrenType="PL">
+      <description><![CDATA[Logs]]></description>
+      <url><![CDATA[/addon-fastchannel/html5/fastchannel/logs.html?mgeSession=${mge.session.id}&resourceID=${resourceID}]]></url>
+      <properties>
+        <resourceID><![CDATA[br.com.bellube.fastchannel.logs]]></resourceID>
+        <showMenu><![CDATA[true]]></showMenu>
+        <contexto><![CDATA[addon-fastchannel]]></contexto>
+      </properties>
+    </control>
+  </controls>
+  <controlRelations>
+    <ctrlRelationship fromCtrl="br.com.bellube.fastchannel.framebuilder" toCtrl="br.com.bellube.fastchannel.module" />
+    <ctrlRelationship fromCtrl="br.com.bellube.fastchannel.module" toCtrl="br.com.bellube.fastchannel.dashboard" />
+    <ctrlRelationship fromCtrl="br.com.bellube.fastchannel.module" toCtrl="br.com.bellube.fastchannel.pedidos" />
+    <ctrlRelationship fromCtrl="br.com.bellube.fastchannel.module" toCtrl="br.com.bellube.fastchannel.estoque" />
+    <ctrlRelationship fromCtrl="br.com.bellube.fastchannel.module" toCtrl="br.com.bellube.fastchannel.precos" />
+    <ctrlRelationship fromCtrl="br.com.bellube.fastchannel.module" toCtrl="br.com.bellube.fastchannel.config" />
+    <ctrlRelationship fromCtrl="br.com.bellube.fastchannel.module" toCtrl="br.com.bellube.fastchannel.logs" />
+  </controlRelations>
+</metadata>
