@@ -26,6 +26,27 @@ public final class FastchannelConstants {
     /** URL base da API de Price Management */
     public static final String PRICE_API_BASE = "https://api.commerce.fastchannel.com/price-management/v1";
 
+    /**
+     * URL base do API Gateway OFICIAL do Sankhya Om (fixa, hospedada pelo fornecedor —
+     * NAO e o mesmo host do ERP do cliente, ex.: skw.bellube.com.br). Validada contra o
+     * servidor real em 2026-07-03: POST /authenticate + POST /gateway/v1/{modulo}/service.sbr.
+     * Override via -Dsankhya.gateway.baseUrl para apontar ao sandbox em testes
+     * (https://api.sandbox.sankhya.com.br) sem precisar recompilar.
+     */
+    public static final String SANKHYA_GATEWAY_BASE_URL =
+            System.getProperty("sankhya.gateway.baseUrl", "https://api.sankhya.com.br");
+
+    /** Endpoint de autenticacao OAuth2 client_credentials do Gateway Sankhya (exige header X-Token). */
+    public static final String SANKHYA_GATEWAY_AUTH_PATH = "/authenticate";
+
+    /**
+     * Prefixo dos endpoints de negocio do Gateway Sankhya (proxy do service.sbr classico).
+     * CACSP.incluirNota fica no modulo "mgecom" (mesma regra ja validada em HttpServiceStrategy:
+     * login em /mge/, servicos comerciais em /mgecom/).
+     */
+    public static final String SANKHYA_GATEWAY_MGECOM_PATH = "/gateway/v1/mgecom/service.sbr";
+    public static final String SANKHYA_GATEWAY_MGE_PATH = "/gateway/v1/mge/service.sbr";
+
     // ==================== ENDPOINTS ====================
 
     // Orders

@@ -82,6 +82,15 @@ public class FCConfigService {
                 if (DbColumnSupport.hasColumn(rs, "SANKHYA_PASSWORD")) {
                     result.put("sankhyaPassword", rs.getString("SANKHYA_PASSWORD"));
                 }
+                if (DbColumnSupport.hasColumn(rs, "SANKHYA_OAUTH_CLIENT_ID")) {
+                    result.put("sankhyaOAuthClientId", rs.getString("SANKHYA_OAUTH_CLIENT_ID"));
+                }
+                if (DbColumnSupport.hasColumn(rs, "SANKHYA_OAUTH_CLIENT_SECRET")) {
+                    result.put("sankhyaOAuthClientSecret", rs.getString("SANKHYA_OAUTH_CLIENT_SECRET"));
+                }
+                if (DbColumnSupport.hasColumn(rs, "SANKHYA_GATEWAY_X_TOKEN")) {
+                    result.put("sankhyaGatewayXToken", rs.getString("SANKHYA_GATEWAY_X_TOKEN"));
+                }
                 if (DbColumnSupport.hasColumn(rs, "DISABLE_DUPLICATE_CHECK")) {
                     result.put("disableDuplicateCheck", "S".equals(rs.getString("DISABLE_DUPLICATE_CHECK")));
                 }
@@ -187,6 +196,15 @@ public class FCConfigService {
                             if (DbColumnSupport.hasColumn(readRs, "SANKHYA_PASSWORD")) {
                                 existing.put("sankhyaPassword", readRs.getString("SANKHYA_PASSWORD"));
                             }
+                            if (DbColumnSupport.hasColumn(readRs, "SANKHYA_OAUTH_CLIENT_ID")) {
+                                existing.put("sankhyaOAuthClientId", readRs.getString("SANKHYA_OAUTH_CLIENT_ID"));
+                            }
+                            if (DbColumnSupport.hasColumn(readRs, "SANKHYA_OAUTH_CLIENT_SECRET")) {
+                                existing.put("sankhyaOAuthClientSecret", readRs.getString("SANKHYA_OAUTH_CLIENT_SECRET"));
+                            }
+                            if (DbColumnSupport.hasColumn(readRs, "SANKHYA_GATEWAY_X_TOKEN")) {
+                                existing.put("sankhyaGatewayXToken", readRs.getString("SANKHYA_GATEWAY_X_TOKEN"));
+                            }
                             if (DbColumnSupport.hasColumn(readRs, "DISABLE_DUPLICATE_CHECK")) {
                                 existing.put("disableDuplicateCheck", readRs.getString("DISABLE_DUPLICATE_CHECK"));
                             }
@@ -221,6 +239,9 @@ public class FCConfigService {
             String sankhyaServerUrl = getStringOrExisting(params, "sankhyaServerUrl", existing.get("sankhyaServerUrl"));
             String sankhyaUser = getStringOrExisting(params, "sankhyaUser", existing.get("sankhyaUser"));
             String sankhyaPassword = getStringOrExisting(params, "sankhyaPassword", existing.get("sankhyaPassword"));
+            String sankhyaOAuthClientId = getStringOrExisting(params, "sankhyaOAuthClientId", existing.get("sankhyaOAuthClientId"));
+            String sankhyaOAuthClientSecret = getStringOrExisting(params, "sankhyaOAuthClientSecret", existing.get("sankhyaOAuthClientSecret"));
+            String sankhyaGatewayXToken = getStringOrExisting(params, "sankhyaGatewayXToken", existing.get("sankhyaGatewayXToken"));
             String disableDuplicateCheck = params.containsKey("disableDuplicateCheck")
                     ? (getBoolean(params, "disableDuplicateCheck") ? "S" : "N")
                     : (existing.get("disableDuplicateCheck") != null ? existing.get("disableDuplicateCheck").toString() : null);
@@ -234,6 +255,9 @@ public class FCConfigService {
             boolean hasSankhyaServerUrl = DbColumnSupport.hasColumn(conn, "AD_FCCONFIG", "SANKHYA_SERVER_URL");
             boolean hasSankhyaUser = DbColumnSupport.hasColumn(conn, "AD_FCCONFIG", "SANKHYA_USER");
             boolean hasSankhyaPassword = DbColumnSupport.hasColumn(conn, "AD_FCCONFIG", "SANKHYA_PASSWORD");
+            boolean hasSankhyaOAuthClientId = DbColumnSupport.hasColumn(conn, "AD_FCCONFIG", "SANKHYA_OAUTH_CLIENT_ID");
+            boolean hasSankhyaOAuthClientSecret = DbColumnSupport.hasColumn(conn, "AD_FCCONFIG", "SANKHYA_OAUTH_CLIENT_SECRET");
+            boolean hasSankhyaGatewayXToken = DbColumnSupport.hasColumn(conn, "AD_FCCONFIG", "SANKHYA_GATEWAY_X_TOKEN");
             boolean hasDisableDuplicateCheck = DbColumnSupport.hasColumn(conn, "AD_FCCONFIG", "DISABLE_DUPLICATE_CHECK");
             boolean hasEmailNotificacao = DbColumnSupport.hasColumn(conn, "AD_FCCONFIG", "EMAIL_NOTIFICACAO");
             boolean hasEmailHabilitado = DbColumnSupport.hasColumn(conn, "AD_FCCONFIG", "EMAIL_HABILITADO");
@@ -264,6 +288,9 @@ public class FCConfigService {
                 if (hasSankhyaServerUrl) sql += ", SANKHYA_SERVER_URL";
                 if (hasSankhyaUser) sql += ", SANKHYA_USER";
                 if (hasSankhyaPassword) sql += ", SANKHYA_PASSWORD";
+                if (hasSankhyaOAuthClientId) sql += ", SANKHYA_OAUTH_CLIENT_ID";
+                if (hasSankhyaOAuthClientSecret) sql += ", SANKHYA_OAUTH_CLIENT_SECRET";
+                if (hasSankhyaGatewayXToken) sql += ", SANKHYA_GATEWAY_X_TOKEN";
                 if (hasDisableDuplicateCheck) sql += ", DISABLE_DUPLICATE_CHECK";
                 if (hasEmailNotificacao) sql += ", EMAIL_NOTIFICACAO";
                 if (hasEmailHabilitado) sql += ", EMAIL_HABILITADO";
@@ -280,6 +307,9 @@ public class FCConfigService {
                 if (hasSankhyaServerUrl) sql += ", ?";
                 if (hasSankhyaUser) sql += ", ?";
                 if (hasSankhyaPassword) sql += ", ?";
+                if (hasSankhyaOAuthClientId) sql += ", ?";
+                if (hasSankhyaOAuthClientSecret) sql += ", ?";
+                if (hasSankhyaGatewayXToken) sql += ", ?";
                 if (hasDisableDuplicateCheck) sql += ", ?";
                 if (hasEmailNotificacao) sql += ", ?";
                 if (hasEmailHabilitado) sql += ", ?";
@@ -309,6 +339,9 @@ public class FCConfigService {
                 if (hasSankhyaServerUrl) sql += ", SANKHYA_SERVER_URL = ?";
                 if (hasSankhyaUser) sql += ", SANKHYA_USER = ?";
                 if (hasSankhyaPassword) sql += ", SANKHYA_PASSWORD = ?";
+                if (hasSankhyaOAuthClientId) sql += ", SANKHYA_OAUTH_CLIENT_ID = ?";
+                if (hasSankhyaOAuthClientSecret) sql += ", SANKHYA_OAUTH_CLIENT_SECRET = ?";
+                if (hasSankhyaGatewayXToken) sql += ", SANKHYA_GATEWAY_X_TOKEN = ?";
                 if (hasDisableDuplicateCheck) sql += ", DISABLE_DUPLICATE_CHECK = ?";
                 if (hasEmailNotificacao) sql += ", EMAIL_NOTIFICACAO = ?";
                 if (hasEmailHabilitado) sql += ", EMAIL_HABILITADO = ?";
@@ -365,6 +398,9 @@ public class FCConfigService {
             if (hasSankhyaServerUrl) stmt.setString(idx++, sankhyaServerUrl);
             if (hasSankhyaUser) stmt.setString(idx++, sankhyaUser);
             if (hasSankhyaPassword) stmt.setString(idx++, sankhyaPassword);
+            if (hasSankhyaOAuthClientId) stmt.setString(idx++, sankhyaOAuthClientId);
+            if (hasSankhyaOAuthClientSecret) stmt.setString(idx++, sankhyaOAuthClientSecret);
+            if (hasSankhyaGatewayXToken) stmt.setString(idx++, sankhyaGatewayXToken);
             if (hasDisableDuplicateCheck) stmt.setString(idx++, disableDuplicateCheck);
             if (hasEmailNotificacao) stmt.setString(idx++, emailNotificacao);
             if (hasEmailHabilitado) stmt.setString(idx++, emailHabilitado);

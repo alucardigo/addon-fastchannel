@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alteracoes>
+    <!--
+        V23 - 2026-07-03
+        Rota da API Oficial do Sankhya (Sankhya Om / Gateway OAuth2).
+
+        Ate aqui a criacao de pedidos dependia de 3 estrategias que usam autenticacao
+        LEGADA (MobileLoginSP.login + JSESSIONID) ou invocacao interna JAPE (fragil a
+        classloader/versao do servidor - ver incidentes documentados no CHANGELOG:
+        "Gerenciador de sessao nao foi iniciado", "Nenhum provedor encontrado", base
+        desregistrada apos update v4670000).
+
+        SANKHYA_OAUTH_CLIENT_ID / SANKHYA_OAUTH_CLIENT_SECRET guardam as credenciais do
+        aplicativo registrado no Portal do Desenvolvedor Sankhya (Area do Desenvolvedor
+        > Minhas solucoes > Addon-Fastchannel-APISANKYA), usadas para autenticar via
+        OAuth2 client_credentials em POST /mge/oauth/token - o metodo de autenticacao
+        OFICIAL e documentado da Sankhya Om, com token cacheado e renovado automaticamente
+        (menos round-trips que login/logout por pedido, mais estavel que sessao raspada
+        de header/cookie).
+
+        Usado por OfficialApiStrategy (service/strategy) como nova rota de criacao de
+        pedido, adicionada ao fallback do OrderCreationOrchestrator.
+    -->
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="SANKHYA_OAUTH_CLIENT_ID" ordem="1" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_OAUTH_CLIENT_ID VARCHAR2(100)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_OAUTH_CLIENT_ID VARCHAR(100)
+        </mssql>
+    </sql>
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="SANKHYA_OAUTH_CLIENT_SECRET" ordem="2" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_OAUTH_CLIENT_SECRET VARCHAR2(200)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_OAUTH_CLIENT_SECRET VARCHAR(200)
+        </mssql>
+    </sql>
+    <!--
+        SANKHYA_GATEWAY_X_TOKEN: "Token de Integracao" gerado na tela Configuracoes
+        Gateway do ERP (Administracao > Gateway), vinculado ao usuario de integracao
+        (ex.: CODUSU=167) e ao componente registrado no Portal do Desenvolvedor.
+        Exigido como header X-Token em TODA chamada POST /authenticate — validado
+        contra o servidor real em 2026-07-03 (a chamada falha com client_id/secret
+        corretos mas SEM X-Token).
+    -->
+    <sql nomeTabela="AD_FCCONFIG" nomeObjeto="SANKHYA_GATEWAY_X_TOKEN" ordem="3" executar="SE_NAO_EXISTIR" tipoObjeto="COLUMN">
+        <oracle>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_GATEWAY_X_TOKEN VARCHAR2(100)
+        </oracle>
+        <mssql>
+            ALTER TABLE AD_FCCONFIG ADD SANKHYA_GATEWAY_X_TOKEN VARCHAR(100)
+        </mssql>
+    </sql>
+</alteracoes>

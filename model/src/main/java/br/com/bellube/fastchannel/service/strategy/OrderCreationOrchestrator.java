@@ -13,8 +13,10 @@ import java.util.logging.Logger;
  * Tenta estrategias em ordem de preferencia com fallback automatico:
  * 1. ServiceInvoker (preferencial - XML via CACSP.incluirNota, espelha legado Node.js
  *    gbi-app-integrador, deixa Sankhya calcular VLRTOT/VLRDESC/VLRNOTA via INFORMARPRECO="True")
- * 2. InternalAPI (fallback 1 - JAPE direto, mantido como rede de seguranca caso o XML falhe)
- * 3. HTTP (fallback 2 - chamada HTTP com autenticacao)
+ * 2. OfficialAPI (API Oficial Sankhya Om via OAuth2 client_credentials - so entra na
+ *    lista se as credenciais estiverem configuradas; ver isAvailable())
+ * 3. InternalAPI (fallback - JAPE direto, mantido como rede de seguranca caso o XML falhe)
+ * 4. HTTP (ultimo recurso - chamada HTTP com login legado usuario/senha)
  *
  * <p><b>[2026-05-14 v1.2.77]</b> Trocada a ordem: ServiceInvoker (XML) virou primaria.
  * Motivo: a abordagem JAPE direta do InternalApiStrategy conflitava com o recalculo nativo
@@ -23,6 +25,16 @@ import java.util.logging.Logger;
  * cupom de desconto correto. O caminho XML segue a convencao Sankhya nativa - sem conflito,
  * sem necessidade de repairs. Os repairs continuam ativos como rede de seguranca para
  * pedidos antigos e para o caso do fallback InternalApi precisar ser usado.
+ *
+ * <p><b>[2026-07-03 v1.2.92]</b> Adicionada OfficialApiStrategy em 2o lugar: usa o MESMO
+ * servico CACSP.incluirNota do ServiceInvoker, mas autenticado via OAuth2 client_credentials
+ * (aplicativo registrado no Portal do Desenvolvedor Sankhya) em vez de sessao legada. Entra
+ * ANTES do InternalApi/HTTP porque e um metodo de autenticacao oficial/documentado e mais
+ * estavel a mudancas de versao do servidor do que invocacao JAPE interna ou raspagem de
+ * JSESSIONID (ver historico de incidentes: "Gerenciador de sessao nao foi iniciado",
+ * "Nenhum provedor encontrado", base desregistrada apos update v4670000 - CHANGELOG.md).
+ * So entra na tentativa se SANKHYA_OAUTH_CLIENT_ID/SECRET estiverem configurados
+ * (isAvailable() fail-safe); sem credenciais, o orquestrador pula direto para o proximo.
  */
 public class OrderCreationOrchestrator {
 
@@ -35,8 +47,9 @@ public class OrderCreationOrchestrator {
 
         // Ordem de preferencia (do melhor para o pior)
         strategies.add(new ServiceInvokerStrategy());   // 1. ServiceInvoker XML (preferencial - espelha legado)
-        strategies.add(new InternalApiStrategy());      // 2. JAPE direto (fallback 1 - mantido como rede de seguranca)
-        strategies.add(new HttpServiceStrategy());      // 3. HTTP (fallback 2 - ultimo recurso)
+        strategies.add(new OfficialApiStrategy());      // 2. API Oficial Sankhya (OAuth2 - estavel/documentada)
+        strategies.add(new InternalApiStrategy());      // 3. JAPE direto (fallback - mantido como rede de seguranca)
+        strategies.add(new HttpServiceStrategy());      // 4. HTTP legado (ultimo recurso)
     }
 
     /**

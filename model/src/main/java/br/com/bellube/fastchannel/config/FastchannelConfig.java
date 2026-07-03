@@ -53,6 +53,9 @@ public class FastchannelConfig {
     private String sankhyaServerUrl;
     private String sankhyaUser;
     private String sankhyaPassword;
+    private String sankhyaOAuthClientId;
+    private String sankhyaOAuthClientSecret;
+    private String sankhyaGatewayXToken;
     private Integer uiSourceDefault;
     private boolean uiEnableSource2;
     private boolean uiEnableSource3;
@@ -189,6 +192,21 @@ public class FastchannelConfig {
         this.sankhyaServerUrl = rs.getString("SANKHYA_SERVER_URL");
         this.sankhyaUser = rs.getString("SANKHYA_USER");
         this.sankhyaPassword = rs.getString("SANKHYA_PASSWORD");
+        if (DbColumnSupport.hasColumn(rs, "SANKHYA_OAUTH_CLIENT_ID")) {
+            this.sankhyaOAuthClientId = rs.getString("SANKHYA_OAUTH_CLIENT_ID");
+        } else {
+            this.sankhyaOAuthClientId = null;
+        }
+        if (DbColumnSupport.hasColumn(rs, "SANKHYA_OAUTH_CLIENT_SECRET")) {
+            this.sankhyaOAuthClientSecret = rs.getString("SANKHYA_OAUTH_CLIENT_SECRET");
+        } else {
+            this.sankhyaOAuthClientSecret = null;
+        }
+        if (DbColumnSupport.hasColumn(rs, "SANKHYA_GATEWAY_X_TOKEN")) {
+            this.sankhyaGatewayXToken = rs.getString("SANKHYA_GATEWAY_X_TOKEN");
+        } else {
+            this.sankhyaGatewayXToken = null;
+        }
 
         if (DbColumnSupport.hasColumn(rs, "UI_SOURCE_DEFAULT")) {
             Object raw = rs.getObject("UI_SOURCE_DEFAULT");
@@ -462,6 +480,46 @@ public class FastchannelConfig {
     public String getSankhyaPassword() {
         checkCacheValidity();
         return sankhyaPassword;
+    }
+
+    /**
+     * Client ID do aplicativo registrado no Portal do Desenvolvedor Sankhya
+     * (Area do Desenvolvedor > Minhas solucoes), usado para autenticacao OAuth2
+     * client_credentials na API Oficial (Sankhya Om Gateway).
+     */
+    public String getSankhyaOAuthClientId() {
+        checkCacheValidity();
+        return sankhyaOAuthClientId;
+    }
+
+    public String getSankhyaOAuthClientSecret() {
+        checkCacheValidity();
+        return sankhyaOAuthClientSecret;
+    }
+
+    /**
+     * "Token de Integracao" (header X-Token) gerado na tela Configuracoes Gateway do ERP
+     * (Administracao {@literal >} Gateway), vinculado ao usuario de integracao e ao
+     * componente registrado no Portal do Desenvolvedor. EXIGIDO em toda chamada
+     * POST /authenticate — confirmado contra o servidor real em 2026-07-03.
+     */
+    public String getSankhyaGatewayXToken() {
+        checkCacheValidity();
+        return sankhyaGatewayXToken;
+    }
+
+    /**
+     * True se as credenciais da API Oficial (Client ID + Secret + X-Token do Gateway)
+     * estao configuradas. Usado por OfficialApiStrategy.isAvailable(). O host do Gateway
+     * e FIXO (FastchannelConstants.SANKHYA_GATEWAY_BASE_URL, hospedado pelo fornecedor),
+     * nao depende de SANKHYA_SERVER_URL (esse e o host do ERP do cliente, usado pelas
+     * outras estrategias).
+     */
+    public boolean isSankhyaOAuthConfigured() {
+        checkCacheValidity();
+        return sankhyaOAuthClientId != null && !sankhyaOAuthClientId.trim().isEmpty()
+                && sankhyaOAuthClientSecret != null && !sankhyaOAuthClientSecret.trim().isEmpty()
+                && sankhyaGatewayXToken != null && !sankhyaGatewayXToken.trim().isEmpty();
     }
 
     public Integer getUiSourceDefault() {

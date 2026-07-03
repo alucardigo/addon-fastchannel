@@ -1,5 +1,67 @@
 # CHANGELOG
 
+## 2026-07-03 - v1.2.92 (FEATURE: rota API Oficial do Sankhya — OAuth2/Gateway — na criação de pedidos)
+
+### Pedido
+"Melhora a estabilidade da integração e a fluência da integração acrescentando a rota de API
+Oficial do Sankhya" — o usuário registrou um componente ("Addon-Fastchannel-APISANKYA") no
+Portal do Desenvolvedor Sankhya (Client ID/Secret de Produção e Sandbox) e configurou a tela
+"Configurações Gateway" do ERP (Token de Integração vinculado ao usuário 167).
+
+### O que foi implementado
+Nova estratégia `OfficialApiStrategy` adicionada ao `OrderCreationOrchestrator` (2ª posição,
+logo após ServiceInvoker), autenticada via **OAuth2 client_credentials** contra o **Gateway
+oficial do Sankhya Om** — método de autenticação documentado e suportado pelo fornecedor, em
+contraste com o login legado usuário/senha + JSESSIONID (raspado de body/header) usado pelas
+demais estratégias.
+
+**Ganhos:**
+- **Estabilidade**: contrato de autenticação estável entre versões do servidor (não depende de
+  parsing de sessão interna que já quebrou silenciosamente — ver incidente v4670000 desregistrando
+  a base, "Nenhum provedor encontrado" no CHANGELOG histórico).
+- **Fluência**: o access token é **cacheado e reutilizado** por `SankhyaOAuthManager` (renovado
+  automaticamente ~60s antes de expirar) — elimina o round-trip de login+logout que
+  `HttpServiceStrategy` paga a CADA pedido criado.
+
+### Descoberta importante durante a implementação (documentação ≠ realidade validada)
+A pesquisa inicial (documentação genérica) assumia OAuth2 contra o **próprio host do ERP**
+(`{SANKHYA_SERVER_URL}/mge/oauth/token`) — **testado contra o servidor real e rejeitado**
+("HTTP method POST is not supported by this URL"). A investigação da documentação oficial viva
+(developer.sankhya.com.br) revelou o contrato real, **validado com credenciais de produção
+reais antes de codificar**:
+- Host do Gateway é **fixo/hospedado pelo fornecedor** (`api.sankhya.com.br`), não o host do
+  cliente.
+- `POST /authenticate` exige **header `X-Token`** (o "Token de Integração" da tela Configurações
+  Gateway) **além de** `client_id`/`client_secret` no body — sem o X-Token a chamada falha mesmo
+  com credenciais corretas.
+- Chamadas de negócio (`CACSP.incluirNota`) vão para
+  `POST /gateway/v1/mgecom/service.sbr?serviceName=CACSP.incluirNota&outputType=json` (mesma
+  regra `/mge` login + `/mgecom` serviço já documentada), com corpo **JSON** (não XML) e
+  `Authorization: Bearer <token>`.
+- Validado end-to-end contra produção: `/authenticate` retornou HTTP 200 com JWT válido (claims
+  confirmam o app "Addon-Fastchannel-APISANKYA" e "BEL DISTRIBUIDOR DE LUBRIFICANTES LTDA"); uma
+  chamada de **leitura** (`loadRecords` no parceiro 15680) via Bearer retornou dados reais,
+  confirmando toda a cadeia de autenticação/autorização. A chamada de **escrita**
+  (`CACSP.incluirNota`) não foi testada em produção por ser destrutiva (criaria uma nota real) —
+  a implementação reaproveita o `OrderXmlBuilder` já testado em produção (mesmos campos que
+  `ServiceInvokerStrategy`/`HttpServiceStrategy` usam) e apenas transcreve o XML gerado para o
+  formato JSON documentado; qualquer divergência de contrato nesta chamada específica é absorvida
+  pelo fallback automático do orquestrador (ServiceInvoker já criava o pedido corretamente antes
+  desta mudança, e continua sendo tentado primeiro).
+
+### Configuração (nova, opcional — feature fail-safe se não configurada)
+`AD_FCCONFIG.SANKHYA_OAUTH_CLIENT_ID` / `SANKHYA_OAUTH_CLIENT_SECRET` / `SANKHYA_GATEWAY_X_TOKEN`
+(migração `dbscripts/V23.xml`). Editáveis pela tela de Configurações do addon (`FCConfigService`).
+Sem essas 3 credenciais preenchidas, `OfficialApiStrategy.isAvailable()` retorna `false` e o
+orquestrador pula direto para a próxima estratégia — nenhum comportamento existente muda.
+
+### Novos componentes
+- `service/auth/SankhyaOAuthManager.java` — fetch/cache/refresh do token OAuth2.
+- `service/strategy/OfficialApiStrategy.java` — nova estratégia de criação de pedido, incluindo
+  transliteração XML→JSON (`xmlElementToJson`) reaproveitando o `OrderXmlBuilder` existente.
+- `FastchannelConstants.SANKHYA_GATEWAY_*` — URLs fixas do Gateway (override via
+  `-Dsankhya.gateway.baseUrl` para testes em sandbox).
+
 ## 2026-06-15 - v1.2.91 (HARDEN: escalonado expirado removido de forma confiável — janela do AutoSweep 2→30 dias)
 
 ### Sintoma reportado (Vitoria / Bel Lube)
